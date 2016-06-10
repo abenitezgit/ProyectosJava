@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?><!--
+        *** GENERATED FROM jax-ws.xml - DO NOT EDIT !                             ***
+        *** TO MODIFY wsimport options USE Web Service node -> Edit WS Attributes ***
+        *** TO CHANGE TARGETS GENERATED TO jaxws-build.xml COPY THOSE             ***
+        *** TARGETS TO ../build.xml AND MODIFY THAT FILE INSTEAD                  ***
+
+        --><project xmlns:j2seproject3="http://www.netbeans.org/ns/j2se-project/3" xmlns:xalan="http://xml.apache.org/xslt" xmlns:jaxws="http://www.netbeans.org/ns/jax-ws/1">
+    <!--
+                ===================
+                JAX-WS WSIMPORT SECTION
+                ===================
+            -->
+    <target name="wsimport-init" depends="init">
+        <mkdir dir="${build.generated.sources.dir}/jax-ws"/>
+        <taskdef name="wsimport" classname="com.sun.tools.ws.ant.WsImport">
+            <classpath path="${libs.jaxws21.classpath}"/>
+        </taskdef>
+    </target>
+    <target name="wsimport-client-_singlewsdl" depends="wsimport-init">
+        <mkdir dir="${build.generated.dir}/jax-wsCache/_singlewsdl"/>
+        <property name="wsdl-_singlewsdl" location="xml-resources/web-service-references/_singlewsdl/wsdl/172.16.83.166_8733/WcfGuiModel/ServiceModel/.singlewsdl.wsdl"/>
+        <wsimport sourcedestdir="${build.generated.dir}/jax-wsCache/_singlewsdl" destdir="${build.generated.dir}/jax-wsCache/_singlewsdl" wsdl="${wsdl-_singlewsdl}" catalog="catalog.xml" extension="true" verbose="true" fork="false" wsdlLocation="http://172.16.83.166:8733/WcfGuiModel/ServiceModel/?singlewsdl" xnocompile="true" xendorsed="true" package="javaapplication14">
+            <depends file="${wsdl-_singlewsdl}"/>
+            <produces dir="${build.generated.dir}/jax-wsCache/_singlewsdl"/>
+        </wsimport>
+        <copy todir="${build.generated.sources.dir}/jax-ws">
+            <fileset dir="${build.generated.dir}/jax-wsCache/_singlewsdl">
+                <include name="**/*.java"/>
+            </fileset>
+        </copy>
+    </target>
+    <target name="wsimport-client-clean-_singlewsdl" depends="-init-project">
+        <delete dir="${build.generated.dir}/jax-wsCache/_singlewsdl"/>
+        <delete dir="${build.generated.sources.dir}/jax-ws/javaapplication14"/>
+    </target>
+    <target name="wsimport-client-generate" depends="wsimport-client-_singlewsdl"/>
+</project>

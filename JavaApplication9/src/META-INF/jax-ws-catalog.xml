@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="system">
+    <system systemId="http://172.16.83.163:8000/Servicios/Servicio?Wsdl" uri="wsdl/172.16.83.163_8000/Servicios/Servicio.wsdl"/>
+    <system systemId="http://172.16.83.163:8000/Servicios/Servicio?wsdl=wsdl0" uri="wsdl/172.16.83.163_8000/Servicios/Servicio.wsdl_wsdl0.wsdl"/>
+    <system systemId="http://172.16.83.163:8000/Servicios/Servicio?xsd=xsd0" uri="wsdl/172.16.83.163_8000/Servicios/Servicio.xsd_xsd0.xsd"/>
+    <system systemId="http://172.16.83.163:8000/Servicios/Servicio?xsd=xsd1" uri="wsdl/172.16.83.163_8000/Servicios/Servicio.xsd_xsd1.xsd"/>
+    <system systemId="http://172.16.83.163:8000/Servicios/Servicio?xsd=xsd2" uri="wsdl/172.16.83.163_8000/Servicios/Servicio.xsd_xsd2.xsd"/>
+    <system systemId="http://172.16.83.165:8733/Service1/?singleWsdl" uri="wsdl/172.16.83.165_8733/Service1/.singlewsdl.wsdl"/>
+</catalog>

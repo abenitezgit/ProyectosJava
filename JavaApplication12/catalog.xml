@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="system">
+    <system systemId="http://172.16.83.165:8733/Service1/?singleWsdl" uri="xml-resources/web-service-references/_singleWsdl/wsdl/172.16.83.165_8733/Service1/.singlewsdl.wsdl"/>
+    <system systemId="http://172.16.83.166:8733/WcfGuiModel/Service1/?singleWsdl" uri="xml-resources/web-service-references/_singleWsdl_1/wsdl/172.16.83.166_8733/WcfGuiModel/Service1/.singlewsdl.wsdl"/>
+</catalog>
