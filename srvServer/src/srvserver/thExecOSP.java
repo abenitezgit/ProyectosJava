@@ -13,12 +13,12 @@ import utilities.srvRutinas;
  * @author andresbenitez
  */
 public class thExecOSP extends Thread{
-    static srvRutinas gRutinas;
+    static srvRutinas gSub;
     static globalAreaData gDatos;
     
     public thExecOSP(globalAreaData m) {
         gDatos = m;
-        gRutinas = new srvRutinas(gDatos);
+        gSub = new srvRutinas(gDatos);
         
 
     }
