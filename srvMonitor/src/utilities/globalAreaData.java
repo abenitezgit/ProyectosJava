@@ -6,6 +6,8 @@
 package utilities;
 
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.sql.Connection;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -49,6 +51,8 @@ public class globalAreaData {
     //Parametros de Acceso a Metada
     //
     private String dbType;
+    private boolean isMetadataConnect;
+    private Connection metadataConnection;
     
     //Parametros ORA Metadata
     private String dbORAHost;
@@ -67,6 +71,22 @@ public class globalAreaData {
     
     
     //Declarion de Metodos de GET / SET
+
+    public Connection getMetadataConnection() {
+        return metadataConnection;
+    }
+
+    public void setMetadataConnection(Connection metadataConnection) {
+        this.metadataConnection = metadataConnection;
+    }
+    
+    public boolean isIsMetadataConnect() {
+        return isMetadataConnect;
+    }
+
+    public void setIsMetadataConnect(boolean isMetadataConnect) {
+        this.isMetadataConnect = isMetadataConnect;
+    }
 
     public String getDriver() {
         return Driver;
@@ -348,6 +368,7 @@ public class globalAreaData {
 
             srvGetParam = false;
             srvActive = true;
+            isMetadataConnect = false;
 
             //Extrae Fecha de Hoy
             //
@@ -359,7 +380,7 @@ public class globalAreaData {
             srvStart = formatter.format(today);                
             srvLoadParam = true;
             
-        } catch (Exception e) {
+        } catch (IOException | NumberFormatException e) {
             srvLoadParam = false;
             System.out.println("Error: "+e.getMessage());
         }
