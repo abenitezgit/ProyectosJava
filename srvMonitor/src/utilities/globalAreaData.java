@@ -36,7 +36,8 @@ public class globalAreaData {
 
     
     //Variables Operacionales
-    private List<String> acceptedTypeProc = new ArrayList<>();
+    private List<String> activeTypeProc = new ArrayList<>();
+    private List<String> assignedTypeProc = new ArrayList<>();
     private List<String> serviceStatus = new ArrayList<>();
     
        
@@ -69,8 +70,25 @@ public class globalAreaData {
     private String dbSQLInstance;
     private String dbSQLDbName;
     
-    
+
+
     //Declarion de Metodos de GET / SET
+        
+    public List<String> getActiveTypeProc() {
+        return activeTypeProc;
+    }
+
+    public void setActiveTypeProc(List<String> activeTypeProc) {
+        this.activeTypeProc = activeTypeProc;
+    }
+
+    public List<String> getAssignedTypeProc() {
+        return assignedTypeProc;
+    }
+    
+    public void setAssignedTypeProc(List<String> assignedTypeProc) {    
+        this.assignedTypeProc = assignedTypeProc;
+    }
 
     public Connection getMetadataConnection() {
         return metadataConnection;
@@ -174,14 +192,6 @@ public class globalAreaData {
 
     public void setSrvLoadParam(boolean srvLoadParam) {
         this.srvLoadParam = srvLoadParam;
-    }
-
-    public List<String> getAcceptedTypeProc() {
-        return acceptedTypeProc;
-    }
-
-    public void setAcceptedTypeProc(List<String> acceptedTypeProc) {
-        this.acceptedTypeProc = acceptedTypeProc;
     }
 
     public List<String> getServiceStatus() {

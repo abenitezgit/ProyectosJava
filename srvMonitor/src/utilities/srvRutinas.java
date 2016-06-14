@@ -140,6 +140,21 @@ public class srvRutinas {
             
         return mainjo.toString();
     }
+    
+    public void putExecOSP(String inputData) {
+        try {
+            JSONObject ds = new JSONObject(inputData);
+            JSONArray rows = ds.getJSONArray("params");
+            JSONObject row = rows.getJSONObject(0); //Recupera el primero registro de la lista
+            
+            
+            
+            
+            
+        } catch (Exception e) {
+            sysOutln(e);
+        }    
+    }
 
 
     public String getStatusServices() {

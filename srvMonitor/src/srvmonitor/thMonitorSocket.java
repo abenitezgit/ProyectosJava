@@ -68,6 +68,10 @@ public class thMonitorSocket extends Thread {
                                 case "getStatus":
                                     outputData = gSub.getStatusServices();
                                     break;
+                                case "putExecOSP":
+                                    gSub.putExecOSP(inputData);
+                                    outputData = gSub.sendOkTX();
+                                    break;
                                 default:
                                     outputData = "{unknow request}";
                             }
