@@ -29,6 +29,8 @@ public class globalAreaData {
     private String monPort;
     private boolean srvLoadParam;
     private String authKey;
+    private String Driver;
+    private String ConnString;
 
     
     //Variables Operacionales
@@ -66,6 +68,22 @@ public class globalAreaData {
     
     //Declarion de Metodos de GET / SET
 
+    public String getDriver() {
+        return Driver;
+    }
+
+    public void setDriver(String Driver) {
+        this.Driver = Driver;
+    }
+
+    public String getConnString() {
+        return ConnString;
+    }
+
+    public void setConnString(String ConnString) {
+        this.ConnString = ConnString;
+    }
+    
     public String getAuthKey() {
         return authKey;
     }
@@ -298,6 +316,8 @@ public class globalAreaData {
             monPort = fileConf.getProperty("monPort");
             numProcMax = Integer.valueOf(fileConf.getProperty("numProcMax"));
             authKey = fileConf.getProperty("authKey");
+            Driver = fileConf.getProperty("Driver");
+            ConnString = fileConf.getProperty("ConnString");
             
             //Recupera Parametros de la Metadata
             dbType = fileConf.getProperty("dbType");

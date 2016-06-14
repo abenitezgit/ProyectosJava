@@ -7,8 +7,13 @@ package srvmonitor;
 
 import utilities.globalAreaData;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import utilities.srvRutinas;
 
 /**
@@ -19,9 +24,11 @@ public class srvMonitor {
     static globalAreaData gDatos;
     static srvRutinas gSub;
     static boolean isSocketActive;
+    static Connection dbConnection;
+    static boolean isMetadataConnect;
     
     public srvMonitor() throws IOException {
-        
+        isMetadataConnect = false;
     }   
 
     //Aplicacion Servidor
@@ -83,7 +90,29 @@ public class srvMonitor {
                 }
             }
             
-            //
+            //Establece Conexión a Metadata
+            if (!isMetadataConnect) {
+                if (gDatos.getDbType().equals("ORA")) {
+                    try {
+                        Class.forName(gDatos.getDriver());
+                        //isMetadataConnect = true;
+                    } catch (ClassNotFoundException ex) {
+                        Logger.getLogger(srvMonitor.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    try {
+                        dbConnection = DriverManager.getConnection(gDatos.getConnString(), gDatos.getDbORAUser(), gDatos.getDbORAPass());
+                        isMetadataConnect = true;
+                        System.out.println("Conectado a Metadata");
+                    } catch (SQLException ex) {
+                        System.out.println("No es posible conectarse a Metadata. Error: "+ ex.getMessage());
+                    }
+                    
+                
+                }
+                if (gDatos.getDbType().equals("SQL")) {
+                    isMetadataConnect = true;
+                }
+            }
         
         }
             
