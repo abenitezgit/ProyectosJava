@@ -7,12 +7,6 @@ package srvserver;
 import utilities.globalAreaData;
 import java.io.* ; 
 import java.net.* ;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import utilities.srvGetPosMethods;
 import utilities.srvRutinas;
 
 /**
@@ -36,9 +30,9 @@ public class thServerSocket extends Thread {
     public void run() {
         try {
             gSub.sysOutln("Starting Listener Thread Service Server port: " + gDatos.getSrvPort());
-            String inputData = "";
-            String outputData = "";
-            String request = "";
+            String inputData;
+            String outputData;
+            String request;
             String auth;
             
             ServerSocket skServidor = new ServerSocket(Integer.valueOf(gDatos.getSrvPort()));
@@ -68,7 +62,7 @@ public class thServerSocket extends Thread {
 
                             switch (request) {
                                 case "getStatus":
-                                    outputData = gSub.sendDataKeep();
+                                    outputData = gSub.sendDataKeep("request");
                                     break;
                                 case "getDate":
                                     outputData = gSub.sendDate();
@@ -85,8 +79,6 @@ public class thServerSocket extends Thread {
                         System.out.println("servico offline para realizar acciones");
                         outputData = gSub.sendError(80);
                     }
-                                        
-
                 } catch (Exception e) {
                     outputData = gSub.sendError(90);
                 }
@@ -110,7 +102,7 @@ public class thServerSocket extends Thread {
                 skCliente.close();
             }
         
-        } catch (Exception e) {
+        } catch (NumberFormatException | IOException e) {
             System.out.println("thSocket error: "+e.getMessage());
         }
     }

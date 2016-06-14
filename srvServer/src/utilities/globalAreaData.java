@@ -6,6 +6,7 @@
 package utilities;
 
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -25,7 +26,7 @@ public class globalAreaData {
     private String srvPort;          //Puerto del Socket Server     
     private String srvStart;         //Fecha Inicio del Servicio
     private String srvHost;
-    private boolean srvGetParam;     //Indica si recibio o no los parametros de configuracion de servicios
+    private boolean srvGetTypeProc;     //Indica si recibio o no los parametros de configuracion de servicios
     private boolean srvActive;       //indice si Servicio se encuentra activo o no
     private boolean srvLoadParam;
     private String monPort;
@@ -35,9 +36,9 @@ public class globalAreaData {
 
     
     //Variables Operacionales
-    List<String> acceptedTypeProc = new ArrayList<>();
     List<String> activeTypeProc = new ArrayList<>();
-
+    List<String> assignedTypeProc = new ArrayList<>();
+    List<String> executedTypeProc = new ArrayList<>();
        
     //Parametros de Control Online
     //
@@ -47,6 +48,30 @@ public class globalAreaData {
     
     //Metodos de Acceso a los Datos
     //
+
+    public List<String> getExecutedTypeProc() {
+        return executedTypeProc;
+    }
+
+    public void setExecutedTypeProc(List<String> executedTypeProc) {
+        this.executedTypeProc = executedTypeProc;
+    }
+
+    public List<String> getAssignedTypeProc() {
+        return assignedTypeProc;
+    }
+
+    public void setAssignedTypeProc(List<String> assignedTypeProc) {
+        this.assignedTypeProc = assignedTypeProc;
+    }
+
+    public boolean isSrvGetTypeProc() {
+        return srvGetTypeProc;
+    }
+
+    public void setSrvGetTypeProc(boolean srvGetTypeProc) {
+        this.srvGetTypeProc = srvGetTypeProc;
+    }
 
     public String getSrvMonHost() {
         return srvMonHost;
@@ -96,14 +121,6 @@ public class globalAreaData {
         this.srvHost = srvHost;
     }
 
-    public boolean isSrvGetParam() {
-        return srvGetParam;
-    }
-
-    public void setSrvGetParam(boolean srvGetParam) {
-        this.srvGetParam = srvGetParam;
-    }
-
     public boolean isSrvActive() {
         return srvActive;
     }
@@ -142,14 +159,6 @@ public class globalAreaData {
 
     public void setAuthKey(String authKey) {
         this.authKey = authKey;
-    }
-
-    public List<String> getAcceptedTypeProc() {
-        return acceptedTypeProc;
-    }
-
-    public void setAcceptedTypeProc(List<String> acceptedTypeProc) {
-        this.acceptedTypeProc = acceptedTypeProc;
     }
 
     public List<String> getActiveTypeProc() {
@@ -210,7 +219,7 @@ public class globalAreaData {
                 numProcExec = 0;
                 numTotalExec = 0;
                 
-                srvGetParam = false;
+                srvGetTypeProc = false;
                 srvActive = true;
 
                 
@@ -225,7 +234,7 @@ public class globalAreaData {
                 
                 srvLoadParam= true;
                 
-            } catch (Exception e) {
+            } catch (IOException | NumberFormatException e) {
                 srvLoadParam = false;
                 System.out.println("GA Error: "+e.getMessage());
             }

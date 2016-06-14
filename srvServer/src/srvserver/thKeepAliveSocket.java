@@ -31,8 +31,6 @@ public class thKeepAliveSocket extends Thread {
         isSocketActive = true;
     }
     
-
-    
     @Override
     public void run() {
         Socket skCliente;
@@ -44,7 +42,7 @@ public class thKeepAliveSocket extends Thread {
             OutputStream aux = skCliente.getOutputStream(); 
             DataOutputStream flujo= new DataOutputStream( aux ); 
             
-            dataSend = gSub.genDataKeep();
+            dataSend = gSub.sendDataKeep("keep");
             
             flujo.writeUTF( dataSend ); 
             

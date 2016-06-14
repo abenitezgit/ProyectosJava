@@ -17,10 +17,10 @@ import utilities.srvRutinas;
  */
 public class SrvServer {
     static globalAreaData gDatos = new globalAreaData();
-    static srvRutinas gRutinas = new srvRutinas(gDatos);
+    static srvRutinas gRutinas;
     
     public SrvServer() throws IOException {
-        //gRutinas = new srvRutinas(gDatos);
+        gRutinas = new srvRutinas(gDatos);
     }   
 
     //Aplicacion Servidor
@@ -108,9 +108,9 @@ public class SrvServer {
             
             //Control Princial de Ejecucion de Procesos
             if (gDatos.isSrvActive()) {    //Control de Revision de Procesos
-                if (gDatos.isSrvGetParam()) { //Valida si ya recibio los parametros globales de ejecucion
-                    for (int i=0;i<gDatos.getAcceptedTypeProc().size();i++) {
-                        System.out.println(gDatos.getAcceptedTypeProc().get(i).toString());
+                if (gDatos.isSrvGetTypeProc()) { //Valida si ya recibio los parametros globales de ejecucion
+                    for (int i=0;i<gDatos.getActiveTypeProc().size();i++) {
+                        System.out.println(gDatos.getActiveTypeProc().get(i));
                     }
                 } else {
                     System.out.println("no se han recibido los parametros de proceso");
