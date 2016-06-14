@@ -104,7 +104,7 @@ public class thMonitorSocket extends Thread {
                 skCliente.close();
             }
         
-        } catch (Exception e) {
+        } catch (NumberFormatException | IOException e) {
             System.out.println("Error: "+e.getMessage());
         }
     }

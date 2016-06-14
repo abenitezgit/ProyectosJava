@@ -218,6 +218,8 @@ public class srvRutinas {
     }
     
     public String getRequest(String inputData) {
+        //Devuelve la Operacion request del mensaje JSON
+        //
         try {
             JSONObject ds = new JSONObject(inputData);
             
@@ -228,6 +230,8 @@ public class srvRutinas {
     } 
       
     public List<String> getDataParams(String inputData) {
+        //Devuelve Lista de Parametros de un mensaje JSON
+        //
         List<String> result = new ArrayList<>();
         
         JSONObject ds = new JSONObject(inputData);
