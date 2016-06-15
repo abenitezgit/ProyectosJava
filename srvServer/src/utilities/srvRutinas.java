@@ -253,7 +253,7 @@ public class srvRutinas {
                 mainjo.put("request", "keepAlive");
             
             } else {
-                mainjo.put("request", "response");
+                mainjo.put("result", "keepAlive");
             }
             
             return mainjo.toString();

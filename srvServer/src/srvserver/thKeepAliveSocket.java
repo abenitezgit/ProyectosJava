@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import static srvserver.thServerSocket.gDatos;
 import utilities.srvRutinas;
 
 /**
@@ -33,6 +34,11 @@ public class thKeepAliveSocket extends Thread {
     
     @Override
     public void run() {
+        String inputData;
+        String outputData;
+        String request;
+        String auth;
+
         Socket skCliente;
         String response;
         String dataSend;
@@ -49,8 +55,11 @@ public class thKeepAliveSocket extends Thread {
             InputStream inpStr = skCliente.getInputStream();
             DataInputStream dataInput = new DataInputStream(inpStr);
             response = dataInput.readUTF();
-            
+
+            //Analiza Respuesta
             gSub.sysOutln(response);
+            
+            //gSub.updateAssignedProc(response);
             
             dataInput.close();
             inpStr.close();
@@ -58,7 +67,7 @@ public class thKeepAliveSocket extends Thread {
             aux.close();
             skCliente.close();
         }
-        catch (Exception e) {
+        catch (NumberFormatException | IOException e) {
             System.out.println("KE error: "+e.getMessage()); 
         }
     }
