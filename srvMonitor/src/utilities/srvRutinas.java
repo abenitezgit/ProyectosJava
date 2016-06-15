@@ -86,7 +86,7 @@ public class srvRutinas {
         ja.put(jo);
         
         mainjo.put("params",ja);
-        mainjo.put("request", "response");
+        mainjo.put("error", "method");
             
         return mainjo.toString();    
     }
@@ -119,7 +119,7 @@ public class srvRutinas {
         ja.put(jo);
         
         mainjo.put("params",ja);
-        mainjo.put("request", "response");
+        mainjo.put("error", "method");
             
         return mainjo.toString();
     }
@@ -136,7 +136,7 @@ public class srvRutinas {
         ja.put(jo);
         
         mainjo.put("params",ja);
-        mainjo.put("request", "response");
+        mainjo.put("result", "OK");
             
         return mainjo.toString();
     }
@@ -167,7 +167,7 @@ public class srvRutinas {
                 ja.put(gDatos.getServiceStatus().get(i));
             }
             mainjo.put("params", ja);
-            mainjo.put("request", "response");
+            mainjo.put("result", "getStatus");
 
             return mainjo.toString();
         } catch (Exception e) {
@@ -225,7 +225,7 @@ public class srvRutinas {
             jo.put("fecha", getDateNow("yyyy-MM-dd HH:mm:ss"));
             ja.put(jo);
             mainjo.put("params", ja);
-            mainjo.put("request", "response");
+            mainjo.put("result", "getDate");
             return mainjo.toString();
         } catch (Exception e) {
             return sendError(99, e.getMessage());
