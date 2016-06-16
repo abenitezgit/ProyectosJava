@@ -67,6 +67,10 @@ public class thServerSocket extends Thread {
                                 case "getDate":
                                     outputData = gSub.sendDate();
                                     break;
+                                case "updateAssignedProc":
+                                    gSub.updateAssignedProcess(inputData);
+                                    outputData = gSub.sendOkTX();
+                                    break;
                                 default:
                                     outputData = "{unknow request}";
                             }

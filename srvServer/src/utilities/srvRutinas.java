@@ -198,7 +198,7 @@ public class srvRutinas {
             int numProc = gDatos.getAssignedTypeProc().size();
             if (numProc>0) {
                 for (int i=0; i<numProc; i++) {
-                    lstReturn.add(gDatos.getAssignedTypeProc().get(i));
+                   // lstReturn.add(gDatos.getAssignedTypeProc().get(i));
                 }
                 return lstReturn;
             } else {
@@ -229,12 +229,16 @@ public class srvRutinas {
             if (gDatos.getAssignedTypeProc().size()>0) {
                 JSONArray jaAssignedTypeProc = jaGetAssignedTypeProc();
                 response.put("procAssigned", jaAssignedTypeProc);
-            }
+            } else {
+                response.put("procAssigned", mainja);
+            } 
             
             //Si existem proceso activos
             if (gDatos.getActiveTypeProc().size()>0) {
                 JSONArray jaActiveTypeProc = jaGetActiveTypeProc();
                 response.put("procActive", jaActiveTypeProc);
+            } else {
+                response.put("procActive", mainja);
             }
             
             response.put("srvName", gDatos.getSrvName());
@@ -245,8 +249,8 @@ public class srvRutinas {
             response.put("srvStart", gDatos.getSrvStart());
             response.put("isgetTypeProc", gDatos.isSrvGetTypeProc());
             
-            mainja.put(response);
-            mainjo.put("params", mainja);
+            //mainja.put(response);
+            mainjo.put("params", response);
             
             if (type.equals("keep")) {
                 mainjo.put("auth", gDatos.getAuthKey());
@@ -259,6 +263,38 @@ public class srvRutinas {
             return mainjo.toString();
         } catch (Exception e) {
             return sendError(0,e.getMessage());
+        }
+    }
+    
+    public void updateAssignedProcess(String inputData) {
+        try {
+            JSONObject ds = new JSONObject(inputData);
+            JSONArray rows = ds.getJSONArray("params");
+            JSONObject row;
+            
+            //Lista para referenciar a Lista Actual
+            //
+            List<JSONObject> lstAssignedProc = new ArrayList<>();
+            lstAssignedProc = gDatos.getAssignedTypeProc();
+            
+            int numProcInput = rows.length();
+            int numProcAssigned = lstAssignedProc.size();
+            
+            for (int i=0; i<numProcInput; i++) {
+                //Extraigo el registro JSONObject
+                row = rows.getJSONObject(i);
+                
+                //Busco el valor typeProc en la lista actual
+                
+                for (int j=0; j<numProcAssigned; j++) {
+                    if (lstAssignedProc.get(j).get("typeProc").toString().equals(row.get("typeProc").toString())) {
+                        lstAssignedProc.remove(j);
+                    }
+                }
+                lstAssignedProc.add(row);
+            }
+        } catch (Exception e) {
+            sysOutln(e.getMessage());
         }
     }
     
@@ -328,7 +364,6 @@ public class srvRutinas {
             return sendError(99, e.getMessage());
         }
     }
-
 
     public String getAuthData (String inputData) {
         try {

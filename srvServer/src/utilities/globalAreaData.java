@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
+import org.json.JSONObject;
 
 /**
  *
@@ -37,7 +38,7 @@ public class globalAreaData {
     
     //Variables Operacionales
     List<String> activeTypeProc = new ArrayList<>();
-    List<String> assignedTypeProc = new ArrayList<>();
+    List<JSONObject> assignedTypeProc = new ArrayList<>();
     List<String> executedTypeProc = new ArrayList<>();
        
     //Parametros de Control Online
@@ -57,11 +58,11 @@ public class globalAreaData {
         this.executedTypeProc = executedTypeProc;
     }
 
-    public List<String> getAssignedTypeProc() {
+    public List<JSONObject> getAssignedTypeProc() {
         return assignedTypeProc;
     }
 
-    public void setAssignedTypeProc(List<String> assignedTypeProc) {
+    public void setAssignedTypeProc(List<JSONObject> assignedTypeProc) {
         this.assignedTypeProc = assignedTypeProc;
     }
 
