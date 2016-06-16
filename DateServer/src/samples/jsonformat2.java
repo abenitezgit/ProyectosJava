@@ -23,6 +23,10 @@ public class jsonformat2 {
         
         JSONObject ds = new JSONObject(cadena2);
         
+        JSONObject ds2 = ds.getJSONObject("params");
+        
+        System.out.println("json: "+ds2.toString());
+        
         System.out.println(ds.length());
         
         

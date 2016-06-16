@@ -42,10 +42,11 @@
                               <Component id="txtHost" min="-2" pref="103" max="-2" attributes="0"/>
                           </Group>
                       </Group>
-                      <EmptySpace min="-2" pref="132" max="-2" attributes="0"/>
+                      <EmptySpace pref="169" max="32767" attributes="0"/>
                       <Component id="textField1" min="-2" pref="99" max="-2" attributes="0"/>
-                      <EmptySpace pref="195" max="32767" attributes="0"/>
+                      <EmptySpace min="-2" pref="103" max="-2" attributes="0"/>
                       <Component id="jButton1" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="55" max="-2" attributes="0"/>
                   </Group>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
@@ -56,18 +57,22 @@
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" alignment="0" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                  <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="jLabel1" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="txtHost" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="jButton1" alignment="3" min="-2" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" attributes="0">
+                      <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                          <Group type="103" groupAlignment="3" attributes="0">
+                              <Component id="jLabel1" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="txtHost" alignment="3" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <Component id="textField1" pref="25" max="32767" attributes="0"/>
+                      </Group>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="jLabel2" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="txtPort" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
                   </Group>
-                  <Component id="textField1" max="32767" attributes="0"/>
-              </Group>
-              <EmptySpace max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="jLabel2" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="txtPort" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="jButton1" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="jComboBox1" min="-2" max="-2" attributes="0"/>
@@ -124,9 +129,10 @@
     <Component class="javax.swing.JComboBox" name="jComboBox1">
       <Properties>
         <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-          <StringArray count="2">
+          <StringArray count="3">
             <StringItem index="0" value="{&quot;request&quot;:&quot;getStatus&quot;,&quot;auth&quot;:&quot;qwerty0987&quot;}"/>
             <StringItem index="1" value="{&quot;request&quot;:&quot;keepAlive&quot;,&quot;auth&quot;:&quot;qwerty0987&quot;,&quot;params&quot;:[{&quot;srvPort&quot;:&quot;9090&quot;,&quot;numProcMax&quot;:&quot;20&quot;,&quot;numProcExec&quot;:&quot;0&quot;,&quot;srvName&quot;:&quot;srv00001&quot;,&quot;srvStart&quot;:&quot;2016-06-15 00:22:33&quot;,&quot;numTotalExec&quot;:&quot;0&quot;,&quot;isgetTypeProc&quot;:false}]}"/>
+            <StringItem index="2" value="{&quot;request&quot;:&quot;updateAssignedProc&quot;,&quot;auth&quot;:&quot;qwerty0987&quot;,&quot;params&quot;:[{&quot;typeProc&quot;:&quot;ETL&quot;,&quot;priority&quot;:&quot;1&quot;,&quot;maxThread&quot;:&quot;10&quot;}]}"/>
           </StringArray>
         </Property>
       </Properties>
