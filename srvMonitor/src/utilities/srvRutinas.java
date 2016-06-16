@@ -3,12 +3,17 @@
  */
 package utilities;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
@@ -185,44 +190,49 @@ public class srvRutinas {
         }
     }
     
-    public String updateStatusServices(String inputData) {
+    public int updateStatusServices(String inputData) {
         try {
+            System.out.println("inicio......");
+            JSONObject ds = new JSONObject(inputData);
+            JSONObject row = ds.getJSONObject("params");
+            String srvName = row.get("srvName").toString();
+            int result;
             
+            //Busca Registro a Modificar en Lista global serviceStatus
+            //
+            result = gDatos.deleteItemServiceStatus(srvName);
             
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            List<String> inputList = new ArrayList<>();
-            List<String> gDatosList = new ArrayList<>();
-            
-            inputList = getDataParams(inputData);
-            gDatosList = gDatos.getServiceStatus();
-            
-            if (gDatosList.size()>0) {
-                for (int i=0; i<inputList.size(); i++) {
-                    JSONObject ds = new JSONObject(inputList.get(i));
+            //Agrega Servicio a la lista de servicios
+            //
+            result = gDatos.addItemServiceStatus(row);
 
-                    List<String> findlist = gDatosList.stream().filter(item -> item.contains(ds.get("srvName").toString())).collect(Collectors.toList());
-
-                    gDatosList.removeAll(findlist);
+            return 0;
+        } catch (Exception e) {
+            return 9;
+        }
+    }
+    
+    public String sendAssignedProc(String srvName) {
+        try {
+            String respuesta;
+            JSONArray ja = new JSONArray();
+            JSONObject mainjo = new JSONObject();
+            
+            System.out.println("srvname: "+srvName);
+            
+            int numItems = gDatos.getAssignedServiceTypeProc().size();
+            if (numItems>0) {
+                for (int i=0; i<numItems; i++) {
+                    if (gDatos.getAssignedServiceTypeProc().get(i).get("srvName").equals(srvName)) {
+                        ja = gDatos.getAssignedServiceTypeProc().get(i).getJSONArray("procAssigned");
+                    }
                 }
             }
-            
-            for (int i=0; i<inputList.size(); i++) {
-                gDatosList.add(inputList.get(i));
-            }
-            
-            gDatos.setServiceStatus(gDatosList);
-
-            return sendOkTX();
+            mainjo.put("params",ja);
+            mainjo.put("result", "keepAlive");
+            return mainjo.toString();
         } catch (Exception e) {
-            return sendError(0,e.getMessage());
+            return sendError(1,e.getMessage());
         }
     }
     
@@ -239,6 +249,18 @@ public class srvRutinas {
             return mainjo.toString();
         } catch (Exception e) {
             return sendError(99, e.getMessage());
+        }
+    }
+    
+    public String getSrvName(String inputData) {
+        //Devuelve el srvName de la cadena de entrada
+        //
+        try {
+            JSONObject ds = new JSONObject(inputData);
+            JSONObject row = ds.getJSONObject("params");
+            return row.get("srvName").toString();
+        } catch (Exception e) {
+            return sendError(60);
         }
     }
     
@@ -268,5 +290,38 @@ public class srvRutinas {
             result.add(row.toString());
         }
         return result;
+    }
+    
+    public int getMDprocAssigned() throws SQLException {
+        try {
+            List<JSONObject> lstAssignedProc = new ArrayList<>();
+            Connection conn = gDatos.getMetadataConnection();
+            String vSQL = "select srvName, srvDesc, srvActive, srvTypeProc from process.tb_services order by srvName";
+            Statement sentencia;
+            sentencia = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+
+            ResultSet rs = sentencia.executeQuery(vSQL);
+            if (rs!=null) {
+                JSONObject jo;
+                JSONArray ja;
+                while (rs.next()) {
+                    jo = new JSONObject();
+                    ja = new JSONArray(rs.getString("srvTypeProc"));
+                    jo.put("procAssigned", ja);
+                    jo.put("srvActive", rs.getInt("srvActive"));
+                    jo.put("srvDesc", rs.getString("srvDesc"));
+                    jo.put("srvName", rs.getString("srvName"));
+                    System.out.println(jo.toString());
+                    lstAssignedProc.add(jo);
+                }
+            }
+            gDatos.setAssignedServiceTypeProc(lstAssignedProc);
+            return 0;
+            
+        } catch (SQLException | JSONException e) {
+            sysOutln(e.getMessage());
+            return 1;
+        }
+    
     }
 }

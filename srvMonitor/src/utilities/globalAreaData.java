@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
+import org.json.JSONObject;
 
 /**
  *
@@ -36,9 +38,24 @@ public class globalAreaData {
 
     
     //Variables Operacionales
-    private List<String> activeTypeProc = new ArrayList<>();
-    private List<String> assignedTypeProc = new ArrayList<>();
-    private List<String> serviceStatus = new ArrayList<>();
+    //Parametros de los Tipos de Procesos que puede ejecutar el servicio
+    //formato json:
+    //{"typeProc":"ETL","procID":"ETL00001","startTime":"2016-06-16 10:00:00","status":"Finished",
+    // "endTime":"2016-06-10 20:00:00"}
+    //private List<JSONObject> activeTypeProc = new ArrayList<>();
+    
+    
+    //Parametros de los procesos asignados a servicios registrados
+    //formato json:
+    //{"srvName":"srv00001","srvActive":1,"procAssigned":[{"":""}]}
+    private List<JSONObject> assignedServiceTypeProc = new ArrayList<>();
+    
+    //Parametros de los Servicios que se registran
+    //formato json:
+    //{"srvName":"srv00000","srvStart":"2016-06-16 10:00:00","numTotalExec":100,
+    //  "srvPort":"9090","numProcMax":"30","numProcExec":0,
+    //  "procActive":[],"procAssigned":[] }
+    private List<JSONObject> serviceStatus = new ArrayList<>();
     
        
     //Parametros de Control Online
@@ -73,62 +90,6 @@ public class globalAreaData {
 
 
     //Declarion de Metodos de GET / SET
-        
-    public List<String> getActiveTypeProc() {
-        return activeTypeProc;
-    }
-
-    public void setActiveTypeProc(List<String> activeTypeProc) {
-        this.activeTypeProc = activeTypeProc;
-    }
-
-    public List<String> getAssignedTypeProc() {
-        return assignedTypeProc;
-    }
-    
-    public void setAssignedTypeProc(List<String> assignedTypeProc) {    
-        this.assignedTypeProc = assignedTypeProc;
-    }
-
-    public Connection getMetadataConnection() {
-        return metadataConnection;
-    }
-
-    public void setMetadataConnection(Connection metadataConnection) {
-        this.metadataConnection = metadataConnection;
-    }
-    
-    public boolean isIsMetadataConnect() {
-        return isMetadataConnect;
-    }
-
-    public void setIsMetadataConnect(boolean isMetadataConnect) {
-        this.isMetadataConnect = isMetadataConnect;
-    }
-
-    public String getDriver() {
-        return Driver;
-    }
-
-    public void setDriver(String Driver) {
-        this.Driver = Driver;
-    }
-
-    public String getConnString() {
-        return ConnString;
-    }
-
-    public void setConnString(String ConnString) {
-        this.ConnString = ConnString;
-    }
-    
-    public String getAuthKey() {
-        return authKey;
-    }
-
-    public void setAuthKey(String authKey) {
-        this.authKey = authKey;
-    }
 
     public String getSrvName() {
         return srvName;
@@ -194,12 +155,69 @@ public class globalAreaData {
         this.srvLoadParam = srvLoadParam;
     }
 
-    public List<String> getServiceStatus() {
+    public String getAuthKey() {
+        return authKey;
+    }
+
+    public void setAuthKey(String authKey) {
+        this.authKey = authKey;
+    }
+
+    public String getDriver() {
+        return Driver;
+    }
+
+    public void setDriver(String Driver) {
+        this.Driver = Driver;
+    }
+
+    public String getConnString() {
+        return ConnString;
+    }
+
+    public void setConnString(String ConnString) {
+        this.ConnString = ConnString;
+    }
+
+    public List<JSONObject> getAssignedServiceTypeProc() {
+        return assignedServiceTypeProc;
+    }
+
+    public void setAssignedServiceTypeProc(List<JSONObject> assignedServiceTypeProc) {
+        this.assignedServiceTypeProc = assignedServiceTypeProc;
+    }
+
+    public List<JSONObject> getServiceStatus() {
         return serviceStatus;
     }
 
-    public void setServiceStatus(List<String> serviceStatus) {
+    public void setServiceStatus(List<JSONObject> serviceStatus) {
         this.serviceStatus = serviceStatus;
+    }
+    
+    public int addItemServiceStatus(JSONObject param) {
+        try {
+            serviceStatus.add(param);
+            return 0;
+        } catch (Exception e) {
+            System.out.println("add: "+e.getMessage());
+            return 1;
+        }
+    }
+    
+    public int deleteItemServiceStatus(String key) {
+        try {
+            int numItems = serviceStatus.size();
+            for (int i=0; i<numItems; i++) {
+                if (serviceStatus.get(i).get("srvName").toString().equals(key)) {
+                    serviceStatus.remove(i);
+                }
+            }
+            return 0;
+        } catch (Exception e) {
+            System.out.println("del: "+e.getMessage());
+            return 1;
+        }
     }
 
     public int getNumProcExec() {
@@ -240,6 +258,22 @@ public class globalAreaData {
 
     public void setDbType(String dbType) {
         this.dbType = dbType;
+    }
+
+    public boolean isIsMetadataConnect() {
+        return isMetadataConnect;
+    }
+
+    public void setIsMetadataConnect(boolean isMetadataConnect) {
+        this.isMetadataConnect = isMetadataConnect;
+    }
+
+    public Connection getMetadataConnection() {
+        return metadataConnection;
+    }
+
+    public void setMetadataConnection(Connection metadataConnection) {
+        this.metadataConnection = metadataConnection;
     }
 
     public String getDbORAHost() {
@@ -329,7 +363,9 @@ public class globalAreaData {
     public void setDbSQLDbName(String dbSQLDbName) {
         this.dbSQLDbName = dbSQLDbName;
     }
-
+    
+    
+        
         
     public globalAreaData() {
         Properties fileConf = new Properties();

@@ -60,7 +60,12 @@ public class thMonitorSocket extends Thread {
 
                             switch (request) {
                                 case "keepAlive":
-                                    outputData = gSub.updateStatusServices(inputData);
+                                    if (gSub.updateStatusServices(inputData)==0) {
+                                        System.out.println("updated......");
+                                        outputData = gSub.sendAssignedProc(gSub.getSrvName(inputData));
+                                    } else {
+                                        outputData = gSub.sendError(71);
+                                    }
                                     break;
                                 case "getDate":
                                     outputData = gSub.sendDate();

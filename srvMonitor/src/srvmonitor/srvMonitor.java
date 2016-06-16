@@ -103,6 +103,7 @@ public class srvMonitor {
                         System.out.println("Conectado a Metadata");
                     } catch (SQLException ex) {
                         System.out.println("No es posible conectarse a Metadata. Error: "+ ex.getMessage());
+                        gDatos.setIsMetadataConnect(false);
                     }
                     
                 
@@ -121,9 +122,21 @@ public class srvMonitor {
                         System.out.println("Conectado a Metadata");
                     } catch (SQLException ex) {
                         System.out.println("No es posible conectarse a Metadata. Error: "+ ex.getMessage());
+                        gDatos.setIsMetadataConnect(false);
                     }
                 }
             }
+            
+            //Accede a la metada a recuperar parametros de los servicios registrados
+            if (gDatos.isIsMetadataConnect()) {
+                try {
+                    int result = gSub.getMDprocAssigned();
+                } catch (SQLException ex) {
+                    gSub.sysOutln(ex.getMessage());
+                }
+            
+            }
+            
         
         }
             
