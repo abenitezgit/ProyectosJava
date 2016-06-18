@@ -131,6 +131,9 @@ public class srvMonitor {
             if (gDatos.isIsMetadataConnect()) {
                 try {
                     int result = gSub.getMDprocAssigned();
+                    if (result!=0) {
+                        gSub.sysOutln("no pudo recuperar metadata assigned process");
+                    }
                 } catch (SQLException ex) {
                     gSub.sysOutln(ex.getMessage());
                 }

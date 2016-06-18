@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
-import java.util.stream.Collectors;
 import org.json.JSONObject;
 
 /**
@@ -195,31 +194,6 @@ public class globalAreaData {
         this.serviceStatus = serviceStatus;
     }
     
-    public int addItemServiceStatus(JSONObject param) {
-        try {
-            serviceStatus.add(param);
-            return 0;
-        } catch (Exception e) {
-            System.out.println("add: "+e.getMessage());
-            return 1;
-        }
-    }
-    
-    public int deleteItemServiceStatus(String key) {
-        try {
-            int numItems = serviceStatus.size();
-            for (int i=0; i<numItems; i++) {
-                if (serviceStatus.get(i).get("srvName").toString().equals(key)) {
-                    serviceStatus.remove(i);
-                }
-            }
-            return 0;
-        } catch (Exception e) {
-            System.out.println("del: "+e.getMessage());
-            return 1;
-        }
-    }
-
     public int getNumProcExec() {
         return numProcExec;
     }
@@ -365,8 +339,33 @@ public class globalAreaData {
     }
     
     
-        
-        
+    //Procedimientos y/o metodos Utilizarios
+    //
+        public int addItemServiceStatus(JSONObject param) {
+        try {
+            serviceStatus.add(param);
+            return 0;
+        } catch (Exception e) {
+            System.out.println("add: "+e.getMessage());
+            return 1;
+        }
+    }
+    
+    public int deleteItemServiceStatus(String key) {
+        try {
+            int numItems = serviceStatus.size();
+            for (int i=0; i<numItems; i++) {
+                if (serviceStatus.get(i).get("srvName").toString().equals(key)) {
+                    serviceStatus.remove(i);
+                }
+            }
+            return 0;
+        } catch (Exception e) {
+            System.out.println("del: "+e.getMessage());
+            return 1;
+        }
+    }
+
     public globalAreaData() {
         Properties fileConf = new Properties();
 
