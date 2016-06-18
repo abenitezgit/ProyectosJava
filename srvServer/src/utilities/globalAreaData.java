@@ -38,8 +38,19 @@ public class globalAreaData {
     
     //Variables Operacionales
     List<String> activeTypeProc = new ArrayList<>();
+    
+    //Parametros para recibir assigned Process
+    //format json:
+    //{"typeProc":"ETL","priority":"1","maxThread":"10"}
     List<JSONObject> assignedTypeProc = new ArrayList<>();
+    
+    //Lista para dejar historial de ejecuciones de los procesos
+    //mientras está en memoria
     List<String> executedTypeProc = new ArrayList<>();
+    
+    //Lista para almacenar el pool de ejeciciones a realizar
+    //
+    List<JSONObject> poolProcess = new ArrayList<>();
        
     //Parametros de Control Online
     //

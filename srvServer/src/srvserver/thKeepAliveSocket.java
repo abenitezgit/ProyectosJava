@@ -7,11 +7,6 @@ package srvserver;
 import utilities.globalAreaData;
 import java.io.* ; 
 import java.net.* ;
-import java.util.ArrayList;
-import java.util.List;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import static srvserver.thServerSocket.gDatos;
 import utilities.srvRutinas;
 
 /**
@@ -59,7 +54,12 @@ public class thKeepAliveSocket extends Thread {
             //Analiza Respuesta
             gSub.sysOutln(response);
             
-            //gSub.updateAssignedProc(response);
+            int result = gSub.updateAssignedProcess(response);
+            
+            if (result!=0) {
+                System.out.println(gSub.sendError(99,"Error en updateAssignedProc"));
+            }
+            
             
             dataInput.close();
             inpStr.close();

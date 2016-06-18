@@ -109,8 +109,8 @@ public class SrvServer {
             //Control Princial de Ejecucion de Procesos
             if (gDatos.isSrvActive()) {    //Control de Revision de Procesos
                 if (gDatos.isSrvGetTypeProc()) { //Valida si ya recibio los parametros globales de ejecucion
-                    for (int i=0;i<gDatos.getActiveTypeProc().size();i++) {
-                        System.out.println(gDatos.getActiveTypeProc().get(i));
+                    for (int i=0;i<gDatos.getAssignedTypeProc().size();i++) {
+                        System.out.println("procesos assignados: "+ gDatos.getAssignedTypeProc().get(i).toString());
                     }
                 } else {
                     System.out.println("no se han recibido los parametros de proceso");

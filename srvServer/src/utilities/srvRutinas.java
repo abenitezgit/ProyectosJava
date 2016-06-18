@@ -60,7 +60,6 @@ public class srvRutinas {
         gDatos.setNumProcExec(gDatos.getNumProcExec()-1);
     }
     
-    
     public String sendError(int errCode, String errDesc) {
         JSONObject jo = new JSONObject();
         JSONArray ja = new JSONArray();
@@ -102,27 +101,17 @@ public class srvRutinas {
         jo.put("errMesg", errDesc);
         jo.put("errCode", errCode);
         
-        ja.put(jo);
-        
-        mainjo.put("params",ja);
-        mainjo.put("request", "response");
+        mainjo.put("params",jo);
+        mainjo.put("result", "error");
             
         return mainjo.toString();
     }
     
     public String sendOkTX() {
 
-        JSONObject jo = new JSONObject();
-        JSONArray ja = new JSONArray();
         JSONObject mainjo = new JSONObject();
         
-        jo.put("errMesg", "");
-        jo.put("errCode", 0);
-        
-        ja.put(jo);
-        
-        mainjo.put("params",ja);
-        mainjo.put("request", "response");
+        mainjo.put("result", "OK");
             
         return mainjo.toString();
     }
@@ -266,7 +255,7 @@ public class srvRutinas {
         }
     }
     
-    public void updateAssignedProcess(String inputData) {
+    public int updateAssignedProcess(String inputData) {
         try {
             JSONObject ds = new JSONObject(inputData);
             JSONArray rows = ds.getJSONArray("params");
@@ -275,27 +264,53 @@ public class srvRutinas {
             //Lista para referenciar a Lista Actual
             //
             List<JSONObject> lstAssignedProc = new ArrayList<>();
-            lstAssignedProc = gDatos.getAssignedTypeProc();
             
             int numProcInput = rows.length();
-            int numProcAssigned = lstAssignedProc.size();
             
             for (int i=0; i<numProcInput; i++) {
                 //Extraigo el registro JSONObject
                 row = rows.getJSONObject(i);
-                
-                //Busco el valor typeProc en la lista actual
-                
-                for (int j=0; j<numProcAssigned; j++) {
-                    if (lstAssignedProc.get(j).get("typeProc").toString().equals(row.get("typeProc").toString())) {
-                        lstAssignedProc.remove(j);
-                    }
-                }
                 lstAssignedProc.add(row);
             }
+            gDatos.setAssignedTypeProc(lstAssignedProc);
+            gDatos.setSrvGetTypeProc(true);
+            return 0;
         } catch (Exception e) {
             sysOutln(e.getMessage());
+            return 99;
         }
+    }
+    
+    public String executeProcess(String inputData) {
+        //inputData:
+        //{
+        //  "request":"executeProcess","auth":"querty0987","typeProc":"OSP","params":
+        //  {
+        //   "id":"OSP00001",
+        //   "ospName":"sp_001",
+        //   "ospUser":"process",
+        //   "ospPass":"proc01",
+        //   "ospOwner":"process",
+        //   "ospServer":"localhost",
+        //   "ospDBPort":"1521",
+        //   "ospDBName":"oratest",
+        //   "ospDBInstance":"default",
+        //   "ospDBType":"ORA",
+        //   "parametros":
+        //      [
+        //          {"value":"20160612","type":"string"},
+        //          {"value":"10","type":"int"}
+        //      ]
+        //  }
+        //}
+        try {
+            //Ingresa la peticion de ejecucion en una lista
+            //
+            return sendOkTX();
+        } catch (Exception e) {
+            return sendError(10, "error pooling stask proc..");
+        }
+    
     }
     
     public void updateActiveProcess(String inputData) {
