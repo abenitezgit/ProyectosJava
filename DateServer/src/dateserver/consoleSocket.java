@@ -63,7 +63,7 @@ public class consoleSocket extends javax.swing.JFrame {
             }
         });
 
-        txtPort.setText("9080");
+        txtPort.setText("9090");
 
         jButton1.setText("Connect");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -75,7 +75,7 @@ public class consoleSocket extends javax.swing.JFrame {
         textField1.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
         textField1.setText("textField1");
 
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "{\"request\":\"getStatus\",\"auth\":\"qwerty0987\"}", "{\"request\":\"keepAlive\",\"auth\":\"qwerty0987\",\"params\":[{\"srvPort\":\"9090\",\"numProcMax\":\"20\",\"numProcExec\":\"0\",\"srvName\":\"srv00001\",\"srvStart\":\"2016-06-15 00:22:33\",\"numTotalExec\":\"0\",\"isgetTypeProc\":false}]}", "{\"request\":\"updateAssignedProc\",\"auth\":\"qwerty0987\",\"params\":[{\"typeProc\":\"ETL\",\"priority\":\"1\",\"maxThread\":\"10\"}]}" }));
+        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "{\"request\":\"getStatus\",\"auth\":\"qwerty0987\"}", "{\"request\":\"keepAlive\",\"auth\":\"qwerty0987\",\"params\":[{\"srvPort\":\"9090\",\"numProcMax\":\"20\",\"numProcExec\":\"0\",\"srvName\":\"srv00001\",\"srvStart\":\"2016-06-15 00:22:33\",\"numTotalExec\":\"0\",\"isgetTypeProc\":false}]}", "{\"request\":\"updateAssignedProc\",\"auth\":\"qwerty0987\",\"params\":[{\"typeProc\":\"ETL\",\"priority\":\"1\",\"maxThread\":\"10\",\"usedThread\":0}]}", "{\"request\":\"executeProcess\",\"auth\":\"qwerty0987\",\"typeProc\":\"OSP\",\"procID\":\"OSP00001\",\"status\":\"enqued\",\"params\":{\"ospName\":\"sp_001\",\"ospUser\":\"process\",\"ospPass\":\"proc01\",\"ospOwner\":\"process\",\"ospServer\":\"localhost\",\"ospDBPort\":\"1521\",\"ospDBName\":\"oratest\",\"ospDBInstance\":\"default\",\"ospDBType\":\"ORA\",\"parametros\":[{\"value\":\"20160612\",\"type\":\"string\"},{\"value\":\"10\",\"type\":\"int\"}]}}", "{\"request\":\"getPoolProcess\",\"auth\":\"qwerty0987\"}", "{\"request\":\"getList\",\"auth\":\"qwerty0987\",\"params\":{\"lista\":\"pool\"}}", " " }));
         jComboBox1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jComboBox1ActionPerformed(evt);
