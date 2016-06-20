@@ -9,6 +9,7 @@ import utilities.globalAreaData;
 import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
+import org.json.JSONObject;
 import utilities.srvRutinas;
 
 /**
@@ -60,6 +61,11 @@ public class SrvServer {
         
         @Override
         public void run() {
+            JSONObject poolList;
+            String typeProc;
+            String procID;
+            String status;
+            JSONObject params;
             System.out.println("Inicio TimerTask Server");
             
             //Monitor KeepAlive
@@ -109,8 +115,55 @@ public class SrvServer {
             //Control Princial de Ejecucion de Procesos
             if (gDatos.isSrvActive()) {    //Control de Revision de Procesos
                 if (gDatos.isSrvGetTypeProc()) { //Valida si ya recibio los parametros globales de ejecucion
-                    for (int i=0;i<gDatos.getAssignedTypeProc().size();i++) {
-                        System.out.println("procesos assignados: "+ gDatos.getAssignedTypeProc().get(i).toString());
+                    int numProc = gDatos.getPoolProcess().size();
+                    //gRutinas.sysOutln("numproc: "+numProc);
+                    if (numProc>0) {
+                    
+                        for (int i=0;i<numProc;i++) {
+                            //Lista de Procesos en pool de ejecucion
+                            //
+                            //Por cada proceso en pool validar si corresponde una ejecucion
+                            //
+                            try {
+                                poolList = gDatos.getPoolProcess().get(i);
+                                typeProc = poolList.getString("typeProc");
+                                procID = poolList.getString("procID");
+                                status = poolList.getString("status");
+                                params = poolList.getJSONObject("params");
+
+                                if (status.equals("queued")) {
+                                    //Valida si existen thread libres nivel de servicio
+                                    //
+                                    System.out.println("queud");
+                                    if (gDatos.isExistFreeThreadServices()) {
+                                        //Valida si existen thread libres del type de proceso a ejecutar
+                                        //
+                                        System.out.println("freeThreadServcies: "+ gDatos.getNumProcMax());
+                                        if (gDatos.isExistFreeThreadProcess(typeProc)) {
+                                        
+                                            //Actualiza Estadisticas del Proceso a ejecutar
+                                            //
+                                            int result = gDatos.updateRunningPoolProcess(poolList);
+                                            
+                                            System.out.println("result: " + result);
+                                            thOSP = new thExecOSP(gDatos, poolList);
+                                            thOSP.start();
+                                        } else {
+                                            System.out.println("esperando por threads libres del proceso");
+                                        }
+                                    } else {
+                                        System.out.println("Esperando por thread libres del servicio");
+                                    }
+                                } else {
+                                    System.out.println("no hay procesos queued..");
+                                }
+                            } catch (Exception e) {
+                                System.out.println("error desconocido ejecutando proceso: "+e.getMessage());
+                            }
+                            //gRutinas.sysOutln("in pool: "+gDatos.getPoolProcess().get(i).toString());
+                        }
+                    } else {
+                        System.out.println("no hay procesos en pool de ejecicion..");
                     }
                 } else {
                     System.out.println("no se han recibido los parametros de proceso");

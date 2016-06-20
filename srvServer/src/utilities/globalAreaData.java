@@ -61,6 +61,14 @@ public class globalAreaData {
     //Metodos de Acceso a los Datos
     //
 
+    public List<JSONObject> getPoolProcess() {
+        return poolProcess;
+    }
+
+    public void setPoolProcess(List<JSONObject> poolProcess) {
+        this.poolProcess = poolProcess;
+    }
+    
     public List<String> getExecutedTypeProc() {
         return executedTypeProc;
     }
@@ -205,6 +213,135 @@ public class globalAreaData {
         this.numTotalExec = numTotalExec;
     }
     
+    //Procimientos y/p Metodos uilitarios
+    //
+    public int updateRunningPoolProcess(JSONObject ds) {
+        try {
+            String procID;
+            String typeProc;
+            String status;
+            int numItems;
+            int numTypeProcLst;
+            int myNumExec;
+            int myNumProcExec;
+            int myNumTotalExec;
+            
+            typeProc = ds.getString("typeProc");
+            procID = ds.getJSONObject("params").getString("procID");
+            
+            System.out.println("typeProc: " + typeProc);
+            System.out.println("procID: " + procID);
+            
+            numItems = poolProcess.size();
+            numTypeProcLst = assignedTypeProc.size();
+            
+            System.out.println("numItemsPool: " + numItems);
+            System.out.println("numTypeProcLst: " + numTypeProcLst);
+            
+            if (numItems>0) {
+                for (int i=0; i<numItems; i++) {
+                    System.out.println("poolList 1: " + poolProcess.toString());
+                    if (poolProcess.get(i).getString("procID").equals(procID)) {
+                        poolProcess.get(i).put("status","Running");
+                        poolProcess.get(i).put("startDate", "HOY");
+                        
+                        System.out.println("poolList 2: " + poolProcess.toString());
+                        
+                        for (int j=0; j<numTypeProcLst; j++) {
+                            if (assignedTypeProc.get(j).getString("typeProc").equals(typeProc)) {
+                                myNumExec = assignedTypeProc.get(j).getInt("usedThread") + 1;
+                                assignedTypeProc.get(j).put("usedThread", myNumExec);
+                                
+                                myNumProcExec = getNumProcExec(); myNumProcExec++;
+                                myNumTotalExec = getNumTotalExec(); myNumTotalExec++;
+                                
+                                numProcExec = myNumProcExec;
+                                numTotalExec = myNumTotalExec;
+                            }
+                        }
+                        
+                    }
+                }
+            } else {
+                System.out.println("no hay items en poolprocess para actualizar");
+            }
+            
+            return 0;
+        } catch (Exception e) {
+            return 1;
+        }
+    }
+    
+    public boolean isExistPoolProcess(String procID) {
+        try {
+            //Busca el procID en lista de pool de procesos
+            int numProc = poolProcess.size();
+            boolean findProcID= false;
+            for (int i=0; i<numProc; i++) {
+                if (poolProcess.get(i).getString("procID").equals(procID)) {
+                    findProcID = true;
+                }
+            }
+            return findProcID;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
+    public int addPoolProcess (JSONObject itemData) {
+        try {
+            poolProcess.add(itemData);
+            return 0;
+        } catch (Exception e) {
+            return 1;
+        }
+    
+    }
+    
+    public boolean isExistFreeThreadProcess(String typeProc) {
+        try {
+            boolean result = false;
+            int maxThreadProc;
+            int usedThreadProc;
+            int numItems;
+            
+            numItems = getAssignedTypeProc().size();
+            
+            for (int i=0; i<numItems; i++) {
+                if (getAssignedTypeProc().get(i).getString("typeProc").equals(typeProc)) {
+                    maxThreadProc = getAssignedTypeProc().get(i).getInt("maxThread") ;
+                    usedThreadProc = getAssignedTypeProc().get(i).getInt("usedThread");
+                    result = usedThreadProc < maxThreadProc;
+                    System.out.println("max: "+ maxThreadProc);
+                    System.out.println("used: "+ usedThreadProc);
+                }
+            }
+
+            return result;
+        
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return false;
+        }
+    }
+    
+    
+    public boolean isExistFreeThreadServices() {
+        try {
+            int maxThreadServices;
+            int maxThreadProcess;
+            System.out.println("dentro");
+            maxThreadProcess = getNumProcExec();
+            maxThreadServices = getNumProcMax();
+            
+            return maxThreadProcess < maxThreadServices;
+        
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return false;
+        }
+    }
+
     
     public globalAreaData() {
             Properties fileConf = new Properties();

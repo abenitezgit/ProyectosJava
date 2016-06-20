@@ -71,8 +71,26 @@ public class thServerSocket extends Thread {
                                     gSub.updateAssignedProcess(inputData);
                                     outputData = gSub.sendOkTX();
                                     break;
-                                case "execProcess":
-                                    outputData = gSub.executeProcess(inputData);
+                                case "executeProcess":
+                                    //json format:
+                                    // {
+                                    //   "request":"executeProcess",
+                                    //   "auth":"qwerty0987",
+                                    //   "typeProc":"OSP",
+                                    //   "procID":"OSP00001",
+                                    //   "sendDate":"2016-10-02 10:09:10",
+                                    //   "params":
+                                    //      {
+                                    //        <dependera del tipo de proceso>
+                                    //      }
+                                    // }
+                                    outputData = gSub.enqueProcess(inputData);
+                                    break;
+                                case "getPoolProcess":
+                                    outputData = gSub.sendPoolProcess();
+                                    break;
+                                case "getList":
+                                    outputData = gSub.sendList(inputData);
                                     break;
                                 default:
                                     outputData = "{unknow request}";

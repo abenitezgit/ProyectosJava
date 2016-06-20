@@ -89,6 +89,9 @@ public class srvRutinas {
             case 60:
                     errDesc = "TX no autorizada";
                     break;
+            case 10:
+                    errDesc = "procID ya se encuentra en poolProcess...";
+                    break;
             default: 
                     errDesc = "error desconocido";
                     break;
@@ -281,12 +284,35 @@ public class srvRutinas {
         }
     }
     
-    public String executeProcess(String inputData) {
+    public String sendPoolProcess() {
+        try {
+            String output = null;
+            JSONObject jo ;
+            JSONArray ja = new JSONArray();
+            JSONObject mainjo = new JSONObject();
+            
+            int numProc = gDatos.getPoolProcess().size();
+            sysOutln("numproc: "+numProc);
+            if (numProc>0) {
+              for (int i=0; i<numProc; i++) {
+                  jo = gDatos.getPoolProcess().get(i);
+                  ja.put(jo);
+                  
+              }  
+            }
+            mainjo.put("params", ja);
+            mainjo.put("result", "getPoolProcess");
+            return mainjo.toString();
+        } catch (Exception e) {
+            return sendError(1, "error en send pool process: "+e.getMessage());
+        }
+    }
+    
+    public String enqueProcess(String inputData) {
         //inputData:
         //{
-        //  "request":"executeProcess","auth":"querty0987","typeProc":"OSP","params":
+        //  "request":"executeProcess","auth":"querty0987","typeProc":"OSP","procID":"OSP00001","params":
         //  {
-        //   "id":"OSP00001",
         //   "ospName":"sp_001",
         //   "ospUser":"process",
         //   "ospPass":"proc01",
@@ -306,11 +332,60 @@ public class srvRutinas {
         try {
             //Ingresa la peticion de ejecucion en una lista
             //
-            return sendOkTX();
+            int result; 
+            JSONObject ds = new JSONObject(inputData);
+            JSONObject params = ds.getJSONObject("params");
+            
+            String typeProc = ds.getString("typeProc");
+            String procID = ds.getString("procID");
+            
+            JSONObject itemData = new JSONObject();
+            
+            itemData.put("params", params);
+            itemData.put("status", "queued");
+            itemData.put("procID", procID);
+            itemData.put("typeProc", typeProc);
+                        
+            if (!gDatos.isExistPoolProcess(procID)) {
+                result = gDatos.addPoolProcess(itemData);
+            } else {
+                result = 10;
+            }
+            
+            if (result==0) {
+                return sendOkTX();
+            } else {
+                return sendError(result);
+            }
         } catch (Exception e) {
-            return sendError(10, "error pooling stask proc..");
+            return sendError(10, "error enque stack proc..");
         }
     
+    }
+    
+    
+    
+    public String sendList(String inputData) {
+        try {
+            JSONObject ds = new JSONObject(inputData);
+            JSONArray ja = new JSONArray();
+            
+            String inputLista = ds.getJSONObject("params").getString("lista");
+            
+            switch (inputLista) {
+                case "pool":
+                    for (int i=0; i<gDatos.getPoolProcess().size(); i++) {
+                        ja.put(gDatos.getPoolProcess().get(i));
+                    }
+                    break;
+                default:
+                    break;
+            }
+            
+            return ja.toString();
+        } catch (Exception e) {
+            return null;
+        }
     }
     
     public void updateActiveProcess(String inputData) {
