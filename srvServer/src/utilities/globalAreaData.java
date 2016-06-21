@@ -227,10 +227,10 @@ public class globalAreaData {
             int myNumTotalExec;
             
             typeProc = ds.getString("typeProc");
-            procID = ds.getJSONObject("params").getString("procID");
+            procID = ds.getString("procID");
             
-            System.out.println("typeProc: " + typeProc);
-            System.out.println("procID: " + procID);
+            //System.out.println("typeProc: " + typeProc);
+            //System.out.println("procID: " + procID);
             
             numItems = poolProcess.size();
             numTypeProcLst = assignedTypeProc.size();

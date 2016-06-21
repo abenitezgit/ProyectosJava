@@ -169,15 +169,15 @@ public class srvRutinas {
     public JSONArray jaGetActiveTypeProc() {
         try {
             JSONArray ja = new JSONArray();
-            int numProc = gDatos.getActiveTypeProc().size();
+            int numProc = gDatos.getPoolProcess().size();
             if (numProc>0) {
                 for (int i=0; i<numProc; i++) {
-                    ja.put(gDatos.getActiveTypeProc().get(i));
+                    if (!gDatos.getPoolProcess().get(i).getString("status").equals("queued")) {
+                        ja.put(gDatos.getPoolProcess().get(i));
+                    }
                 }
-                return ja;
-            } else {
-                return ja;
             }
+            return ja;
         } catch (Exception e) {
             sysOutln(e.getMessage());
             return null;
@@ -226,7 +226,7 @@ public class srvRutinas {
             } 
             
             //Si existem proceso activos
-            if (gDatos.getActiveTypeProc().size()>0) {
+            if (gDatos.getPoolProcess().size()>0) {
                 JSONArray jaActiveTypeProc = jaGetActiveTypeProc();
                 response.put("procActive", jaActiveTypeProc);
             } else {

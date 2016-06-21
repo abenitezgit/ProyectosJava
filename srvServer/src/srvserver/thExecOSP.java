@@ -21,10 +21,10 @@ public class thExecOSP extends Thread{
     private JSONObject params = new JSONObject();
     private String procID = null;
     
-    public thExecOSP(globalAreaData m, JSONObject params) {
+    public thExecOSP(globalAreaData m, JSONObject jo) {
         gDatos = m;
         gSub = new srvRutinas(gDatos);
-        this.params = params;
+        this.params = jo;
     }
     
     @Override
@@ -32,7 +32,7 @@ public class thExecOSP extends Thread{
         System.out.println("Ejecutando OSP");
         Timer t1 = new Timer();
        
-        t1.schedule(new task(), 10000);
+        t1.schedule(new task(), 20000);
        
     
     }
@@ -44,11 +44,10 @@ public class thExecOSP extends Thread{
         public void run() {
             System.out.println("task executed...");
             
+            //Actualiza estado de termino del proceso
+            //
             
-            JSONObject jo = new JSONObject();
-            jo.put("procID", procID);
-            jo.put("status", "Finished");
-            //int result = gDatos.updateStatusPoolProcess(jo);
+            
 
         }
     }

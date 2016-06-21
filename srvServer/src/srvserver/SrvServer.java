@@ -18,10 +18,10 @@ import utilities.srvRutinas;
  */
 public class SrvServer {
     static globalAreaData gDatos = new globalAreaData();
-    static srvRutinas gRutinas;
+    static srvRutinas gRutinas = new srvRutinas(gDatos);
     
     public SrvServer() throws IOException {
-        gRutinas = new srvRutinas(gDatos);
+        //gRutinas = new srvRutinas(gDatos);
     }   
 
     //Aplicacion Servidor
@@ -61,10 +61,10 @@ public class SrvServer {
         
         @Override
         public void run() {
-            JSONObject poolList;
             String typeProc;
             String procID;
             String status;
+            JSONObject rowList;
             JSONObject params;
             System.out.println("Inicio TimerTask Server");
             
@@ -125,28 +125,43 @@ public class SrvServer {
                             //Por cada proceso en pool validar si corresponde una ejecucion
                             //
                             try {
-                                poolList = gDatos.getPoolProcess().get(i);
-                                typeProc = poolList.getString("typeProc");
-                                procID = poolList.getString("procID");
-                                status = poolList.getString("status");
-                                params = poolList.getJSONObject("params");
+                                rowList = gDatos.getPoolProcess().get(i);   //Lee registro del pool de procesos ingresados
+
+                                typeProc = rowList.getString("typeProc");
+                                procID = rowList.getString("procID");
+                                status = rowList.getString("status");
+                                params = rowList.getJSONObject("params");
 
                                 if (status.equals("queued")) {
                                     //Valida si existen thread libres nivel de servicio
                                     //
-                                    System.out.println("queud");
                                     if (gDatos.isExistFreeThreadServices()) {
                                         //Valida si existen thread libres del type de proceso a ejecutar
                                         //
-                                        System.out.println("freeThreadServcies: "+ gDatos.getNumProcMax());
                                         if (gDatos.isExistFreeThreadProcess(typeProc)) {
-                                        
                                             //Actualiza Estadisticas del Proceso a ejecutar
                                             //
-                                            int result = gDatos.updateRunningPoolProcess(poolList);
+                                            //Actualiza status a estado Running
+                                            //
+                                            gDatos.getPoolProcess().get(i).put("status","Running");
+
+                                            //Atualiza Fecha de Inicio de Ejecución 
+                                            gDatos.getPoolProcess().get(i).put("startDate",gRutinas.getDateNow("yyyy-MM-dd HH:MI:SS"));
+
+                                            //Actualiza Lista assignedProcess
+                                            for (int j=0; j < gDatos.getAssignedTypeProc().size(); j++) {
+                                                if (gDatos.getAssignedTypeProc().get(i).getString("typeProc").equals(typeProc)) {
+                                                    int usedThread = gDatos.getAssignedTypeProc().get(i).getInt("usedThread");
+                                                    usedThread++;
+                                                    gDatos.getAssignedTypeProc().get(i).put("usedThread", usedThread);
+                                                }
+                                            }
                                             
-                                            System.out.println("result: " + result);
-                                            thOSP = new thExecOSP(gDatos, poolList);
+                                            //Actualiza Datos Globales
+                                            gDatos.setNumProcExec(gDatos.getNumProcExec()+1);
+                                            gDatos.setNumTotalExec(gDatos.getNumTotalExec()+1);
+                                            
+                                            thOSP = new thExecOSP(gDatos, rowList);
                                             thOSP.start();
                                         } else {
                                             System.out.println("esperando por threads libres del proceso");
