@@ -7,6 +7,8 @@ package srvmonitor;
 import utilities.globalAreaData;
 import java.io.* ; 
 import java.net.* ;
+import org.json.JSONException;
+import org.json.JSONObject;
 import utilities.srvRutinas;
 
 /**
@@ -32,10 +34,11 @@ public class thMonitorSocket extends Thread {
         try {
             gSub.sysOutln("Starting Listener Thread Monitor Server port: " + gDatos.getSrvPort());
             ServerSocket skServidor = new ServerSocket(Integer.valueOf(gDatos.getSrvPort()));
-            String inputData = "";
-            String outputData = "";
-            String request = "";
+            String inputData;
+            String outputData;
+            String request;
             String auth;
+            JSONObject rs;
             
             while (isSocketActive) {
                 Socket skCliente = skServidor.accept();
@@ -46,52 +49,36 @@ public class thMonitorSocket extends Thread {
                 //
                 try {
                     inputData  = dataInput.readUTF();
+                    rs = new JSONObject(inputData);
                     //gSub.sysOutln(inputData);
                     
-                    if (gDatos.isSrvActive()) {
-                        //Analiza Respuesta
-                        
-                        auth = gSub.getAuthData (inputData);
-                        gSub.sysOutln("auth: "+auth);
-                        gSub.sysOutln("gauth: "+gDatos.getAuthKey());
-                        
-                        if (auth.equals(gDatos.getAuthKey())) {
-                            request = gSub.getRequest(inputData);
+                    auth = rs.getString("auth");
 
-                            switch (request) {
-                                case "keepAlive":
-                                    if (gSub.updateStatusServices(inputData)==0) {
-                                        System.out.println("updated......");
-                                        outputData = gSub.sendAssignedProc(gSub.getSrvName(inputData));
-                                    } else {
-                                        outputData = gSub.sendError(71);
-                                    }
-                                    break;
-                                case "getDate":
-                                    outputData = gSub.sendDate();
-                                    break;
-                                case "getStatus":
-                                    outputData = gSub.getStatusServices();
-                                    break;
-                                case "putExecOSP":
-                                    gSub.putExecOSP(inputData);
-                                    outputData = gSub.sendOkTX();
-                                    break;
-                                default:
-                                    outputData = "{unknow request}";
-                            }
-                        } else {
-                            outputData = gSub.sendError(60);
+                    if (auth.equals(gDatos.getAuthKey())) {
+                        request = rs.getString("request");
+
+                        switch (request) {
+                            case "keepAlive":
+                                outputData = gSub.updateStatusServices(rs.getJSONObject("params"));
+                                break;
+                            case "getDate":
+                                outputData = gSub.sendDate();
+                                break;
+                            case "getStatus":
+                                outputData = gSub.getStatusServices();
+                                break;
+                            case "putExecOSP":
+                                gSub.putExecOSP(inputData);
+                                outputData = gSub.sendOkTX();
+                                break;
+                            default:
+                                outputData = gSub.sendError(99, "Error Desconocido...");
                         }
-                        
-                        System.out.println(inputData);
                     } else {
-                        System.out.println("servico offline para realizar acciones");
-                        outputData = gSub.sendError(80);
+                        outputData = gSub.sendError(60);
                     }
-                                        
-
-                } catch (Exception e) {
+                    System.out.println(inputData);
+                } catch (IOException | JSONException e) {
                     outputData = gSub.sendError(90);
                 }
                      

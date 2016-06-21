@@ -341,31 +341,8 @@ public class globalAreaData {
     
     //Procedimientos y/o metodos Utilizarios
     //
-        public int addItemServiceStatus(JSONObject param) {
-        try {
-            serviceStatus.add(param);
-            return 0;
-        } catch (Exception e) {
-            System.out.println("add: "+e.getMessage());
-            return 1;
-        }
-    }
     
-    public int deleteItemServiceStatus(String key) {
-        try {
-            int numItems = serviceStatus.size();
-            for (int i=0; i<numItems; i++) {
-                if (serviceStatus.get(i).get("srvName").toString().equals(key)) {
-                    serviceStatus.remove(i);
-                }
-            }
-            return 0;
-        } catch (Exception e) {
-            System.out.println("del: "+e.getMessage());
-            return 1;
-        }
-    }
-
+    
     public globalAreaData() {
         Properties fileConf = new Properties();
 

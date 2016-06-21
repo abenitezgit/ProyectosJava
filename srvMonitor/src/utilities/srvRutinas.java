@@ -90,7 +90,7 @@ public class srvRutinas {
         ja.put(jo);
         
         mainjo.put("params",ja);
-        mainjo.put("error", "method");
+        mainjo.put("result", "error");
             
         return mainjo.toString();    
     }
@@ -116,30 +116,20 @@ public class srvRutinas {
         JSONObject jo = new JSONObject();
         JSONArray ja = new JSONArray();
         JSONObject mainjo = new JSONObject();
-        
+    
         jo.put("errMesg", errDesc);
         jo.put("errCode", errCode);
         
-        ja.put(jo);
-        
-        mainjo.put("params",ja);
-        mainjo.put("error", "method");
+        mainjo.put("params",jo);
+        mainjo.put("result", "error");
             
         return mainjo.toString();
     }
 
     public String sendOkTX() {
         
-        JSONObject jo = new JSONObject();
-        JSONArray ja = new JSONArray();
         JSONObject mainjo = new JSONObject();
         
-        jo.put("errMesg", "");
-        jo.put("errCode", 0);
-        
-        ja.put(jo);
-        
-        mainjo.put("params",ja);
         mainjo.put("result", "OK");
             
         return mainjo.toString();
@@ -150,16 +140,10 @@ public class srvRutinas {
             JSONObject ds = new JSONObject(inputData);
             JSONArray rows = ds.getJSONArray("params");
             JSONObject row = rows.getJSONObject(0); //Recupera el primero registro de la lista
-            
-            
-            
-            
-            
         } catch (Exception e) {
             sysOutln(e);
         }    
     }
-
 
     public String getStatusServices() {
         try {
@@ -178,36 +162,21 @@ public class srvRutinas {
             return sendError(0,e.getMessage());
         }
     }
-    
-    public String getAuthData (String inputData) {
+        
+    public String updateStatusServices(JSONObject row) {
         try {
-            JSONObject ds = new JSONObject(inputData);
-               
-            return ds.get("auth").toString();
-        } catch (Exception e) {
-            return sendError(0,e.getMessage());
-        }
-    }
-    
-    public int updateStatusServices(String inputData) {
-        try {
-            System.out.println("inicio......");
-            JSONObject ds = new JSONObject(inputData);
-            JSONObject row = ds.getJSONObject("params");
             String srvName = row.get("srvName").toString();
-            int result;
+            int numItems = gDatos.getServiceStatus().size();
             
-            //Busca Registro a Modificar en Lista global serviceStatus
-            //
-            result = gDatos.deleteItemServiceStatus(srvName);
-            
-            //Agrega Servicio a la lista de servicios
-            //
-            result = gDatos.addItemServiceStatus(row);
-
-            return 0;
+            for (int i=0; i<numItems; i++) {
+                if (gDatos.getServiceStatus().get(i).getString("srvName").equals(srvName)) {
+                    gDatos.getServiceStatus().remove(i);
+                    gDatos.getServiceStatus().add(row);
+                }
+            }
+            return sendOkTX();
         } catch (Exception e) {
-            return 9;
+            return sendError(9);
         }
     }
     
@@ -250,31 +219,7 @@ public class srvRutinas {
             return sendError(99, e.getMessage());
         }
     }
-    
-    public String getSrvName(String inputData) {
-        //Devuelve el srvName de la cadena de entrada
-        //
-        try {
-            JSONObject ds = new JSONObject(inputData);
-            JSONObject row = ds.getJSONObject("params");
-            return row.get("srvName").toString();
-        } catch (Exception e) {
-            return sendError(60);
-        }
-    }
-    
-    public String getRequest(String inputData) {
-        //Devuelve la Operacion request del mensaje JSON
-        //
-        try {
-            JSONObject ds = new JSONObject(inputData);
-            
-            return ds.get("request").toString();
-        } catch (Exception e) {
-            return sendError(50); 
-        }
-    } 
-      
+              
     public List<String> getDataParams(String inputData) {
         //Devuelve Lista de Parametros de un mensaje JSON
         //
@@ -293,7 +238,6 @@ public class srvRutinas {
     
     public int getMDprocAssigned() throws SQLException {
         try {
-            List<JSONObject> lstAssignedProc = new ArrayList<>();
             Connection conn = gDatos.getMetadataConnection();
             String vSQL = "select srvName, srvDesc, srvActive, srvTypeProc from process.tb_services order by srvName";
             Statement sentencia;
@@ -310,11 +254,9 @@ public class srvRutinas {
                     jo.put("srvActive", rs.getInt("srvActive"));
                     jo.put("srvDesc", rs.getString("srvDesc"));
                     jo.put("srvName", rs.getString("srvName"));
-                    System.out.println(jo.toString());
-                    lstAssignedProc.add(jo);
+                    gDatos.getAssignedServiceTypeProc().add(jo);
                 }
             }
-            gDatos.setAssignedServiceTypeProc(lstAssignedProc);
             return 0;
             
         } catch (SQLException | JSONException e) {
