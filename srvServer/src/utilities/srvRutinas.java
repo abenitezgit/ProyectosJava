@@ -338,6 +338,7 @@ public class srvRutinas {
             
             String typeProc = ds.getString("typeProc");
             String procID = ds.getString("procID");
+            String sendDate = ds.getString("sendDate");
             
             JSONObject itemData = new JSONObject();
             
@@ -345,6 +346,8 @@ public class srvRutinas {
             itemData.put("status", "queued");
             itemData.put("procID", procID);
             itemData.put("typeProc", typeProc);
+            itemData.put("sendDate",sendDate);
+            itemData.put("receiveDate", getDateNow("yyyy-MM-dd HH:MI:SS"));
                         
             if (!gDatos.isExistPoolProcess(procID)) {
                 result = gDatos.addPoolProcess(itemData);

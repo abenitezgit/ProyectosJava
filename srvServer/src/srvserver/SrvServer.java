@@ -18,7 +18,8 @@ import utilities.srvRutinas;
  */
 public class SrvServer {
     static globalAreaData gDatos = new globalAreaData();
-    static srvRutinas gRutinas = new srvRutinas(gDatos);
+    static srvRutinas gSub = new srvRutinas(gDatos);
+    static String CLASS_NAME = "srvServer";
     
     public SrvServer() throws IOException {
         //gRutinas = new srvRutinas(gDatos);
@@ -32,7 +33,8 @@ public class SrvServer {
             Timer mainTimer = new Timer();
             mainTimer.schedule(new mainTimerTask(), 2000, Integer.valueOf(gDatos.getTxpMain()));
         } else {
-            System.out.println("archivo de parametros no pudo ser cargado");
+            System.out.println(CLASS_NAME+" Error leyendo archivo de parametros");
+            
         }
         
     }
@@ -53,9 +55,6 @@ public class SrvServer {
         
         //Constructor de la clase
         public mainTimerTask() {
-            
-            System.out.println("inicio constructor");
-
         }
         
         
@@ -66,14 +65,14 @@ public class SrvServer {
             String status;
             JSONObject rowList;
             JSONObject params;
-            System.out.println("Inicio TimerTask Server");
+            System.out.println(CLASS_NAME+" Iniciando mainTimerTask....");
             
             //Monitor KeepAlive
             try {
                 if (!thKeep.isAlive()) {
                     if (gDatos.isSrvActive()) {
-                        System.out.println("iniciando socket keep  Monitor");
                         thKeep.start();
+                        System.out.println(CLASS_NAME+" Iniciando ThreadKeep....normal...");
                     }
                 } else {
                     if (!gDatos.isSrvActive()) {
@@ -84,9 +83,9 @@ public class SrvServer {
             }
             catch (Exception e) {
                 if (gDatos.isSrvActive()) {
-                    System.out.println("iniciando socket keep  Monitor forced");
                     thKeep = new thKeepAliveSocket(gDatos);
                     thKeep.start();
+                    System.out.println(CLASS_NAME+" Iniciando ThreadKeep....forced...");
                 }
             }
             
@@ -95,8 +94,8 @@ public class SrvServer {
             try {
                 if (!thSocket.isAlive()) {
                     if (gDatos.isSrvActive()) {
-                        System.out.println("iniciando socket server");
                         thSocket.start();
+                        System.out.println(CLASS_NAME+" Iniciando thSocket Server....normal...");
                     }
                 } else {
                     if (!gDatos.isSrvActive()) {
@@ -106,15 +105,17 @@ public class SrvServer {
                 }
             } catch (Exception e) {
                 if (gDatos.isSrvActive()) {
-                    System.out.println("iniciando socket Server forced");
                     thSocket = new thServerSocket(gDatos);
                     thSocket.start();
+                    System.out.println(CLASS_NAME+" Iniciando thSocket Server....forced...");
                 }
             }
             
             //Control Princial de Ejecucion de Procesos
             if (gDatos.isSrvActive()) {    //Control de Revision de Procesos
+                System.out.println(CLASS_NAME+" servicio activo...");
                 if (gDatos.isSrvGetTypeProc()) { //Valida si ya recibio los parametros globales de ejecucion
+                    System.out.println(CLASS_NAME+" lista tyeProc recibida...");
                     int numProc = gDatos.getPoolProcess().size();
                     //gRutinas.sysOutln("numproc: "+numProc);
                     if (numProc>0) {
@@ -146,7 +147,7 @@ public class SrvServer {
                                             gDatos.getPoolProcess().get(i).put("status","Running");
 
                                             //Atualiza Fecha de Inicio de Ejecución 
-                                            gDatos.getPoolProcess().get(i).put("startDate",gRutinas.getDateNow("yyyy-MM-dd HH:MI:SS"));
+                                            gDatos.getPoolProcess().get(i).put("startDate",gSub.getDateNow("yyyy-MM-dd HH:MI:SS"));
 
                                             //Actualiza Lista assignedProcess
                                             for (int j=0; j < gDatos.getAssignedTypeProc().size(); j++) {
@@ -161,30 +162,40 @@ public class SrvServer {
                                             gDatos.setNumProcExec(gDatos.getNumProcExec()+1);
                                             gDatos.setNumTotalExec(gDatos.getNumTotalExec()+1);
                                             
-                                            thOSP = new thExecOSP(gDatos, rowList);
-                                            thOSP.start();
+                                            switch (typeProc) {
+                                                case "OSP":
+                                                    thOSP = new thExecOSP(gDatos, rowList);
+                                                    thOSP.start();
+                                                    break;
+                                                case "OTX":
+                                                    thOTX = new thExecOTX(gDatos, rowList);
+                                                    thOTX.start();
+                                                    break;
+                                                default:
+                                                    break;
+                                            }
                                         } else {
-                                            System.out.println("esperando por threads libres del proceso");
+                                            System.out.println(CLASS_NAME+" esperando Thread libres de Procesos...");
                                         }
                                     } else {
-                                        System.out.println("Esperando por thread libres del servicio");
+                                        System.out.println(CLASS_NAME+" esperando Thread libres de Srvicio...");
                                     }
                                 } else {
-                                    System.out.println("no hay procesos queued..");
+                                    System.out.println(CLASS_NAME+" no hay procesos status queued...");
                                 }
                             } catch (Exception e) {
-                                System.out.println("error desconocido ejecutando proceso: "+e.getMessage());
+                                System.out.println(CLASS_NAME+" Error desconocido..."+e.getMessage());
                             }
                             //gRutinas.sysOutln("in pool: "+gDatos.getPoolProcess().get(i).toString());
                         }
                     } else {
-                        System.out.println("no hay procesos en pool de ejecicion..");
+                        System.out.println(CLASS_NAME+" no hay procesos en pool de ejecucion...");
                     }
                 } else {
-                    System.out.println("no se han recibido los parametros de proceso");
+                    System.out.println(CLASS_NAME+" no se han recibido parametros del proceso...");
                 }
             } else {
-                System.out.println("Proceso General no esta activo");
+                System.out.println(CLASS_NAME+" Servicio no esta activo...");
             }
         }
     }

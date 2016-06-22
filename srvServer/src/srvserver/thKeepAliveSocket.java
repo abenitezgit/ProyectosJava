@@ -19,6 +19,7 @@ public class thKeepAliveSocket extends Thread {
     static boolean isSocketActive;
     static String errNum;
     static String errDesc;
+    static String CLASS_NAME = "thKeepAliveSocket";
     
     //Carga constructor para inicializar los datos
     public thKeepAliveSocket(globalAreaData m) {
@@ -39,11 +40,11 @@ public class thKeepAliveSocket extends Thread {
         String dataSend;
         try {
             skCliente = new Socket(gDatos.getSrvMonHost(), Integer.valueOf(gDatos.getMonPort()));
-            gSub.sysOutln("Sending to Host Monitor: " + gDatos.getSrvMonHost() + "port: " + gDatos.getMonPort());
             OutputStream aux = skCliente.getOutputStream(); 
             DataOutputStream flujo= new DataOutputStream( aux ); 
             
             dataSend = gSub.sendDataKeep("keep");
+            gSub.sysOutln(CLASS_NAME+": Enviado TX: " + dataSend);
             
             flujo.writeUTF( dataSend ); 
             
@@ -52,8 +53,10 @@ public class thKeepAliveSocket extends Thread {
             response = dataInput.readUTF();
 
             //Analiza Respuesta
-            gSub.sysOutln(response);
+            gSub.sysOutln(CLASS_NAME+": Recibiendo respuesta: " + response);
             
+            
+            gSub.sysOutln(CLASS_NAME+": ejecutando...: updateAssignedProcess: " + response);
             int result = gSub.updateAssignedProcess(response);
             
             if (result!=0) {
@@ -68,7 +71,7 @@ public class thKeepAliveSocket extends Thread {
             skCliente.close();
         }
         catch (NumberFormatException | IOException e) {
-            System.out.println("KE error: "+e.getMessage()); 
+            gSub.sysOutln(CLASS_NAME+": Error Conectando a Socket monitor: " + e.getMessage());
         }
     }
 }

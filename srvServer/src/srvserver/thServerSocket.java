@@ -19,6 +19,7 @@ public class thServerSocket extends Thread {
     static boolean isSocketActive = true;
     static String errNum;
     static String errDesc;
+    static String CLASS_NAME = "thServerSocket";
     
     //Carga constructor para inicializar los datos
     public thServerSocket(globalAreaData m) {
@@ -48,61 +49,54 @@ public class thServerSocket extends Thread {
                 //
                 try {
                     inputData  = dataInput.readUTF();
+                    System.out.println(CLASS_NAME+": Recibiendo TX: "+ inputData);
                     //gSub.sysOutln(inputData);
                     
-                    if (gDatos.isSrvActive()) {
-                        //Analiza Respuesta
-                        
-                        auth = gSub.getAuthData (inputData);
-                        gSub.sysOutln("auth: "+auth);
-                        gSub.sysOutln("gauth: "+gDatos.getAuthKey());
-                        
-                        if (auth.equals(gDatos.getAuthKey())) {
-                            request = gSub.getRequest(inputData);
+                    auth = gSub.getAuthData (inputData);
+                    gSub.sysOutln("auth: "+auth);
+                    gSub.sysOutln("gauth: "+gDatos.getAuthKey());
+                    
+                    if (auth.equals(gDatos.getAuthKey())) {
+                        request = gSub.getRequest(inputData);
 
-                            switch (request) {
-                                case "getStatus":
-                                    outputData = gSub.sendDataKeep("request");
-                                    break;
-                                case "getDate":
-                                    outputData = gSub.sendDate();
-                                    break;
-                                case "updateAssignedProc":
-                                    gSub.updateAssignedProcess(inputData);
-                                    outputData = gSub.sendOkTX();
-                                    break;
-                                case "executeProcess":
-                                    //json format:
-                                    // {
-                                    //   "request":"executeProcess",
-                                    //   "auth":"qwerty0987",
-                                    //   "typeProc":"OSP",
-                                    //   "procID":"OSP00001",
-                                    //   "sendDate":"2016-10-02 10:09:10",
-                                    //   "params":
-                                    //      {
-                                    //        <dependera del tipo de proceso>
-                                    //      }
-                                    // }
-                                    outputData = gSub.enqueProcess(inputData);
-                                    break;
-                                case "getPoolProcess":
-                                    outputData = gSub.sendPoolProcess();
-                                    break;
-                                case "getList":
-                                    outputData = gSub.sendList(inputData);
-                                    break;
-                                default:
-                                    outputData = "{unknow request}";
-                            }
-                        } else {
-                            outputData = gSub.sendError(60);
+                        switch (request) {
+                            case "getStatus":
+                                outputData = gSub.sendDataKeep("request");
+                                break;
+                            case "getDate":
+                                outputData = gSub.sendDate();
+                                break;
+                            case "updateAssignedProc":
+                                gSub.updateAssignedProcess(inputData);
+                                outputData = gSub.sendOkTX();
+                                break;
+                            case "executeProcess":
+                                //json format:
+                                // {
+                                //   "request":"executeProcess",
+                                //   "auth":"qwerty0987",
+                                //   "typeProc":"OSP",
+                                //   "procID":"OSP00001",
+                                //   "sendDate":"2016-10-02 10:09:10",
+                                //   "params":
+                                //      {
+                                //        <dependera del tipo de proceso>
+                                //      }
+                                // }
+                                System.out.println(CLASS_NAME+": ejecutando ...enqueProcess..: "+ inputData);
+                                outputData = gSub.enqueProcess(inputData);
+                                break;
+                            case "getPoolProcess":
+                                outputData = gSub.sendPoolProcess();
+                                break;
+                            case "getList":
+                                outputData = gSub.sendList(inputData);
+                                break;
+                            default:
+                                outputData = gSub.sendError(99,"Error desconocido..");
                         }
-                        
-                        System.out.println(inputData);
                     } else {
-                        System.out.println("servico offline para realizar acciones");
-                        outputData = gSub.sendError(80);
+                        outputData = gSub.sendError(60);
                     }
                 } catch (Exception e) {
                     outputData = gSub.sendError(90);
@@ -113,6 +107,8 @@ public class thServerSocket extends Thread {
                 //
                 OutputStream outStr = skCliente.getOutputStream();
                 DataOutputStream dataOutput = new DataOutputStream(outStr);
+                
+                System.out.println(CLASS_NAME+": Enviando respuesta: "+ outputData);
                 
                 if (outputData==null) {
                     dataOutput.writeUTF("{}");
