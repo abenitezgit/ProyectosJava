@@ -43,7 +43,6 @@ public class consoleSocket extends javax.swing.JFrame {
         txtHost = new javax.swing.JTextField();
         txtPort = new javax.swing.JTextField();
         jButton1 = new javax.swing.JButton();
-        textField1 = new java.awt.TextField();
         jComboBox1 = new javax.swing.JComboBox<>();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTextArea1 = new javax.swing.JTextArea();
@@ -65,15 +64,12 @@ public class consoleSocket extends javax.swing.JFrame {
 
         txtPort.setText("9090");
 
-        jButton1.setText("Connect");
+        jButton1.setText("Execute");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
             }
         });
-
-        textField1.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
-        textField1.setText("textField1");
 
         jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "{\"request\":\"getStatus\",\"auth\":\"qwerty0987\"}", "{\"request\":\"keepAlive\",\"auth\":\"qwerty0987\",\"params\":[{\"srvPort\":\"9090\",\"numProcMax\":\"20\",\"numProcExec\":\"0\",\"srvName\":\"srv00001\",\"srvStart\":\"2016-06-15 00:22:33\",\"numTotalExec\":\"0\",\"isgetTypeProc\":false}]}", "{\"request\":\"updateAssignedProc\",\"auth\":\"qwerty0987\",\"params\":[{\"typeProc\":\"ETL\",\"priority\":\"1\",\"maxThread\":\"10\",\"usedThread\":0}]}", "{\"request\":\"executeProcess\",\"auth\":\"qwerty0987\",\"typeProc\":\"OSP\",\"procID\":\"OSP00001\",\"status\":\"enqued\",\"params\":{\"ospName\":\"sp_001\",\"ospUser\":\"process\",\"ospPass\":\"proc01\",\"ospOwner\":\"process\",\"ospServer\":\"localhost\",\"ospDBPort\":\"1521\",\"ospDBName\":\"oratest\",\"ospDBInstance\":\"default\",\"ospDBType\":\"ORA\",\"parametros\":[{\"value\":\"20160612\",\"type\":\"string\"},{\"value\":\"10\",\"type\":\"int\"}]}}", "{\"request\":\"getPoolProcess\",\"auth\":\"qwerty0987\"}", "{\"request\":\"getList\",\"auth\":\"qwerty0987\",\"params\":{\"lista\":\"pool\"}}", " " }));
         jComboBox1.addActionListener(new java.awt.event.ActionListener() {
@@ -106,9 +102,7 @@ public class consoleSocket extends javax.swing.JFrame {
                                 .addComponent(jLabel1)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(txtHost, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 169, Short.MAX_VALUE)
-                        .addComponent(textField1, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(103, 103, 103)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 375, Short.MAX_VALUE)
                         .addComponent(jButton1)
                         .addGap(55, 55, 55)))
                 .addContainerGap())
@@ -119,12 +113,10 @@ public class consoleSocket extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(jLabel1)
-                                .addComponent(txtHost, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(textField1, javax.swing.GroupLayout.DEFAULT_SIZE, 25, Short.MAX_VALUE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel1)
+                            .addComponent(txtHost, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(16, 16, 16)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel2)
                             .addComponent(txtPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -231,7 +223,6 @@ public class consoleSocket extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTextArea jTextArea1;
     private javax.swing.JTextField jTextField1;
-    private java.awt.TextField textField1;
     private javax.swing.JTextField txtHost;
     private javax.swing.JTextField txtPort;
     // End of variables declaration//GEN-END:variables
