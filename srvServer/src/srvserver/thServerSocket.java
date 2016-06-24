@@ -7,6 +7,7 @@ package srvserver;
 import utilities.globalAreaData;
 import java.io.* ; 
 import java.net.* ;
+import org.json.JSONObject;
 import utilities.srvRutinas;
 
 /**
@@ -33,8 +34,10 @@ public class thServerSocket extends Thread {
             gSub.sysOutln("Starting Listener Thread Service Server port: " + gDatos.getSrvPort());
             String inputData;
             String outputData;
-            String request;
-            String auth;
+            String dRequest;
+            String dAuth;
+            JSONObject jHeader;
+            JSONObject jData;
             
             ServerSocket skServidor = new ServerSocket(Integer.valueOf(gDatos.getSrvPort()));
             
@@ -52,14 +55,15 @@ public class thServerSocket extends Thread {
                     System.out.println(CLASS_NAME+": Recibiendo TX: "+ inputData);
                     //gSub.sysOutln(inputData);
                     
-                    auth = gSub.getAuthData (inputData);
-                    gSub.sysOutln("auth: "+auth);
-                    gSub.sysOutln("gauth: "+gDatos.getAuthKey());
+                    jHeader = new JSONObject(inputData);
+                    jData = jHeader.getJSONObject("data");
                     
-                    if (auth.equals(gDatos.getAuthKey())) {
-                        request = gSub.getRequest(inputData);
+                    dAuth = jHeader.getString("auth");
+                    dRequest = jHeader.getString("request");
+                    
+                    if (dAuth.equals(gDatos.getAuthKey())) {
 
-                        switch (request) {
+                        switch (dRequest) {
                             case "getStatus":
                                 outputData = gSub.sendDataKeep("request");
                                 break;
@@ -67,7 +71,7 @@ public class thServerSocket extends Thread {
                                 outputData = gSub.sendDate();
                                 break;
                             case "updateAssignedProc":
-                                gSub.updateAssignedProcess(inputData);
+                                gSub.updateAssignedProcess(jData);
                                 outputData = gSub.sendOkTX();
                                 break;
                             case "executeProcess":
@@ -84,7 +88,16 @@ public class thServerSocket extends Thread {
                                 //      }
                                 // }
                                 System.out.println(CLASS_NAME+": ejecutando ...enqueProcess..: "+ inputData);
-                                outputData = gSub.enqueProcess(inputData);
+                                int result = gSub.enqueProcess(jData);
+                                if (result==0) {
+                                    outputData = gSub.sendOkTX();
+                                } else {
+                                    if (result==2) {
+                                        outputData = gSub.sendError(99, "Proceso ya se encuntra encolado...");
+                                    } else {
+                                        outputData = gSub.sendError(99, "Error encolando proceso...");
+                                    }
+                                }
                                 break;
                             case "getPoolProcess":
                                 outputData = gSub.sendPoolProcess();

@@ -7,6 +7,7 @@ package srvserver;
 import utilities.globalAreaData;
 import java.io.* ; 
 import java.net.* ;
+import org.json.JSONObject;
 import utilities.srvRutinas;
 
 /**
@@ -44,26 +45,32 @@ public class thKeepAliveSocket extends Thread {
             DataOutputStream flujo= new DataOutputStream( aux ); 
             
             dataSend = gSub.sendDataKeep("keep");
-            gSub.sysOutln(CLASS_NAME+": Enviado TX: " + dataSend);
             
             flujo.writeUTF( dataSend ); 
             
             InputStream inpStr = skCliente.getInputStream();
             DataInputStream dataInput = new DataInputStream(inpStr);
             response = dataInput.readUTF();
+            
+            JSONObject jHeader = new JSONObject(response);
+            
+            try {
+                if (jHeader.getString("result").equals("keepAlive")) {
+                    JSONObject jData = jHeader.getJSONObject("data");
+                    //Como es una repsuesta no se espera retorno de error del SP
+                    //el mismo lo resporta internamente si hay alguno.
+                    gSub.updateAssignedProcess(jData);
+                } else {
+                    if (jHeader.getString("result").equals("error")) {
+                        JSONObject jData = jHeader.getJSONObject("data");
+                        System.out.println("Error result: "+jData.getString("errNum")+ " " +jData.getString("errMesg"));
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("Error en formato de respuesta...");
+            }
 
             //Analiza Respuesta
-            gSub.sysOutln(CLASS_NAME+": Recibiendo respuesta: " + response);
-            
-            
-            gSub.sysOutln(CLASS_NAME+": ejecutando...: updateAssignedProcess: " + response);
-            int result = gSub.updateAssignedProcess(response);
-            
-            if (result!=0) {
-                System.out.println(gSub.sendError(99,"Error en updateAssignedProc"));
-            }
-            
-            
             dataInput.close();
             inpStr.close();
             flujo.close();

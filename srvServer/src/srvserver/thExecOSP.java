@@ -21,17 +21,21 @@ public class thExecOSP extends Thread{
     private JSONObject params = new JSONObject();
     private String procID = null;
     
-    public thExecOSP(globalAreaData m, JSONObject jo) {
+    public thExecOSP(globalAreaData m, JSONObject rs) {
         gDatos = m;
         gSub = new srvRutinas(gDatos);
-        this.params = jo;
+        this.params = rs;
     }
     
     @Override
     public void run() {
         System.out.println("Ejecutando OSP");
+        
+        //Recuperando los parametros de entrada
+        String hostName;
+        String ospName;
+
         Timer t1 = new Timer();
-       
         t1.schedule(new task(), 20000);
        
     

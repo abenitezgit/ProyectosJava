@@ -60,54 +60,50 @@ public class srvRutinas {
         gDatos.setNumProcExec(gDatos.getNumProcExec()-1);
     }
     
-    public String sendError(int errCode, String errDesc) {
-        JSONObject jo = new JSONObject();
-        JSONArray ja = new JSONArray();
-        JSONObject mainjo = new JSONObject();
+    public String sendError(int errCode, String errMesg) {
+        JSONObject jData = new JSONObject();
+        JSONObject jHeader = new JSONObject();
+    
+        jData.put("errMesg", errMesg);
+        jData.put("errCode", errCode);
         
-        jo.put("errMesg", errDesc);
-        jo.put("errCode", errCode);
-        
-        ja.put(jo);
-        
-        mainjo.put("params",ja);
-        mainjo.put("request", "response");
+        jHeader.put("data",jData);
+        jHeader.put("result", "error");
             
-        return mainjo.toString();    
+        return jHeader.toString();
     }
     
     public String sendError(int errCode) {
-        String errDesc;
+        String errMesg;
         
         switch (errCode) {
             case 90: 
-                    errDesc = "error de entrada";
+                    errMesg = "error de entrada";
                     break;
             case 80: 
-                    errDesc = "servicio offlne";
+                    errMesg = "servicio offlne";
                     break;
             case 60:
-                    errDesc = "TX no autorizada";
+                    errMesg = "TX no autorizada";
                     break;
             case 10:
-                    errDesc = "procID ya se encuentra en poolProcess...";
+                    errMesg = "procID ya se encuentra en poolProcess...";
                     break;
             default: 
-                    errDesc = "error desconocido";
+                    errMesg = "error desconocido";
                     break;
         }
         
-        JSONObject jo = new JSONObject();
-        JSONArray ja = new JSONArray();
-        JSONObject mainjo = new JSONObject();
+        JSONObject jData = new JSONObject();
+        JSONObject jHeader = new JSONObject();
     
-        jo.put("errMesg", errDesc);
-        jo.put("errCode", errCode);
+        jData.put("errMesg", errMesg);
+        jData.put("errCode", errCode);
         
-        mainjo.put("params",jo);
-        mainjo.put("result", "error");
+        jHeader.put("data",jData);
+        jHeader.put("result", "error");
             
-        return mainjo.toString();
+        return jHeader.toString();
     }
     
     public String sendOkTX() {
@@ -166,21 +162,20 @@ public class srvRutinas {
         }
     }
 
-    public JSONArray jaGetActiveTypeProc() {
+    public JSONArray jaGetPoolProcess() {
+        JSONArray ja = new JSONArray();
         try {
-            JSONArray ja = new JSONArray();
             int numProc = gDatos.getPoolProcess().size();
             if (numProc>0) {
                 for (int i=0; i<numProc; i++) {
-                    if (!gDatos.getPoolProcess().get(i).getString("status").equals("queued")) {
+                    //if (!gDatos.getPoolProcess().get(i).getString("status").equals("queued")) {
                         ja.put(gDatos.getPoolProcess().get(i));
-                    }
+                    //}
                 }
             }
             return ja;
         } catch (Exception e) {
-            sysOutln(e.getMessage());
-            return null;
+            return ja;
         }
     }        
     
@@ -215,72 +210,132 @@ public class srvRutinas {
             // Se genera la salida de la lista 
             JSONObject response = new JSONObject();
             JSONArray mainja = new JSONArray();
-            JSONObject mainjo = new JSONObject();
-            
-            //Si existen procesos asignados
-            if (gDatos.getAssignedTypeProc().size()>0) {
-                JSONArray jaAssignedTypeProc = jaGetAssignedTypeProc();
-                response.put("procAssigned", jaAssignedTypeProc);
-            } else {
-                response.put("procAssigned", mainja);
-            } 
+            JSONObject jHeader = new JSONObject();
+            JSONObject jData = new JSONObject();
             
             //Si existem proceso activos
-            if (gDatos.getPoolProcess().size()>0) {
-                JSONArray jaActiveTypeProc = jaGetActiveTypeProc();
-                response.put("procActive", jaActiveTypeProc);
-            } else {
-                response.put("procActive", mainja);
-            }
+            //if (gDatos.getPoolProcess().size()>0) {
+                //JSONArray jaPoolProcess = jaGetPoolProcess();
+                jData.put("procActive", jaGetPoolProcess());
+            //} else {
+            //    response.put("procActive", mainja);
+            //}
             
-            response.put("srvName", gDatos.getSrvName());
-            response.put("srvPort", gDatos.getSrvPort());
-            response.put("numTotalExec", String.valueOf(gDatos.getNumTotalExec()));
-            response.put("numProcMax", String.valueOf(gDatos.getNumProcMax()));
-            response.put("numProcExec", String.valueOf(gDatos.getNumProcExec()));
-            response.put("srvStart", gDatos.getSrvStart());
-            response.put("isgetTypeProc", gDatos.isSrvGetTypeProc());
+            jData.put("srvName", gDatos.getSrvName());
+            jData.put("srvPort", gDatos.getSrvPort());
+            jData.put("numTotalExec", String.valueOf(gDatos.getNumTotalExec()));
+            jData.put("numProcMax", String.valueOf(gDatos.getNumProcMax()));
+            jData.put("numProcExec", String.valueOf(gDatos.getNumProcExec()));
+            jData.put("srvStart", gDatos.getSrvStart());
+            jData.put("isgetTypeProc", gDatos.isSrvGetTypeProc());
             
             //mainja.put(response);
-            mainjo.put("params", response);
+            jHeader.put("data", jData);
             
             if (type.equals("keep")) {
-                mainjo.put("auth", gDatos.getAuthKey());
-                mainjo.put("request", "keepAlive");
+                jHeader.put("auth", gDatos.getAuthKey());
+                jHeader.put("request", "keepAlive");
             
             } else {
-                mainjo.put("result", "keepAlive");
+                jHeader.put("result", "keepAlive");
             }
             
-            return mainjo.toString();
+            return jHeader.toString();
         } catch (Exception e) {
-            return sendError(0,e.getMessage());
+            return sendError(10,e.getMessage());
         }
     }
     
-    public int updateAssignedProcess(String inputData) {
+    public void updateAssignedProcess(JSONObject jData) {
         try {
-            JSONObject ds = new JSONObject(inputData);
-            JSONArray rows = ds.getJSONArray("params");
-            JSONObject row;
-            
-            //Lista para referenciar a Lista Actual
-            //
-            List<JSONObject> lstAssignedProc = new ArrayList<>();
-            
-            int numProcInput = rows.length();
-            
-            for (int i=0; i<numProcInput; i++) {
-                //Extraigo el registro JSONObject
-                row = rows.getJSONObject(i);
-                lstAssignedProc.add(row);
+            /* Request JSON jData
+            // update: solo actualiza lo informado
+            // delete: borra y registra lo nuevo
+            {
+                "cmd":"update/delete",
+                "ArrayTypeProc":
+                  [´
+                    {
+                      "typeProc":"<string value>",
+                      "priority":<int value>,
+                      "maxThread":<int values>
+                    }
+                  ]
             }
-            gDatos.setAssignedTypeProc(lstAssignedProc);
-            gDatos.setSrvGetTypeProc(true);
-            return 0;
+            
+            */
+
+            String dCmd = jData.getString("cmd");
+            JSONArray dArrayTypeProc = jData.getJSONArray("ArrayTypeProc");
+            
+            String typeProc;
+            String myTypeProc;
+            int myUsedThread;
+            int priority;
+            int maxThread;
+            boolean isFindItem;
+            
+            switch (dCmd) {
+                case "update":
+                    for (int i=0; i<dArrayTypeProc.length(); i++) {
+                        //Busca en cada item de la lista
+                        typeProc = dArrayTypeProc.getJSONObject(i).getString("typeProc");
+                        priority = dArrayTypeProc.getJSONObject(i).getInt("priority");
+                        maxThread = dArrayTypeProc.getJSONObject(i).getInt("maxThread");
+                        isFindItem = false;
+                        for (int j=0; j<gDatos.getAssignedTypeProc().size(); j++) {
+                            myTypeProc = gDatos.getAssignedTypeProc().get(j).getString("typeProc");
+                            if (typeProc.equals(myTypeProc)) {
+                                gDatos.getAssignedTypeProc().get(j).put("priority", priority);
+                                gDatos.getAssignedTypeProc().get(j).put("maxThread", maxThread);
+                                isFindItem = true;
+                            }
+                        }
+                        if (!isFindItem) {
+                            gDatos.getAssignedTypeProc().add(dArrayTypeProc.getJSONObject(i));
+                        }
+                    }
+                    break;
+                case "delete":
+                    for (int i=0; i<gDatos.getAssignedTypeProc().size(); i++) {
+                        //Busca en cada Item nuevo informado
+                        myTypeProc = gDatos.getAssignedTypeProc().get(i).getString("typeProc");
+                        myUsedThread = gDatos.getAssignedTypeProc().get(i).getInt("usedThread");
+                        isFindItem = false;
+                        for (int j=0; j<dArrayTypeProc.length(); j++) {
+                            typeProc = dArrayTypeProc.getJSONObject(i).getString("typeProc");
+                            priority = dArrayTypeProc.getJSONObject(i).getInt("priority");
+                            maxThread = dArrayTypeProc.getJSONObject(i).getInt("maxThread");
+                            if (typeProc.equals(myTypeProc)) {
+                                gDatos.getAssignedTypeProc().get(j).put("priority", priority);
+                                gDatos.getAssignedTypeProc().get(j).put("maxThread", maxThread);
+                                isFindItem = true;
+                            }
+                        }
+                        if (!isFindItem) {
+                            gDatos.getAssignedTypeProc().remove(i);
+                        }
+                    } 
+                    for (int i=0; i<dArrayTypeProc.length(); i++) {
+                        //Busca en cada item de la lista
+                        typeProc = dArrayTypeProc.getJSONObject(i).getString("typeProc");
+                        isFindItem = false;
+                        for (int j=0; j<gDatos.getAssignedTypeProc().size(); j++) {
+                            myTypeProc = gDatos.getAssignedTypeProc().get(j).getString("typeProc");
+                            if (typeProc.equals(myTypeProc)) {
+                                isFindItem = true;
+                            }
+                        }
+                        if (!isFindItem) {
+                            gDatos.getAssignedTypeProc().add(dArrayTypeProc.getJSONObject(i));
+                        }
+                    }
+                    break;
+                default:
+                   break;
+            }
         } catch (Exception e) {
-            sysOutln(e.getMessage());
-            return 99;
+            sysOutln("Error: " + e.getMessage());
         }
     }
     
@@ -308,7 +363,7 @@ public class srvRutinas {
         }
     }
     
-    public String enqueProcess(String inputData) {
+    public int enqueProcess(JSONObject jData) {
         //inputData:
         //{
         //  "request":"executeProcess","auth":"querty0987","typeProc":"OSP","procID":"OSP00001","params":
@@ -332,41 +387,20 @@ public class srvRutinas {
         try {
             //Ingresa la peticion de ejecucion en una lista
             //
-            int result; 
-            JSONObject ds = new JSONObject(inputData);
-            JSONObject params = ds.getJSONObject("params");
-            
-            String typeProc = ds.getString("typeProc");
-            String procID = ds.getString("procID");
-            String sendDate = ds.getString("sendDate");
-            
-            JSONObject itemData = new JSONObject();
-            
-            itemData.put("params", params);
-            itemData.put("status", "queued");
-            itemData.put("procID", procID);
-            itemData.put("typeProc", typeProc);
-            itemData.put("sendDate",sendDate);
-            itemData.put("receiveDate", getDateNow("yyyy-MM-dd HH:MI:SS"));
+            String procID = jData.getString("procID");
                         
             if (!gDatos.isExistPoolProcess(procID)) {
-                result = gDatos.addPoolProcess(itemData);
+                jData.put("receiveDate", getDateNow("yyyy-MM-dd HH:mi:ss"));
+                jData.put("status","queued");
+                gDatos.poolProcess.add(jData);
+                return 0;
             } else {
-                result = 10;
-            }
-            
-            if (result==0) {
-                return sendOkTX();
-            } else {
-                return sendError(result);
+                return 2;
             }
         } catch (Exception e) {
-            return sendError(10, "error enque stack proc..");
+            return 1;
         }
-    
     }
-    
-    
     
     public String sendList(String inputData) {
         try {
@@ -451,7 +485,7 @@ public class srvRutinas {
             jo.put("fecha", getDateNow("yyyy-MM-dd HH:mm:ss"));
             ja.put(jo);
             mainjo.put("params", ja);
-            mainjo.put("request", "response");
+            mainjo.put("result", "sendDate");
             return mainjo.toString();
         } catch (Exception e) {
             return sendError(99, e.getMessage());
