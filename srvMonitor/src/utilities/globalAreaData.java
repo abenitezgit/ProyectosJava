@@ -341,7 +341,7 @@ public class globalAreaData {
     
     //Procedimientos y/o metodos Utilizarios
     //
-    
+
     
     public globalAreaData() {
         Properties fileConf = new Properties();

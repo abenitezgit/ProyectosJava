@@ -23,6 +23,7 @@ public class srvMonitor {
     static globalAreaData gDatos;
     static srvRutinas gSub;
     static boolean isSocketActive;
+    static String CLASS_NAME = "srvMonitor";
     
     public srvMonitor() throws IOException {
 
@@ -49,7 +50,7 @@ public class srvMonitor {
             gSub.sysOutln("Maximo Procesos: " +  gDatos.getNumProcMax());
             gSub.sysOutln("Estado Servicio: " + String.valueOf(gDatos.isSrvActive()));
         } else { 
-            System.out.println("error cargando AreaData");
+            System.out.println(CLASS_NAME+": Error cargando AreaData");
         }
     }
     
@@ -62,26 +63,28 @@ public class srvMonitor {
         //Constructor de la clase
         public mainTimerTask() {
             
-            System.out.println("inicio constructor");
+            System.out.println(CLASS_NAME+": Inicio constructor");
             
         }
         
         @Override
         public void run() { 
-            System.out.println("mainTimerTask vivo");
+            System.out.println(CLASS_NAME+": Ejecutando MainTimerTask...");
             
             //Starting Monitor Thread Server
             //
             try {
                 if (!thSocket.isAlive()) {
                     if (gDatos.isSrvActive()) {
-                        System.out.println("iniciando socket Monitor");
+                        System.out.println(CLASS_NAME+": iniciando thMonitorSocket...normal...");
                         thSocket.start();
                     }
+                } else {
+                    System.out.println(CLASS_NAME+": thread thMonitorSocket...operando en port.."+gDatos.getSrvPort());
                 }
             } catch (Exception e) {
                 if (gDatos.isSrvActive()) {
-                    System.out.println("iniciando socket monitor forced");
+                    System.out.println(CLASS_NAME+": iniciando thMonitorSocket...forced...");
                     thSocket = new thMonitorSocket(gDatos);
                     thSocket.start();
                 }
@@ -100,9 +103,9 @@ public class srvMonitor {
                         DriverManager.setLoginTimeout(5);
                         gDatos.setMetadataConnection(DriverManager.getConnection(gDatos.getConnString(), gDatos.getDbORAUser(), gDatos.getDbORAPass()));
                         gDatos.setIsMetadataConnect(true);
-                        System.out.println("Conectado a Metadata");
+                        System.out.println(CLASS_NAME+": conectado a metadata ORA...");
                     } catch (SQLException ex) {
-                        System.out.println("No es posible conectarse a Metadata. Error: "+ ex.getMessage());
+                        System.out.println(CLASS_NAME+": no es posible conectarse a metadata..."+ ex.getMessage());
                         gDatos.setIsMetadataConnect(false);
                     }
                     
@@ -132,16 +135,19 @@ public class srvMonitor {
                 try {
                     int result = gSub.getMDprocAssigned();
                     if (result!=0) {
-                        gSub.sysOutln("no pudo recuperar metadata assigned process");
+                        System.out.println(CLASS_NAME+": getMDprocAssigned ERROR...");
                     }
+                    gSub.sysOutln(CLASS_NAME+": getMDprocAssigned OK...");
                 } catch (SQLException ex) {
                     gSub.sysOutln(ex.getMessage());
                 }
             
             }
             
-        
+            gSub.sysOutln(CLASS_NAME+": FIN TimerMainTask...");
         }
+        
+        
             
     }
 }

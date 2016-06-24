@@ -79,60 +79,58 @@ public class srvRutinas {
         }
     }
     
-    public String sendError(int errCode, String errDesc) {
-        JSONObject jo = new JSONObject();
-        JSONArray ja = new JSONArray();
-        JSONObject mainjo = new JSONObject();
+    public String sendError(int errCode, String errMesg) {
+        JSONObject jData = new JSONObject();
+        JSONObject jHeader = new JSONObject();
+    
+        jData.put("errMesg", errMesg);
+        jData.put("errCode", errCode);
         
-        jo.put("errMesg", errDesc);
-        jo.put("errCode", errCode);
-        
-        ja.put(jo);
-        
-        mainjo.put("params",ja);
-        mainjo.put("result", "error");
+        jHeader.put("data",jData);
+        jHeader.put("result", "error");
             
-        return mainjo.toString();    
+        return jHeader.toString();
     }
     
     public String sendError(int errCode) {
-        String errDesc;
+        String errMesg;
         
         switch (errCode) {
             case 90: 
-                    errDesc = "error de entrada";
+                    errMesg = "error de entrada";
                     break;
             case 80: 
-                    errDesc = "servicio offlne";
+                    errMesg = "servicio offlne";
                     break;
             case 60:
-                    errDesc = "TX no autorizada";
+                    errMesg = "TX no autorizada";
                     break;
             default: 
-                    errDesc = "error desconocido";
+                    errMesg = "error desconocido";
                     break;
         }
         
-        JSONObject jo = new JSONObject();
-        JSONArray ja = new JSONArray();
-        JSONObject mainjo = new JSONObject();
+        JSONObject jData = new JSONObject();
+        JSONObject jHeader = new JSONObject();
     
-        jo.put("errMesg", errDesc);
-        jo.put("errCode", errCode);
+        jData.put("errMesg", errMesg);
+        jData.put("errCode", errCode);
         
-        mainjo.put("params",jo);
-        mainjo.put("result", "error");
+        jHeader.put("data",jData);
+        jHeader.put("result", "error");
             
-        return mainjo.toString();
+        return jHeader.toString();
     }
 
     public String sendOkTX() {
         
-        JSONObject mainjo = new JSONObject();
+        JSONObject jData = new JSONObject();
+        JSONObject jHeader = new JSONObject();
         
-        mainjo.put("result", "OK");
+        jHeader.put("data", jData);
+        jHeader.put("result", "OK");
             
-        return mainjo.toString();
+        return jHeader.toString();
     }
     
     public void putExecOSP(String inputData) {
@@ -148,13 +146,22 @@ public class srvRutinas {
     public String getStatusServices() {
         try {
             JSONObject jo = new JSONObject();
-            JSONArray ja = new JSONArray();
+            JSONArray jaServicios = new JSONArray();
+            JSONArray jaAssigned = new JSONArray();
+            
             JSONObject mainjo = new JSONObject();
 
             for (int i=0; i<gDatos.getServiceStatus().size(); i++) {
-                ja.put(gDatos.getServiceStatus().get(i));
+                jaServicios.put(gDatos.getServiceStatus().get(i));
             }
-            mainjo.put("params", ja);
+            
+            for (int i=0; i<gDatos.getAssignedServiceTypeProc().size(); i++) {
+                jaAssigned.put(gDatos.getAssignedServiceTypeProc().get(i));
+            }
+            
+            jo.put("procAssigned", jaServicios);
+            jo.put("servicios", jaServicios);
+            mainjo.put("params",jo);
             mainjo.put("result", "getStatus");
 
             return mainjo.toString();
@@ -163,42 +170,47 @@ public class srvRutinas {
         }
     }
         
-    public String updateStatusServices(JSONObject row) {
-        try {
-            String srvName = row.get("srvName").toString();
-            int numItems = gDatos.getServiceStatus().size();
+    public int updateStatusServices(JSONObject jData) {
+        try {            
+            String srvName = jData.get("srvName").toString();
+            int myNumItems = gDatos.getServiceStatus().size();
             
-            for (int i=0; i<numItems; i++) {
-                if (gDatos.getServiceStatus().get(i).getString("srvName").equals(srvName)) {
-                    gDatos.getServiceStatus().remove(i);
-                    gDatos.getServiceStatus().add(row);
+            if (myNumItems>0) {
+                for (int i=0; i<myNumItems; i++) {
+                    if (gDatos.getServiceStatus().get(i).getString("srvName").equals(srvName)) {
+                        gDatos.getServiceStatus().remove(i);
+                    }
+                    gDatos.getServiceStatus().add(jData);
                 }
+            } else {
+                gDatos.getServiceStatus().add(jData);
             }
-            return sendOkTX();
+            return 0;
         } catch (Exception e) {
-            return sendError(9);
+            return 1;
         }
     }
     
     public String sendAssignedProc(String srvName) {
         try {
+            JSONObject jData = new JSONObject();
+            JSONObject jHeader = new JSONObject();
+            JSONArray arrayAssignedProc = new JSONArray();
             String respuesta;
-            JSONArray ja = new JSONArray();
-            JSONObject mainjo = new JSONObject();
-            
-            System.out.println("srvname: "+srvName);
-            
-            int numItems = gDatos.getAssignedServiceTypeProc().size();
-            if (numItems>0) {
-                for (int i=0; i<numItems; i++) {
+                        
+            int myNumItems = gDatos.getAssignedServiceTypeProc().size();
+            if (myNumItems>0) {
+                for (int i=0; i<myNumItems; i++) {
                     if (gDatos.getAssignedServiceTypeProc().get(i).get("srvName").equals(srvName)) {
-                        ja = gDatos.getAssignedServiceTypeProc().get(i).getJSONArray("procAssigned");
+                        arrayAssignedProc = gDatos.getAssignedServiceTypeProc().get(i).getJSONArray("ArrayTypeProc");
                     }
                 }
             }
-            mainjo.put("params",ja);
-            mainjo.put("result", "keepAlive");
-            return mainjo.toString();
+            jData.put("ArrayTypeProc", arrayAssignedProc);
+            jData.put("cmd", "update");
+            jHeader.put("data",jData);
+            jHeader.put("result", "keepAlive");
+            return jHeader.toString();
         } catch (Exception e) {
             return sendError(1,e.getMessage());
         }
@@ -242,6 +254,8 @@ public class srvRutinas {
             String vSQL = "select srvName, srvDesc, srvActive, srvTypeProc from process.tb_services order by srvName";
             Statement sentencia;
             sentencia = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+            List<JSONObject> lstTemp = new ArrayList<>();
+            lstTemp.clear();
 
             ResultSet rs = sentencia.executeQuery(vSQL);
             if (rs!=null) {
@@ -254,9 +268,11 @@ public class srvRutinas {
                     jo.put("srvActive", rs.getInt("srvActive"));
                     jo.put("srvDesc", rs.getString("srvDesc"));
                     jo.put("srvName", rs.getString("srvName"));
-                    gDatos.getAssignedServiceTypeProc().add(jo);
+                    lstTemp.add(jo);
                 }
             }
+            gDatos.getAssignedServiceTypeProc().clear();
+            gDatos.setAssignedServiceTypeProc(lstTemp);
             return 0;
             
         } catch (SQLException | JSONException e) {
