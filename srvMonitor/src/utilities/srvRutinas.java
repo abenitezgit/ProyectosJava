@@ -1,5 +1,5 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
+ * To change this license header, choose License Headers in Project Properties.nnn
  */
 package utilities;
 
@@ -180,11 +180,9 @@ public class srvRutinas {
                     if (gDatos.getServiceStatus().get(i).getString("srvName").equals(srvName)) {
                         gDatos.getServiceStatus().remove(i);
                     }
-                    gDatos.getServiceStatus().add(jData);
                 }
-            } else {
-                gDatos.getServiceStatus().add(jData);
-            }
+            } 
+            gDatos.getServiceStatus().add(jData);
             return 0;
         } catch (Exception e) {
             return 1;
@@ -250,25 +248,27 @@ public class srvRutinas {
     
     public int getMDprocAssigned() throws SQLException {
         try {
-            Connection conn = gDatos.getMetadataConnection();
-            String vSQL = "select srvName, srvDesc, srvActive, srvTypeProc from process.tb_services order by srvName";
-            Statement sentencia;
-            sentencia = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+            String vSQL = "select srvID, srvDesc, srvEnable, srvTypeProc "
+                    + "     from process.tb_services"
+                    + "     where srvEnable=1"
+                    + "     order by srvID";
+            Statement stm;
+            stm = gDatos.getMetadataConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
             List<JSONObject> lstTemp = new ArrayList<>();
             lstTemp.clear();
 
-            ResultSet rs = sentencia.executeQuery(vSQL);
+            ResultSet rs = stm.executeQuery(vSQL);
             if (rs!=null) {
-                JSONObject jo;
-                JSONArray ja;
+                JSONObject jData;
+                JSONArray jArray;
                 while (rs.next()) {
-                    jo = new JSONObject();
-                    ja = new JSONArray(rs.getString("srvTypeProc"));
-                    jo.put("procAssigned", ja);
-                    jo.put("srvActive", rs.getInt("srvActive"));
-                    jo.put("srvDesc", rs.getString("srvDesc"));
-                    jo.put("srvName", rs.getString("srvName"));
-                    lstTemp.add(jo);
+                    jData = new JSONObject();
+                    jArray = new JSONArray(rs.getString("srvTypeProc"));
+                    jData.put("procAssigned", jArray);
+                    jData.put("srvEnable", rs.getInt("srvEnable"));
+                    jData.put("srvDesc", rs.getString("srvDesc"));
+                    jData.put("srvID", rs.getString("srvID"));
+                    lstTemp.add(jData);
                 }
             }
             gDatos.getAssignedServiceTypeProc().clear();

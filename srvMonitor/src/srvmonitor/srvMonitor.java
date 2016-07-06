@@ -25,7 +25,7 @@ public class srvMonitor {
     static boolean isSocketActive;
     static String CLASS_NAME = "srvMonitor";
     
-    public srvMonitor() throws IOException {
+    public srvMonitor() {
 
     }   
 
@@ -59,6 +59,8 @@ public class srvMonitor {
         //Declare los Thread de cada proceso
         //
         Thread thSocket = new thMonitorSocket(gDatos);
+        Thread thKeepMon = new thKeepAliveSocket(gDatos);
+        Thread thAgendas = new thGetAgendas(gDatos);
         
         //Constructor de la clase
         public mainTimerTask() {
@@ -70,6 +72,28 @@ public class srvMonitor {
         @Override
         public void run() { 
             System.out.println(CLASS_NAME+": Ejecutando MainTimerTask...");
+
+            
+            /*
+            //Starting Monitor Keep Alive Services Registered
+            //
+            try {
+                if (!thKeepMon.isAlive()) {
+                    if (gDatos.isSrvActive()) {
+                        System.out.println(CLASS_NAME+": iniciando thMonitorSocket...normal...");
+                        thKeepMon.start();
+                    }
+                } else {
+                    System.out.println(CLASS_NAME+": thread thMonitorSocket...operando en port.."+gDatos.getSrvPort());
+                }
+            } catch (Exception e) {
+                if (gDatos.isSrvActive()) {
+                    System.out.println(CLASS_NAME+": iniciando thMonitorSocket...forced...");
+                    thKeepMon = new thKeepAliveSocket(gDatos);
+                    thKeepMon.start();
+                }
+            }
+            */
             
             //Starting Monitor Thread Server
             //
@@ -132,18 +156,40 @@ public class srvMonitor {
             
             //Accede a la metada a recuperar parametros de los servicios registrados
             if (gDatos.isIsMetadataConnect()) {
+                /*
+                    Busca en BD Tipos de Procesos asignados a los servicios
+                */
                 try {
                     int result = gSub.getMDprocAssigned();
-                    if (result!=0) {
+                    if (result==0) {
+                        gSub.sysOutln(CLASS_NAME+": getMDprocAssigned OK...");
+                    } else {
                         System.out.println(CLASS_NAME+": getMDprocAssigned ERROR...");
                     }
-                    gSub.sysOutln(CLASS_NAME+": getMDprocAssigned OK...");
                 } catch (SQLException ex) {
                     gSub.sysOutln(ex.getMessage());
                 }
-            
+                
+                /*
+                    Ejecuta Proceso en Thread para Buscar Agendas y Procesos Activos
+                */
+                try {
+                    if (!thAgendas.isAlive()) {
+                        if (gDatos.isSrvActive()) {
+                            System.out.println(CLASS_NAME+": iniciando thAgendas...normal...");
+                            thAgendas.start();
+                        }
+                    } else {
+                        System.out.println(CLASS_NAME+": thread thAgendas...operando ");
+                    }
+                } catch (Exception e) {
+                    if (gDatos.isSrvActive()) {
+                        System.out.println(CLASS_NAME+": iniciando thAgendas...forced...");
+                        thAgendas = new thGetAgendas(gDatos);
+                        thAgendas.start();
+                    }
+                }
             }
-            
             gSub.sysOutln(CLASS_NAME+": FIN TimerMainTask...");
         }
         
