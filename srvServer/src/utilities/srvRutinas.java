@@ -5,11 +5,18 @@
  */
 package utilities;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
@@ -17,7 +24,7 @@ import org.json.JSONObject;
  * @author andresbenitez
  */
 public class srvRutinas {
-    globalAreaData gDatos;
+    static globalAreaData gDatos;
     
     //Constructor de la clase
     //
@@ -27,6 +34,67 @@ public class srvRutinas {
     
     public void sysOutln(Object obj) {
         System.out.println(obj);
+    }
+    
+    public int sendRegisterService() {
+        try {
+            boolean processOK = false;
+
+            Socket skCliente;
+            String response;
+            String dataSend;
+
+            skCliente = new Socket(gDatos.getSrvMonHost(), Integer.valueOf(gDatos.getMonPort()));
+            OutputStream aux = skCliente.getOutputStream(); 
+            DataOutputStream flujo= new DataOutputStream( aux ); 
+            
+            dataSend = sendDataKeep("keep");
+            
+            flujo.writeUTF( dataSend ); 
+            
+            InputStream inpStr = skCliente.getInputStream();
+            DataInputStream dataInput = new DataInputStream(inpStr);
+            response = dataInput.readUTF();
+            
+            /*
+                Analiza la respuesta
+            */
+            
+            JSONObject jHeader = new JSONObject(response);
+            
+            try {
+                if (jHeader.getString("result").equals("keepAlive")) {
+                    JSONObject jData = jHeader.getJSONObject("data");
+                    //Como es una repsuesta no se espera retorno de error del SP
+                    //el mismo lo resporta internamente si hay alguno.
+                    updateAssignedProcess(jData);
+                    processOK = true;
+                } else {
+                    if (jHeader.getString("result").equals("error")) {
+                        JSONObject jData = jHeader.getJSONObject("data");
+                        System.out.println("Error result: "+jData.getString("errNum")+ " " +jData.getString("errMesg"));
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("Error en formato de respuesta...");
+            }
+
+            dataInput.close();
+            inpStr.close();
+            flujo.close();
+            aux.close();
+            skCliente.close();
+            
+            if (processOK) {
+                return 0;
+            } else {
+                return 1;
+            }
+            
+        } catch (NumberFormatException | IOException | JSONException e) {
+            sysOutln(": Error Conectando a Socket monitor: " + e.getMessage());
+            return 1;
+        }
     }
     
     public String getDateNow(String xformat) {
@@ -208,8 +276,6 @@ public class srvRutinas {
         //
         try {
             // Se genera la salida de la lista 
-            JSONObject response = new JSONObject();
-            JSONArray mainja = new JSONArray();
             JSONObject jHeader = new JSONObject();
             JSONObject jData = new JSONObject();
             
@@ -223,6 +289,7 @@ public class srvRutinas {
             
             jData.put("srvName", gDatos.getSrvName());
             jData.put("srvPort", gDatos.getSrvPort());
+            jData.put("srvHost", gDatos.getSrvHost());
             jData.put("numTotalExec", String.valueOf(gDatos.getNumTotalExec()));
             jData.put("numProcMax", String.valueOf(gDatos.getNumProcMax()));
             jData.put("numProcExec", String.valueOf(gDatos.getNumProcExec()));
@@ -387,6 +454,12 @@ public class srvRutinas {
         try {
             //Ingresa la peticion de ejecucion en una lista
             //
+            System.out.println("..........................................");
+            System.out.println("..........................................");
+            System.out.println(jData.toString());
+            System.out.println("..........................................");
+            System.out.println("..........................................");
+            
             String procID = jData.getString("procID");
                         
             if (!gDatos.isExistPoolProcess(procID)) {
@@ -402,17 +475,22 @@ public class srvRutinas {
         }
     }
     
-    public String sendList(String inputData) {
+    public String sendList(JSONObject jData) {
         try {
-            JSONObject ds = new JSONObject(inputData);
+            JSONObject jDataSend = new JSONObject();
             JSONArray ja = new JSONArray();
             
-            String inputLista = ds.getJSONObject("params").getString("lista");
+            String inputLista = jData.getJSONObject("data").getString("lista");
             
             switch (inputLista) {
                 case "pool":
                     for (int i=0; i<gDatos.getPoolProcess().size(); i++) {
                         ja.put(gDatos.getPoolProcess().get(i));
+                    }
+                    break;
+                case "assignedProc":
+                    for (int i=0; i<gDatos.getAssignedTypeProc().size(); i++) {
+                        ja.put(gDatos.getAssignedTypeProc().get(i));
                     }
                     break;
                 default:

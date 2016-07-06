@@ -103,7 +103,7 @@ public class thServerSocket extends Thread {
                                 outputData = gSub.sendPoolProcess();
                                 break;
                             case "getList":
-                                outputData = gSub.sendList(inputData);
+                                outputData = gSub.sendList(jData);
                                 break;
                             default:
                                 outputData = gSub.sendError(99,"Error desconocido..");

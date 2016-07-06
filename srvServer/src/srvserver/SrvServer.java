@@ -18,17 +18,25 @@ import utilities.srvRutinas;
  */
 public class SrvServer {
     static globalAreaData gDatos = new globalAreaData();
-    static srvRutinas gSub = new srvRutinas(gDatos);
+    static srvRutinas gSub ;
+    static boolean registerService;
     static String CLASS_NAME = "srvServer";
     
-    public SrvServer() throws IOException {
-        //gRutinas = new srvRutinas(gDatos);
+    public SrvServer() {
+        /*
+            El constructor solo se ejecuta cuando la clase es instanciada desde otra.
+            Cuando la clase posee un main() principal de ejecución, el constructor  no
+            es considerado.
+        */
     }   
 
     //Aplicacion Servidor
     //Levanta Puerto para informar status
 
     public static void main(String[] args) throws IOException {
+        gSub = new srvRutinas(gDatos);
+        registerService = false;
+
         if (gDatos.isSrvLoadParam()) {
             Timer mainTimer = new Timer();
             mainTimer.schedule(new mainTimerTask(), 2000, Integer.valueOf(gDatos.getTxpMain()));
@@ -67,27 +75,19 @@ public class SrvServer {
             JSONObject params;
             System.out.println(CLASS_NAME+" Iniciando mainTimerTask....");
             
-            //Monitor KeepAlive
-            try {
-                if (!thKeep.isAlive()) {
-                    if (gDatos.isSrvActive()) {
-                        thKeep.start();
-                        System.out.println(CLASS_NAME+" Iniciando ThreadKeep....normal...");
-                    }
+            //Registra Startup del Servicio en serverMonitor
+            if (!registerService) {
+                int result = gSub.sendRegisterService();
+                if (result==0) {
+                    System.out.println("servicio registrado");
+                    registerService = true;
                 } else {
-                    if (!gDatos.isSrvActive()) {
-                        thKeep.interrupt();
-                        System.out.println("thKeep interrupted");
-                    }
+                    System.out.println("Error: servicio no ha podido registrarse");
                 }
+            } else {
+                System.out.println("Servicio ya está registrado...");
             }
-            catch (Exception e) {
-                if (gDatos.isSrvActive()) {
-                    thKeep = new thKeepAliveSocket(gDatos);
-                    thKeep.start();
-                    System.out.println(CLASS_NAME+" Iniciando ThreadKeep....forced...");
-                }
-            }
+            
             
             //Monitor thSocket Server
             //
@@ -111,7 +111,7 @@ public class SrvServer {
                 }
             }
             
-            //Control Princial de Ejecucion de Procesos
+            //Control Principal de Ejecucion de Procesos
             if (gDatos.isSrvActive()) {    //Control de Revision de Procesos
                 System.out.println(CLASS_NAME+" servicio activo...");
                 int numProc = gDatos.getPoolProcess().size();
