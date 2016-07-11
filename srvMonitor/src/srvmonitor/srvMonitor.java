@@ -176,17 +176,17 @@ public class srvMonitor {
                 try {
                     if (!thAgendas.isAlive()) {
                         if (gDatos.isSrvActive()) {
-                            System.out.println(CLASS_NAME+": iniciando thAgendas...normal...");
                             thAgendas.start();
+                            System.out.println(CLASS_NAME+": iniciando thAgendas...normal...");
                         }
                     } else {
                         System.out.println(CLASS_NAME+": thread thAgendas...operando ");
                     }
                 } catch (Exception e) {
                     if (gDatos.isSrvActive()) {
-                        System.out.println(CLASS_NAME+": iniciando thAgendas...forced...");
                         thAgendas = new thGetAgendas(gDatos);
                         thAgendas.start();
+                        System.out.println(CLASS_NAME+": iniciando thAgendas...forced...");
                     }
                 }
             }
