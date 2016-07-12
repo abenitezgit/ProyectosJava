@@ -34,6 +34,11 @@ public class globalAreaData {
     private String monPortBack;
     private String authKey;
     private String srvMonHost;
+    private String srvMonHostBack;
+    private boolean isRegisterService;
+    private boolean isActivePrimaryMonHost;
+    private boolean isConnectMonHost;
+    
 
     
     //Variables Operacionales
@@ -61,6 +66,38 @@ public class globalAreaData {
     //Metodos de Acceso a los Datos
     //
 
+    public boolean isIsConnectMonHost() {
+        return isConnectMonHost;
+    }
+
+    public void setIsConnectMonHost(boolean isConnectMonHost) {
+        this.isConnectMonHost = isConnectMonHost;
+    }
+
+    public String getSrvMonHostBack() {
+        return srvMonHostBack;
+    }
+
+    public void setSrvMonHostBack(String srvMonHostBack) {
+        this.srvMonHostBack = srvMonHostBack;
+    }
+
+    public boolean isIsActivePrimaryMonHost() {
+        return isActivePrimaryMonHost;
+    }
+
+    public void setIsActivePrimaryMonHost(boolean isActivePrimaryMonHost) {
+        this.isActivePrimaryMonHost = isActivePrimaryMonHost;
+    }
+    
+    public boolean isIsRegisterService() {
+        return isRegisterService;
+    }
+
+    public void setIsRegisterService(boolean isRegisterService) {
+        this.isRegisterService = isRegisterService;
+    }
+    
     public List<JSONObject> getPoolProcess() {
         return poolProcess;
     }
@@ -361,10 +398,13 @@ public class globalAreaData {
                 srvHost = fileConf.getProperty("srvHost");
                 authKey = fileConf.getProperty("authKey");
                 srvMonHost = fileConf.getProperty("srvMonHost");
+                srvMonHostBack = fileConf.getProperty("srvMonHostBack");
+                isActivePrimaryMonHost = fileConf.getProperty("activePrimaryMonHost").equals("true");
                 
                 
                 //Setea Parametros iniciales
                 //
+                isConnectMonHost = false;
                 numProcExec = 0;
                 numTotalExec = 0;
                 

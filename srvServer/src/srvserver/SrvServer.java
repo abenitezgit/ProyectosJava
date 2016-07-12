@@ -5,11 +5,17 @@
  */
 package srvserver;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import utilities.globalAreaData;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
 import java.util.Timer;
 import java.util.TimerTask;
 import org.json.JSONObject;
+import static srvserver.thKeepAliveSocket.gDatos;
 import utilities.srvRutinas;
 
 /**
@@ -19,7 +25,6 @@ import utilities.srvRutinas;
 public class SrvServer {
     static globalAreaData gDatos = new globalAreaData();
     static srvRutinas gSub ;
-    static boolean registerService;
     static String CLASS_NAME = "srvServer";
     
     public SrvServer() {
@@ -35,7 +40,7 @@ public class SrvServer {
 
     public static void main(String[] args) throws IOException {
         gSub = new srvRutinas(gDatos);
-        registerService = false;
+        gDatos.setIsRegisterService(false);
 
         if (gDatos.isSrvLoadParam()) {
             Timer mainTimer = new Timer();
@@ -75,20 +80,6 @@ public class SrvServer {
             JSONObject params;
             System.out.println(CLASS_NAME+" Iniciando mainTimerTask....");
             
-            //Registra Startup del Servicio en serverMonitor
-            if (!registerService) {
-                int result = gSub.sendRegisterService();
-                if (result==0) {
-                    System.out.println("servicio registrado");
-                    registerService = true;
-                } else {
-                    System.out.println("Error: servicio no ha podido registrarse");
-                }
-            } else {
-                System.out.println("Servicio ya está registrado...");
-            }
-            
-            
             //Monitor thSocket Server
             //
             try {
@@ -111,26 +102,114 @@ public class SrvServer {
                 }
             }
             
+            /*
+            Valida Conexion a servidor de monitoreo
+            */
+            gSub.sysOutln(CLASS_NAME+" Validando conexion a server de monitoreo....");
+            try {
+                /*
+                Valida conexion a server primario
+                */
+                if (gDatos.isIsActivePrimaryMonHost()) {
+                    try {
+                        Socket skCliente = new Socket(gDatos.getSrvMonHost(), Integer.valueOf(gDatos.getMonPort()));
+                        OutputStream aux = skCliente.getOutputStream(); 
+                        DataOutputStream flujo= new DataOutputStream( aux ); 
+                        String dataSend = gSub.sendPing();
+                        flujo.writeUTF( dataSend ); 
+                        InputStream inpStr = skCliente.getInputStream();
+                        DataInputStream dataInput = new DataInputStream(inpStr);
+                        String response = dataInput.readUTF();
+                        if (response.equals("OK")) {
+                            gDatos.setIsConnectMonHost(true);
+                            gSub.sysOutln(CLASS_NAME+" Conectado a server monitor primary");
+                        } else {
+                            gDatos.setIsActivePrimaryMonHost(false);
+                            gDatos.setIsConnectMonHost(false);
+                            gDatos.setIsRegisterService(false);
+                        }
+                    } catch (NumberFormatException | IOException e) {
+                        gDatos.setIsActivePrimaryMonHost(false);
+                        gDatos.setIsConnectMonHost(false);
+                        gDatos.setIsRegisterService(false);
+                        gSub.sysOutln(CLASS_NAME+" Error conexion a server de monitoreo primary...."+ e.getMessage());
+                    }
+                
+                } else {
+                    /*
+                    Valida conexion a server secundario Backup
+                    */
+                    try {
+                        Socket skCliente = new Socket(gDatos.getSrvMonHostBack(), Integer.valueOf(gDatos.getMonPortBack()));
+                        OutputStream aux = skCliente.getOutputStream(); 
+                        DataOutputStream flujo= new DataOutputStream( aux ); 
+                        String dataSend = gSub.sendPing();
+                        flujo.writeUTF( dataSend ); 
+                        InputStream inpStr = skCliente.getInputStream();
+                        DataInputStream dataInput = new DataInputStream(inpStr);
+                        String response = dataInput.readUTF();
+                        if (response.equals("OK")) {
+                            gDatos.setIsConnectMonHost(true);
+                            gSub.sysOutln(CLASS_NAME+" Conectado a server monitor secundary");
+                        } else {
+                            gDatos.setIsActivePrimaryMonHost(true);
+                            gDatos.setIsConnectMonHost(false);
+                            gDatos.setIsRegisterService(false);
+                        }
+                    } catch (NumberFormatException | IOException e) {
+                        gDatos.setIsActivePrimaryMonHost(true);
+                        gDatos.setIsConnectMonHost(false);
+                        gDatos.setIsRegisterService(false);
+                        gSub.sysOutln(CLASS_NAME+" Error conexion a server de monitoreo backup...."+ e.getMessage());
+                    }
+                
+                }
+            } catch (Exception e) {
+                gDatos.setIsConnectMonHost(false);
+                gDatos.setIsRegisterService(false);
+                gSub.sysOutln(CLASS_NAME+" Error general conexion a server de monitoreo...."+ e.getMessage());
+            }
+            
+            //Registra Startup del Servicio en serverMonitor
+            if (gDatos.isIsConnectMonHost()) {
+                if (!gDatos.isIsRegisterService()) {
+                    int result = gSub.sendRegisterService();
+                    if (result==0) {
+                        System.out.println("servicio registrado");
+                        gDatos.setIsRegisterService(true);
+                    } else {
+                        System.out.println("Error: servicio no ha podido registrarse");
+                    }
+                } else {
+                    System.out.println("Servicio ya está registrado...");
+                }
+            }
+            
+            
             //Control Principal de Ejecucion de Procesos
-            if (gDatos.isSrvActive()) {    //Control de Revision de Procesos
+            if (gDatos.isSrvActive() && gDatos.isIsRegisterService()) {    //Control de Revision de Procesos
                 System.out.println(CLASS_NAME+" servicio activo...");
+                /*
+                    Revisa la Lista poolProcess para ver si existen registros con estado enqued
+                */
                 int numProc = gDatos.getPoolProcess().size();
-                //gRutinas.sysOutln("numproc: "+numProc);
                 if (numProc>0) {
-
                     for (int i=0;i<numProc;i++) {
                         //Lista de Procesos en pool de ejecucion
                         //
                         //Por cada proceso en pool validar si corresponde una ejecucion
                         //
                         try {
-                            rowList = gDatos.getPoolProcess().get(i);   //Lee registro del pool de procesos ingresados
+                            rowList     = gDatos.getPoolProcess().get(i);   //Lee registro del pool de procesos ingresados como un JSONObject
+                            typeProc    = rowList.getString("typeProc");
+                            procID      = rowList.getString("procID");
+                            status      = rowList.getString("status");
+                            params      = rowList.getJSONObject("params");
 
-                            typeProc = rowList.getString("typeProc");
-                            procID = rowList.getString("procID");
-                            status = rowList.getString("status");
-                            params = rowList.getJSONObject("params");
-
+                            
+                            /*
+                                Solo se tomaran acciones si el estado es queued (encolado)
+                            */
                             if (status.equals("queued")) {
                                 //Valida si existen thread libres nivel de servicio
                                 //

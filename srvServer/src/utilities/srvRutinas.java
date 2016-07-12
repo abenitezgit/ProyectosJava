@@ -63,7 +63,7 @@ public class srvRutinas {
             JSONObject jHeader = new JSONObject(response);
             
             try {
-                if (jHeader.getString("result").equals("keepAlive")) {
+                if (jHeader.getString("result").equals("OK")) {
                     JSONObject jData = jHeader.getJSONObject("data");
                     //Como es una repsuesta no se espera retorno de error del SP
                     //el mismo lo resporta internamente si hay alguno.
@@ -174,13 +174,27 @@ public class srvRutinas {
         return jHeader.toString();
     }
     
-    public String sendOkTX() {
-
-        JSONObject mainjo = new JSONObject();
+    public String sendPing() {
         
-        mainjo.put("result", "OK");
+        JSONObject jData = new JSONObject();
+        JSONObject jHeader = new JSONObject();
+        
+        jHeader.put("data", jData);
+        jHeader.put("auth", gDatos.getAuthKey());
+        jHeader.put("request", "sendPing");
             
-        return mainjo.toString();
+        return jHeader.toString();
+    }
+
+    public String sendOkTX() {
+        
+        JSONObject jData = new JSONObject();
+        JSONObject jHeader = new JSONObject();
+        
+        jHeader.put("data", jData);
+        jHeader.put("result", "OK");
+            
+        return jHeader.toString();
     }
     
     public List<String> lstFindInListjSon (List<String> lstSource, String param, String valor) {
@@ -231,14 +245,19 @@ public class srvRutinas {
     }
 
     public JSONArray jaGetPoolProcess() {
+        JSONObject jo;
         JSONArray ja = new JSONArray();
         try {
             int numProc = gDatos.getPoolProcess().size();
             if (numProc>0) {
                 for (int i=0; i<numProc; i++) {
-                    //if (!gDatos.getPoolProcess().get(i).getString("status").equals("queued")) {
-                        ja.put(gDatos.getPoolProcess().get(i));
-                    //}
+                    jo = new JSONObject();
+                    jo.put("typeProc", gDatos.getPoolProcess().get(i).getString("typeProc"));
+                    jo.put("procID", gDatos.getPoolProcess().get(i).getString("procID"));
+                    jo.put("sendDate", gDatos.getPoolProcess().get(i).getString("sendDate"));
+                    jo.put("receiveDate", gDatos.getPoolProcess().get(i).getString("receiveDate"));
+                    jo.put("status", gDatos.getPoolProcess().get(i).getString("status"));
+                    ja.put(jo);
                 }
             }
             return ja;
@@ -287,14 +306,14 @@ public class srvRutinas {
             //    response.put("procActive", mainja);
             //}
             
-            jData.put("srvName", gDatos.getSrvName());
+            jData.put("srvID", gDatos.getSrvName());
             jData.put("srvPort", gDatos.getSrvPort());
             jData.put("srvHost", gDatos.getSrvHost());
             jData.put("numTotalExec", String.valueOf(gDatos.getNumTotalExec()));
             jData.put("numProcMax", String.valueOf(gDatos.getNumProcMax()));
             jData.put("numProcExec", String.valueOf(gDatos.getNumProcExec()));
             jData.put("srvStart", gDatos.getSrvStart());
-            jData.put("isgetTypeProc", gDatos.isSrvGetTypeProc());
+            jData.put("isRegisterService", gDatos.isIsRegisterService());
             
             //mainja.put(response);
             jHeader.put("data", jData);
@@ -304,7 +323,7 @@ public class srvRutinas {
                 jHeader.put("request", "keepAlive");
             
             } else {
-                jHeader.put("result", "keepAlive");
+                jHeader.put("result", "OK");
             }
             
             return jHeader.toString();
