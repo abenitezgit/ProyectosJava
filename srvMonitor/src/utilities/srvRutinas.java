@@ -172,12 +172,12 @@ public class srvRutinas {
         
     public int updateStatusServices(JSONObject jData) {
         try {            
-            String srvName = jData.get("srvName").toString();
-            int myNumItems = gDatos.getServiceStatus().size();
+            String srvID    = jData.get("srvID").toString();
+            int myNumItems  = gDatos.getServiceStatus().size();
             
             if (myNumItems>0) {
                 for (int i=0; i<myNumItems; i++) {
-                    if (gDatos.getServiceStatus().get(i).getString("srvName").equals(srvName)) {
+                    if (gDatos.getServiceStatus().get(i).getString("srvID").equals(srvID)) {
                         gDatos.getServiceStatus().remove(i);
                     }
                 }
@@ -189,7 +189,7 @@ public class srvRutinas {
         }
     }
     
-    public String sendAssignedProc(String srvName) {
+    public String sendAssignedProc(String srvID) {
         try {
             JSONObject jData = new JSONObject();
             JSONObject jHeader = new JSONObject();
@@ -199,7 +199,7 @@ public class srvRutinas {
             int myNumItems = gDatos.getAssignedServiceTypeProc().size();
             if (myNumItems>0) {
                 for (int i=0; i<myNumItems; i++) {
-                    if (gDatos.getAssignedServiceTypeProc().get(i).get("srvName").equals(srvName)) {
+                    if (gDatos.getAssignedServiceTypeProc().get(i).get("srvID").equals(srvID)) {
                         arrayAssignedProc = gDatos.getAssignedServiceTypeProc().get(i).getJSONArray("ArrayTypeProc");
                     }
                 }
@@ -207,7 +207,7 @@ public class srvRutinas {
             jData.put("ArrayTypeProc", arrayAssignedProc);
             jData.put("cmd", "update");
             jHeader.put("data",jData);
-            jHeader.put("result", "keepAlive");
+            jHeader.put("result", "OK");
             return jHeader.toString();
         } catch (Exception e) {
             return sendError(1,e.getMessage());
@@ -250,7 +250,6 @@ public class srvRutinas {
         try {
             String vSQL = "select srvID, srvDesc, srvEnable, srvTypeProc "
                     + "     from process.tb_services"
-                    + "     where srvEnable=1"
                     + "     order by srvID";
             Statement stm;
             stm = gDatos.getMetadataConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
@@ -271,6 +270,9 @@ public class srvRutinas {
                     lstTemp.add(jData);
                 }
             }
+            /*
+                Actualiza la lista assignedServiceTypeProc como JSONObject()
+            */
             gDatos.getAssignedServiceTypeProc().clear();
             gDatos.setAssignedServiceTypeProc(lstTemp);
             return 0;

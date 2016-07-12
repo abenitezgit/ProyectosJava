@@ -103,7 +103,7 @@ public class thKeepAliveSocket extends Thread {
 
                 try {
                     if (jHeader.getString("result").equals("keepAlive")) {
-                        JSONObject jData = jHeader.getJSONObject("data");
+                         qData = jHeader.getJSONObject("data");
                         //Como es una repsuesta no se espera retorno de error del SP
                         //el mismo lo resporta internamente si hay alguno.
                         gSub.updateAssignedProcess(jData);
@@ -126,6 +126,7 @@ public class thKeepAliveSocket extends Thread {
             }
             catch (NumberFormatException | IOException e) {
                 gSub.sysOutln(CLASS_NAME+": Error Conectando a Socket monitor: " + e.getMessage());
+                gSub.wait(CLASS_NAME, e.getMessage());
             }
         }
     }

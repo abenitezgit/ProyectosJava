@@ -67,7 +67,7 @@ public class thMonitorSocket extends Thread {
                                 //gSub.sysOutln(CLASS_NAME+": ejecutando ... updateStatusServices: "+ rs.getJSONObject("params"));
                                 result = gSub.updateStatusServices(jData);
                                 if (result==0) {
-                                    outputData = gSub.sendAssignedProc(jData.getString("srvName"));
+                                    outputData = gSub.sendAssignedProc(jData.getString("srvID"));
                                 } else {
                                     outputData = gSub.sendError(10);
                                 }
@@ -82,6 +82,9 @@ public class thMonitorSocket extends Thread {
                             case "putExecOSP":
                                 gSub.putExecOSP(inputData);
                                 outputData = gSub.sendOkTX();
+                                break;
+                            case "sendPing":
+                                outputData = "OK";
                                 break;
                             default:
                                 outputData = gSub.sendError(99, "Error Desconocido...");
