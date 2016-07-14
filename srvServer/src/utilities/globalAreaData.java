@@ -19,10 +19,12 @@ import org.json.JSONObject;
  * @author andresbenitez
  */
 public class globalAreaData {
+    //Variable nombre de Class
+    private String CLASS_NAME = "globalAreaData";
     
     //Parametros globales del servicio
     //
-    private String srvName;          //Identificador unico del Servicio
+    private String srvID;          //Identificador unico del Servicio
     private String txpMain;          //Tiempo de ciclo del timerTask principal
     private String srvPort;          //Puerto del Socket Server     
     private String srvStart;         //Fecha Inicio del Servicio
@@ -38,22 +40,17 @@ public class globalAreaData {
     private boolean isRegisterService;
     private boolean isActivePrimaryMonHost;
     private boolean isConnectMonHost;
+    private boolean isSocketServerActive;
     
 
-    
-    //Variables Operacionales
-    List<String> activeTypeProc = new ArrayList<>();
-    
+        
     //Parametros para recibir assigned Process
     //format json:
     //{"typeProc":"ETL","priority":"1","maxThread":"10"}
     List<JSONObject> assignedTypeProc = new ArrayList<>();
     
-    //Lista para dejar historial de ejecuciones de los procesos
-    //mientras está en memoria
-    List<String> executedTypeProc = new ArrayList<>();
     
-    //Lista para almacenar el pool de ejeciciones a realizar
+    //Lista para almacenar el pool de ejecuciones a realizar
     //
     List<JSONObject> poolProcess = new ArrayList<>();
        
@@ -65,6 +62,14 @@ public class globalAreaData {
     
     //Metodos de Acceso a los Datos
     //
+
+    public boolean isIsSocketServerActive() {
+        return isSocketServerActive;
+    }
+
+    public void setIsSocketServerActive(boolean isSocketServerActive) {
+        this.isSocketServerActive = isSocketServerActive;
+    }
 
     public boolean isIsConnectMonHost() {
         return isConnectMonHost;
@@ -106,14 +111,6 @@ public class globalAreaData {
         this.poolProcess = poolProcess;
     }
     
-    public List<String> getExecutedTypeProc() {
-        return executedTypeProc;
-    }
-
-    public void setExecutedTypeProc(List<String> executedTypeProc) {
-        this.executedTypeProc = executedTypeProc;
-    }
-
     public List<JSONObject> getAssignedTypeProc() {
         return assignedTypeProc;
     }
@@ -138,12 +135,12 @@ public class globalAreaData {
         this.srvMonHost = srvMonHost;
     }
 
-    public String getSrvName() {
-        return srvName;
+    public String getSrvID() {
+        return srvID;
     }
 
-    public void setSrvName(String srvName) {
-        this.srvName = srvName;
+    public void setSrvID(String srvID) {
+        this.srvID = srvID;
     }
 
     public String getTxpMain() {
@@ -216,14 +213,6 @@ public class globalAreaData {
 
     public void setAuthKey(String authKey) {
         this.authKey = authKey;
-    }
-
-    public List<String> getActiveTypeProc() {
-        return activeTypeProc;
-    }
-
-    public void setActiveTypeProc(List<String> activeTypeProc) {
-        this.activeTypeProc = activeTypeProc;
     }
 
     public int getNumProcExec() {
@@ -305,6 +294,7 @@ public class globalAreaData {
             
             return 0;
         } catch (Exception e) {
+            System.out.println(CLASS_NAME+" Error updateRunningPoolProcess: "+e.getMessage());
             return 1;
         }
     }
@@ -321,6 +311,7 @@ public class globalAreaData {
             }
             return findProcID;
         } catch (Exception e) {
+            System.out.println(CLASS_NAME+" Error isExistPoolProcess: "+e.getMessage());
             return false;
         }
     }
@@ -330,6 +321,7 @@ public class globalAreaData {
             poolProcess.add(itemData);
             return 0;
         } catch (Exception e) {
+            System.out.println(CLASS_NAME+" Error addPoolProcess: "+e.getMessage());
             return 1;
         }
     
@@ -347,7 +339,11 @@ public class globalAreaData {
             for (int i=0; i<numItems; i++) {
                 if (getAssignedTypeProc().get(i).getString("typeProc").equals(typeProc)) {
                     maxThreadProc = getAssignedTypeProc().get(i).getInt("maxThread") ;
-                    usedThreadProc = getAssignedTypeProc().get(i).getInt("usedThread");
+                    try {
+                        usedThreadProc = getAssignedTypeProc().get(i).getInt("usedThread");
+                    } catch (Exception e) {
+                        usedThreadProc = 0;
+                    }
                     result = usedThreadProc < maxThreadProc;
                     System.out.println("max: "+ maxThreadProc);
                     System.out.println("used: "+ usedThreadProc);
@@ -357,7 +353,7 @@ public class globalAreaData {
             return result;
         
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.out.println(CLASS_NAME+" Error isExistFreeThreadProcess: "+e.getMessage());
             return false;
         }
     }
@@ -367,14 +363,13 @@ public class globalAreaData {
         try {
             int maxThreadServices;
             int maxThreadProcess;
-            System.out.println("dentro");
             maxThreadProcess = getNumProcExec();
             maxThreadServices = getNumProcMax();
             
             return maxThreadProcess < maxThreadServices;
         
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.out.println(CLASS_NAME+" Error isExistFreeThreadServices: "+e.getMessage());
             return false;
         }
     }
@@ -389,7 +384,7 @@ public class globalAreaData {
                 //
                 fileConf.load(new FileInputStream("/Users/andresbenitez/Documents/Apps/NetBeansProjects3/srvServer/src/utilities/srvServer.properties"));
 
-                srvName = fileConf.getProperty("srvName");
+                srvID   = fileConf.getProperty("srvID");
                 txpMain = fileConf.getProperty("txpMain");
                 srvPort = fileConf.getProperty("srvPort");
                 monPort = fileConf.getProperty("monPort");
@@ -404,7 +399,9 @@ public class globalAreaData {
                 
                 //Setea Parametros iniciales
                 //
+                isSocketServerActive = false;
                 isConnectMonHost = false;
+                isRegisterService = false;
                 numProcExec = 0;
                 numTotalExec = 0;
                 
@@ -425,7 +422,7 @@ public class globalAreaData {
                 
             } catch (IOException | NumberFormatException e) {
                 srvLoadParam = false;
-                System.out.println("GA Error: "+e.getMessage());
+                System.out.println(CLASS_NAME+" Error general: "+e.getMessage());
             }
     }
 }

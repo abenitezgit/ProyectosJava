@@ -7,6 +7,7 @@ package srvserver;
 import utilities.globalAreaData;
 import java.io.* ; 
 import java.net.* ;
+import org.json.JSONException;
 import org.json.JSONObject;
 import utilities.srvRutinas;
 
@@ -111,7 +112,7 @@ public class thServerSocket extends Thread {
                     } else {
                         outputData = gSub.sendError(60);
                     }
-                } catch (Exception e) {
+                } catch (IOException | JSONException e) {
                     outputData = gSub.sendError(90);
                 }
 

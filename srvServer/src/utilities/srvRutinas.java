@@ -24,6 +24,7 @@ import org.json.JSONObject;
  * @author andresbenitez
  */
 public class srvRutinas {
+    static String CLASS_NAME = "srvRutinas";
     static globalAreaData gDatos;
     
     //Constructor de la clase
@@ -72,11 +73,11 @@ public class srvRutinas {
                 } else {
                     if (jHeader.getString("result").equals("error")) {
                         JSONObject jData = jHeader.getJSONObject("data");
-                        System.out.println("Error result: "+jData.getString("errNum")+ " " +jData.getString("errMesg"));
+                        System.out.println(CLASS_NAME+" Error sendRegisterService result: "+jData.getString("errNum")+ " " +jData.getString("errMesg"));
                     }
                 }
             } catch (Exception e) {
-                System.out.println("Error en formato de respuesta...");
+                System.out.println(CLASS_NAME+" Error sendRegisterService en formato de respuesta...");
             }
 
             dataInput.close();
@@ -92,7 +93,7 @@ public class srvRutinas {
             }
             
         } catch (NumberFormatException | IOException | JSONException e) {
-            sysOutln(": Error Conectando a Socket monitor: " + e.getMessage());
+            sysOutln(CLASS_NAME+" Error sendRegisterService Conectando a Socket monitor: " + e.getMessage());
             return 1;
         }
     }
@@ -306,7 +307,7 @@ public class srvRutinas {
             //    response.put("procActive", mainja);
             //}
             
-            jData.put("srvID", gDatos.getSrvName());
+            jData.put("srvID", gDatos.getSrvID());
             jData.put("srvPort", gDatos.getSrvPort());
             jData.put("srvHost", gDatos.getSrvHost());
             jData.put("numTotalExec", String.valueOf(gDatos.getNumTotalExec()));
@@ -496,10 +497,10 @@ public class srvRutinas {
     
     public String sendList(JSONObject jData) {
         try {
-            JSONObject jDataSend = new JSONObject();
+            JSONObject jHeader = new JSONObject();
             JSONArray ja = new JSONArray();
             
-            String inputLista = jData.getJSONObject("data").getString("lista");
+            String inputLista = jData.getString("lista");
             
             switch (inputLista) {
                 case "pool":
@@ -540,7 +541,7 @@ public class srvRutinas {
                 String threadMax;
                 boolean typeExist;
 
-                lstActiveProcess = gDatos.getActiveTypeProc();
+                lstActiveProcess = null; //gDatos.getActiveTypeProc();
                 int numProc = lstActiveProcess.size();
 
                 for (int j=0; j<rows.length(); j++) {
