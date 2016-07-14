@@ -122,6 +122,7 @@ public class thGetAgendas extends Thread{
             } else {
                 System.out.println("No hay registros");
             }
+            stm.close();
 
             System.out.println(jArray.toString());
 

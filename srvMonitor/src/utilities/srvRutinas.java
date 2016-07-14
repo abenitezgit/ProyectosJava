@@ -200,7 +200,7 @@ public class srvRutinas {
             if (myNumItems>0) {
                 for (int i=0; i<myNumItems; i++) {
                     if (gDatos.getAssignedServiceTypeProc().get(i).get("srvID").equals(srvID)) {
-                        arrayAssignedProc = gDatos.getAssignedServiceTypeProc().get(i).getJSONArray("ArrayTypeProc");
+                        arrayAssignedProc = gDatos.getAssignedServiceTypeProc().get(i).getJSONArray("procAssigned");
                     }
                 }
             }
@@ -270,6 +270,8 @@ public class srvRutinas {
                     lstTemp.add(jData);
                 }
             }
+            stm.close();
+            //rs.close();
             /*
                 Actualiza la lista assignedServiceTypeProc como JSONObject()
             */

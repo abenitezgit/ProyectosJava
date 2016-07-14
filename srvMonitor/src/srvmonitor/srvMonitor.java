@@ -59,7 +59,7 @@ public class srvMonitor {
         //Declare los Thread de cada proceso
         //
         Thread thSocket = new thMonitorSocket(gDatos);
-        Thread thKeepMon = new thKeepAliveSocket(gDatos);
+        Thread thKeepMon = new thKeepAliveServices(gDatos);
         Thread thAgendas = new thGetAgendas(gDatos);
         
         //Constructor de la clase
