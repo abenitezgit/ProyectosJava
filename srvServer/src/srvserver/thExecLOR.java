@@ -29,7 +29,7 @@ public class thExecLOR extends Thread{
     
     @Override
     public void run() {
-        System.out.println("Ejecutando OSP");
+        System.out.println("Ejecutando LOR");
         Timer t1 = new Timer();
        
         t1.schedule(new task(), 20000);

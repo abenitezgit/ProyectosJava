@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
+import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
 /**
@@ -21,6 +22,9 @@ import org.json.JSONObject;
 public class globalAreaData {
     //Variable nombre de Class
     private String CLASS_NAME = "globalAreaData";
+    
+    //Carga Clase log4
+    Logger logger = Logger.getLogger("globalAreaData");
     
     //Parametros globales del servicio
     //
@@ -42,11 +46,13 @@ public class globalAreaData {
     private boolean isConnectMonHost;
     private boolean isSocketServerActive;
     
-
         
-    //Parametros para recibir assigned Process
-    //format json:
-    //{"typeProc":"ETL","priority":"1","maxThread":"10"}
+    /**
+     * Parametros para recibir assigned Process
+     * format json:
+     * {"typeProc":"ETL","priority":"1","maxThread":"10","usedThread":"0"}
+     */
+    
     List<JSONObject> assignedTypeProc = new ArrayList<>();
     
     
@@ -345,15 +351,15 @@ public class globalAreaData {
                         usedThreadProc = 0;
                     }
                     result = usedThreadProc < maxThreadProc;
-                    System.out.println("max: "+ maxThreadProc);
-                    System.out.println("used: "+ usedThreadProc);
+                    logger.info(" maxThreadProc: "+maxThreadProc);
+                    logger.info(" usedThreadProc: "+usedThreadProc);
                 }
             }
 
             return result;
         
         } catch (Exception e) {
-            System.out.println(CLASS_NAME+" Error isExistFreeThreadProcess: "+e.getMessage());
+            logger.error(" Error isExistFreeThreadProcess: "+e.getMessage());
             return false;
         }
     }
@@ -369,7 +375,7 @@ public class globalAreaData {
             return maxThreadProcess < maxThreadServices;
         
         } catch (Exception e) {
-            System.out.println(CLASS_NAME+" Error isExistFreeThreadServices: "+e.getMessage());
+            logger.error(" Error isExistFreeThreadServices: "+e.getMessage());
             return false;
         }
     }
@@ -379,6 +385,7 @@ public class globalAreaData {
             Properties fileConf = new Properties();
             
             try {
+                logger.info(" Iniciando globalAreaData...");
 
                 //Parametros del File Properties
                 //
@@ -420,9 +427,11 @@ public class globalAreaData {
                 
                 srvLoadParam= true;
                 
+                logger.info(" Se ha iniciado correctamente la globalAreaData...");
+                
             } catch (IOException | NumberFormatException e) {
                 srvLoadParam = false;
-                System.out.println(CLASS_NAME+" Error general: "+e.getMessage());
+                logger.error(" Error general: "+e.getMessage());
             }
     }
 }

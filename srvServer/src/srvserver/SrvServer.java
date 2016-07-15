@@ -14,6 +14,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Timer;
 import java.util.TimerTask;
+import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import utilities.srvRutinas;
 
@@ -25,6 +26,9 @@ public class SrvServer {
     static globalAreaData gDatos = new globalAreaData();
     static srvRutinas gSub ;
     static String CLASS_NAME = "srvServer";
+    
+    //Carga Clase log4
+    static Logger logger = Logger.getLogger("srvServer");
     
     public SrvServer() {
         /*
@@ -41,7 +45,7 @@ public class SrvServer {
             Timer mainTimer = new Timer();
             mainTimer.schedule(new mainTimerTask(), 2000, Integer.valueOf(gDatos.getTxpMain()));
         } else {
-            System.out.println(CLASS_NAME+" Error leyendo archivo de parametros");
+            logger.error(" Error leyendo archivo de parametros");
         }
     }
     
@@ -71,13 +75,13 @@ public class SrvServer {
                     if (gDatos.isSrvActive()) {
                         thSocket.start();
                         gDatos.setIsSocketServerActive(true);
-                        System.out.println(CLASS_NAME+" Iniciando thSocket Server....normal...");
+                        logger.info(" Iniciando thSocket Server....normal...");
                     }
                 } else {
                     if (!gDatos.isSrvActive()) {
                         thSocket.interrupt();
                         gDatos.setIsSocketServerActive(false);
-                        System.out.println("thSocket interrupted");
+                        logger.warn("thSocket interrupted");
                     }
                 }
             } catch (Exception e) {
@@ -85,7 +89,7 @@ public class SrvServer {
                     thSocket = new thServerSocket(gDatos);
                     thSocket.start();
                     gDatos.setIsSocketServerActive(true);
-                    System.out.println(CLASS_NAME+" Iniciando thSocket Server....forced...");
+                    logger.warn(" Iniciando thSocket Server....forced...");
                 }
             }
         }
@@ -107,7 +111,7 @@ public class SrvServer {
                         String response = dataInput.readUTF();
                         if (response.equals("OK")) {
                             gDatos.setIsConnectMonHost(true);
-                            gSub.sysOutln(CLASS_NAME+" Conectado a server monitor primary");
+                            logger.info(" Conectado a server monitor primary");
                         } else {
                             gDatos.setIsActivePrimaryMonHost(false);
                             gDatos.setIsConnectMonHost(false);
@@ -117,7 +121,7 @@ public class SrvServer {
                         gDatos.setIsActivePrimaryMonHost(false);
                         gDatos.setIsConnectMonHost(false);
                         gDatos.setIsRegisterService(false);
-                        gSub.sysOutln(CLASS_NAME+" Error conexion a server de monitoreo primary...."+ e.getMessage());
+                        logger.error(" Error conexion a server de monitoreo primary...."+ e.getMessage());
                     }
                 
                 } else {
@@ -135,7 +139,7 @@ public class SrvServer {
                         String response = dataInput.readUTF();
                         if (response.equals("OK")) {
                             gDatos.setIsConnectMonHost(true);
-                            gSub.sysOutln(CLASS_NAME+" Conectado a server monitor secundary");
+                            logger.info(" Conectado a server monitor secundary");
                         } else {
                             gDatos.setIsActivePrimaryMonHost(true);
                             gDatos.setIsConnectMonHost(false);
@@ -145,14 +149,14 @@ public class SrvServer {
                         gDatos.setIsActivePrimaryMonHost(true);
                         gDatos.setIsConnectMonHost(false);
                         gDatos.setIsRegisterService(false);
-                        gSub.sysOutln(CLASS_NAME+" Error conexion a server de monitoreo backup...."+ e.getMessage());
+                        logger.error(" Error conexion a server de monitoreo backup...."+ e.getMessage());
                     }
                 
                 }
             } catch (Exception e) {
                 gDatos.setIsConnectMonHost(false);
                 gDatos.setIsRegisterService(false);
-                gSub.sysOutln(CLASS_NAME+" Error general conexion a server de monitoreo...."+ e.getMessage());
+                logger.error(" Error general conexion a server de monitoreo...."+ e.getMessage());
             }
         }
         
@@ -160,13 +164,13 @@ public class SrvServer {
             try {
                     int result = gSub.sendRegisterService();
                     if (result==0) {
-                        System.out.println("servicio registrado");
                         gDatos.setIsRegisterService(true);
+                        logger.info(" Se ha registrado el servicio correctamente...");
                     } else {
-                        System.out.println("Error: servicio no ha podido registrarse");
+                        logger.error(" servicio no ha podido registrarse");
                     }
             } catch (Exception e) {
-                System.out.println("Error: servicio no ha podido registrarse");
+                logger.error(" servicio no ha podido registrarse");
             }
         }
         
@@ -240,27 +244,27 @@ public class SrvServer {
                                             break;
                                     }
                                 } else {
-                                    System.out.println(CLASS_NAME+" esperando Thread libres de Procesos...");
+                                    logger.info(" esperando Thread libres de Procesos...");
                                 }
                             } else {
-                                System.out.println(CLASS_NAME+" esperando Thread libres de Srvicio...");
+                                logger.info(" esperando Thread libres de Srvicio...");
                             }
                         } else {
-                            System.out.println(CLASS_NAME+" no hay procesos status queued...");
+                            logger.info(" no hay procesos status queued...");
                         }
                     } catch (Exception e) {
-                        System.out.println(CLASS_NAME+" Error desconocido..."+e.getMessage());
+                        logger.error(" Error desconocido..."+e.getMessage());
                     }
                     //gRutinas.sysOutln("in pool: "+gDatos.getPoolProcess().get(i).toString());
                 }
             } else {
-                System.out.println(CLASS_NAME+" no hay procesos en pool de ejecucion...");
+                logger.info(" no hay procesos en pool de ejecucion...");
             }
         }
         
         @Override
         public void run() {
-            System.out.println(CLASS_NAME+" Iniciando mainTimerTask....");
+            logger.info(" Iniciando mainTimerTask....");
             
             
             /*
@@ -289,18 +293,18 @@ public class SrvServer {
                         if (gDatos.isSrvActive()) {
                             ejecutaProcesos();
                         } else {
-                            System.out.println(CLASS_NAME+" Warning: Servicio Inactivo...");
+                            logger.warn(" Servicio Inactivo...");
                         }
                     }
                     else {
-                        System.out.println(CLASS_NAME+" Warning: Registro del Servicio no pudo realizarse...");
+                        logger.warn(" Registro del Servicio no pudo realizarse...");
                     }
                 }
                 else {
-                    System.out.println(CLASS_NAME+" Warning: Server Monitor Inactivo...");
+                    logger.warn(" Server Monitor Inactivo...");
                 }
             } else {
-                System.out.println(CLASS_NAME+" Warning: SocketServer Inactivo...");
+                logger.warn(" SocketServer Inactivo...");
             }
         }
     }

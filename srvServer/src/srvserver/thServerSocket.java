@@ -22,6 +22,7 @@ public class thServerSocket extends Thread {
     static String errNum;
     static String errDesc;
     static String CLASS_NAME = "thServerSocket";
+   
     
     //Carga constructor para inicializar los datos
     public thServerSocket(globalAreaData m) {
