@@ -60,27 +60,14 @@ public class thKeepAliveServices extends Thread {
                     String srvPort = jData.getString("srvPort");
                 
                 }
-                
-                
-                
-                
+ 
                 
             
             } else {
                 System.out.println("Warning: No hay servicios por monitorear...");
             }
             
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
+  
             
             
             Socket skCliente;

@@ -56,6 +56,14 @@ public class globalAreaData {
     //  "procActive":[],"procAssigned":[] }
     private List<JSONObject> serviceStatus = new ArrayList<>();
     
+    /*
+    Listas para Agendas24HH y AgendasPendientes
+    */
+    private List<JSONObject> lstShowAgendas = new ArrayList<>();
+    
+    private List<JSONObject> lstActiveAgendas = new ArrayList<>();
+    
+    
        
     //Parametros de Control Online
     //
@@ -86,9 +94,26 @@ public class globalAreaData {
     private String dbSQLInstance;
     private String dbSQLDbName;
     
+    
 
 
     //Declarion de Metodos de GET / SET
+
+    public List<JSONObject> getLstShowAgendas() {
+        return lstShowAgendas;
+    }
+
+    public void setLstShowAgendas(List<JSONObject> lstShowAgendas) {
+        this.lstShowAgendas = lstShowAgendas;
+    }
+
+    public List<JSONObject> getLstActiveAgendas() {
+        return lstActiveAgendas;
+    }
+
+    public void setLstActiveAgendas(List<JSONObject> lstActiveAgendas) {
+        this.lstActiveAgendas = lstActiveAgendas;
+    }
 
     public String getSrvName() {
         return srvName;

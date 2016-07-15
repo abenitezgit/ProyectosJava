@@ -54,81 +54,162 @@ public class thGetAgendas extends Thread{
         int minute     = calendar.get(Calendar.MINUTE);
         int second     = calendar.get(Calendar.SECOND);
         int millisecond= calendar.get(Calendar.MILLISECOND);
+        
+        int findHour=12;
+        int findMinutes=5;
 
+        /*
         calendar.add(Calendar.HOUR_OF_DAY, -1);
         int hourBefore = calendar.get(Calendar.HOUR_OF_DAY);
 
         calendar.add(Calendar.HOUR_OF_DAY, 2);
         int hourAfter = calendar.get(Calendar.HOUR_OF_DAY);
-
+        */
+        
         String posmonth = String.valueOf(month+1);
         String posdayOfMonth = String.valueOf(dayOfMonth);
         String posdayOfWeek = String.valueOf(dayOfWeek);
         String posweekOfYear = String.valueOf(weekOfYear);
         String posweekOfMonth = String.valueOf(weekOfMonth);
         String poshourOfDay = String.valueOf(hourOfDay);
-        String poshourBefore = String.valueOf(hourBefore);
-        String poshourAfter = String.valueOf(hourAfter);
         String posminute = String.valueOf(minute);
         String possecond = String.valueOf(second);
         String posmillisecond = String.valueOf(millisecond);
+        
+        Calendar iteratorCalendar;
+        String vSQL;
+        String iteratorHour;
+        String iteratorMinute;
+        Statement stm;
+        JSONObject jData;
+        JSONObject jDataMinute;
+        JSONArray jArray = new JSONArray();
+        JSONArray jArrayMinute = new JSONArray();
+        String posIteratorHour;
+        String posIteratorMinute;
+        
+        /*
+        Inicializa Lista de Agendas
+        */
+        gDatos.getLstShowAgendas().clear();
+        gDatos.getLstActiveAgendas().clear();
+        
+        for (int i=-findHour; i<=findHour; i++) {
+            iteratorCalendar = new GregorianCalendar(tz);
+            iteratorCalendar.add(Calendar.HOUR_OF_DAY, i);
+            iteratorHour = String.valueOf(iteratorCalendar.get(Calendar.HOUR_OF_DAY));
+            posIteratorHour = String.valueOf(Integer.valueOf(iteratorHour)+1);
+            
+            vSQL = "select "+iteratorHour+" horaAgenda,ageID, month, dayOfMonth, dayOfWeek, weekOfYear, weekOfMonth, hourOfDay from process.tb_agenda where "
+                    + "     ageEnable=1 "
+                    + "     and substr(month,"+posmonth+",1) = '1'"
+                    + "     and substr(dayOfMonth,"+posdayOfMonth+",1) = '1'"
+                    + "     and substr(dayOfWeek,"+posdayOfWeek+",1) = '1'"
+                    + "     and substr(weekOfYear,"+posweekOfYear+",1) = '1'"
+                    + "     and substr(weekOfMonth,"+posweekOfMonth+",1) = '1'"
+                    + "     and substr(hourOfDay,"+posIteratorHour +",1) = '1'";
+            System.out.println("i: "+i+" vSQL: "+vSQL);
+            try {
+                stm = gDatos.getMetadataConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+                jData = new JSONObject();
 
-
-        String vSQL = "select "+poshourOfDay+" horaAgenda,ageID, month, dayOfMonth, dayOfWeek, weekOfYear, weekOfMonth, hourOfDay from process.tb_agenda where "
-                + "     ageEnable=1 "
-                + "     and substr(month,"+posmonth+",1) = '1'"
-                + "     and substr(dayOfMonth,"+posdayOfMonth+",1) = '1'"
-                + "     and substr(dayOfWeek,"+posdayOfWeek+",1) = '1'"
-                + "     and substr(weekOfYear,"+posweekOfYear+",1) = '1'"
-                + "     and substr(weekOfMonth,"+posweekOfMonth+",1) = '1'"
-                + "     and substr(hourOfDay,"+poshourOfDay +",1) = '1'"
-                + "     union"
-                + "     select "+poshourBefore+" horaAgenda,ageID, month, dayOfMonth, dayOfWeek, weekOfYear, weekOfMonth, hourOfDay from process.tb_agenda where "
-                + "     ageEnable=1 "
-                + "     and substr(month,"+posmonth+",1) = '1'"
-                + "     and substr(dayOfMonth,"+posdayOfMonth+",1) = '1'"
-                + "     and substr(dayOfWeek,"+posdayOfWeek+",1) = '1'"
-                + "     and substr(weekOfYear,"+posweekOfYear+",1) = '1'"
-                + "     and substr(weekOfMonth,"+posweekOfMonth+",1) = '1'"
-                + "     and substr(hourOfDay,"+poshourBefore +",1) = '1'"
-                + "     union"
-                + "     select "+poshourAfter+" horaAgenda,ageID, month, dayOfMonth, dayOfWeek, weekOfYear, weekOfMonth, hourOfDay from process.tb_agenda where "
-                + "     ageEnable=1 "
-                + "     and substr(month,"+posmonth+",1) = '1'"
-                + "     and substr(dayOfMonth,"+posdayOfMonth+",1) = '1'"
-                + "     and substr(dayOfWeek,"+posdayOfWeek+",1) = '1'"
-                + "     and substr(weekOfYear,"+posweekOfYear+",1) = '1'"
-                + "     and substr(weekOfMonth,"+posweekOfMonth+",1) = '1'"
-                + "     and substr(hourOfDay,"+poshourAfter +",1) = '1'"
-                + "     ";
-        try {
-            Statement stm;
-            stm = gDatos.getMetadataConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-            JSONObject jData = new JSONObject();
-            JSONArray jArray = new JSONArray();
-
-            ResultSet rs = stm.executeQuery(vSQL);
-            if (rs!=null) {
-                while (rs.next()) {
-                    jData.put("horaAgenda", rs.getString("horaAgenda"));
-                    jData.put("ageID", rs.getString("ageID"));
-                    jData.put("month", rs.getString("month"));
-                    jData.put("dayOfMonth", rs.getString("dayOfMonth"));
-                    jData.put("weekOfYear", rs.getString("weekOfYear"));
-                    jData.put("weekOfMonth", rs.getString("weekOfMonth"));
-                    jData.put("hourOfDay", rs.getString("hourOfDay"));
-                    jArray.put(jData);
+                ResultSet rs = stm.executeQuery(vSQL);
+                if (rs!=null) {
+                    while (rs.next()) {
+                        jData = new JSONObject();
+                        jData.put("horaAgenda", rs.getString("horaAgenda"));
+                        jData.put("ageID", rs.getString("ageID"));
+                        jData.put("month", rs.getString("month"));
+                        jData.put("dayOfMonth", rs.getString("dayOfMonth"));
+                        jData.put("weekOfYear", rs.getString("weekOfYear"));
+                        jData.put("weekOfMonth", rs.getString("weekOfMonth"));
+                        jData.put("hourOfDay", rs.getString("hourOfDay"));
+                        jArray.put(jData);
+                        gDatos.getLstShowAgendas().add(jData);
+                    }
+                } else {
+                        jData.put("horaAgenda", iteratorHour);
+                        jData.put("ageID", "");
+                        jData.put("month", "");
+                        jData.put("dayOfMonth", "");
+                        jData.put("weekOfYear", "");
+                        jData.put("weekOfMonth","");
+                        jData.put("hourOfDay", "");
+                        jArray.put(jData);
+                        gDatos.getLstShowAgendas().add(jData);
+                    System.out.println("No hay registros");
                 }
-            } else {
-                System.out.println("No hay registros");
+                stm.close();
+            } catch (SQLException | JSONException e) {
+                System.out.println("Error: "+e.getMessage());
             }
-            stm.close();
-
-            System.out.println(jArray.toString());
-
-        } catch (SQLException | JSONException e) {
-            System.out.println("Error: "+e.getMessage());
         }
+        
+        iteratorCalendar = new GregorianCalendar(tz);
+        iteratorHour = String.valueOf(iteratorCalendar.get(Calendar.HOUR_OF_DAY));
+        posIteratorHour = String.valueOf(Integer.valueOf(iteratorHour)+1);
+        
+
+        for (int i=-findMinutes; i<=0; i++) {
+            iteratorCalendar = new GregorianCalendar(tz);
+            iteratorCalendar.add(Calendar.MINUTE, i);
+            iteratorMinute = String.valueOf(iteratorCalendar.get(Calendar.MINUTE));
+            posIteratorMinute = String.valueOf(Integer.valueOf(iteratorMinute)+1);
+            
+            vSQL = "select "+iteratorMinute+" horaAgenda,ageID, month, dayOfMonth, dayOfWeek, weekOfYear, weekOfMonth, hourOfDay from process.tb_agenda where "
+                    + "     ageEnable=1 "
+                    + "     and substr(month,"+posmonth+",1) = '1'"
+                    + "     and substr(dayOfMonth,"+posdayOfMonth+",1) = '1'"
+                    + "     and substr(dayOfWeek,"+posdayOfWeek+",1) = '1'"
+                    + "     and substr(weekOfYear,"+posweekOfYear+",1) = '1'"
+                    + "     and substr(weekOfMonth,"+posweekOfMonth+",1) = '1'"
+                    + "     and substr(hourOfDay,"+posIteratorHour +",1) = '1'"
+                    + "     and substr(minute,"+posIteratorMinute +",1) = '1'";
+            System.out.println("i: "+i+" vSQL: "+vSQL);
+            try {
+                stm = gDatos.getMetadataConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+
+                ResultSet rs = stm.executeQuery(vSQL);
+                if (rs!=null) {
+                    while (rs.next()) {
+                        jDataMinute = new JSONObject();
+                        jDataMinute.put("horaAgenda", rs.getString("horaAgenda"));
+                        jDataMinute.put("ageID", rs.getString("ageID"));
+                        jDataMinute.put("month", rs.getString("month"));
+                        jDataMinute.put("dayOfMonth", rs.getString("dayOfMonth"));
+                        jDataMinute.put("weekOfYear", rs.getString("weekOfYear"));
+                        jDataMinute.put("weekOfMonth", rs.getString("weekOfMonth"));
+                        jDataMinute.put("hourOfDay", rs.getString("hourOfDay"));
+                        jArrayMinute.put(jDataMinute);
+                        gDatos.getLstActiveAgendas().add(jDataMinute);
+                    }
+                }
+                stm.close();
+            } catch (SQLException | JSONException e) {
+                System.out.println("Error: "+e.getMessage());
+            }
+        }
+
+        System.out.println("HORAS........");
+        System.out.println(".................");
+        System.out.println(".................");
+        System.out.println(".................");
+
+        for (int i=0; i<gDatos.getLstShowAgendas().size(); i++) {
+            System.out.println(gDatos.getLstShowAgendas().get(i).toString());
+        }
+
+        System.out.println("MINUTOS........");
+        System.out.println(".................");
+        System.out.println(".................");
+        System.out.println(".................");
+        
+        
+        for (int i=0; i<gDatos.getLstActiveAgendas().size(); i++) {
+            System.out.println(gDatos.getLstActiveAgendas().get(i).toString());
+        }
+
+
         System.out.println("Finaliza busquenda agendas activas...");
     }
 }
