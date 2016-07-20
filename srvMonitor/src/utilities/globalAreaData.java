@@ -34,6 +34,7 @@ public class globalAreaData {
     private String authKey;
     private String Driver;
     private String ConnString;
+    private boolean isSocketServerActive;
 
     
     //Variables Operacionales
@@ -93,11 +94,16 @@ public class globalAreaData {
     private String dbSQLPass;
     private String dbSQLInstance;
     private String dbSQLDbName;
-    
-    
 
 
     //Declarion de Metodos de GET / SET
+    public boolean isIsSocketServerActive() {
+        return isSocketServerActive;
+    }
+
+    public void setIsSocketServerActive(boolean isSocketServerActive) {
+        this.isSocketServerActive = isSocketServerActive;
+    }
 
     public List<JSONObject> getLstShowAgendas() {
         return lstShowAgendas;

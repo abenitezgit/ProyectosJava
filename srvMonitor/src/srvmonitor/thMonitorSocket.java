@@ -7,6 +7,7 @@ package srvmonitor;
 import utilities.globalAreaData;
 import java.io.* ; 
 import java.net.* ;
+import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import utilities.srvRutinas;
@@ -21,7 +22,7 @@ public class thMonitorSocket extends Thread {
     static boolean isSocketActive;
     static String errNum;
     static String errDesc;
-    static String CLASS_NAME="thMonitorSocket";
+    Logger logger = Logger.getLogger("thServerSocket");
     
     //Carga constructor para inicializar los datos
     public thMonitorSocket(globalAreaData m) {
@@ -33,7 +34,7 @@ public class thMonitorSocket extends Thread {
     @Override
     public void run() {
         try {
-            gSub.sysOutln(CLASS_NAME+": Starting Listener Thread Monitor Server port: " + gDatos.getSrvPort());
+            logger.info("Starting Listener Thread Monitor Server port: " + gDatos.getSrvPort());
             ServerSocket skServidor = new ServerSocket(Integer.valueOf(gDatos.getSrvPort()));
             String inputData;
             String outputData;
@@ -52,7 +53,7 @@ public class thMonitorSocket extends Thread {
                 //
                 try {
                     inputData  = dataInput.readUTF();
-                    gSub.sysOutln(CLASS_NAME+": Recibiendo TX: "+inputData);
+                    logger.info("Recibiendo TX: "+inputData);
                     
                     jHeader = new JSONObject(inputData);
                     jData = jHeader.getJSONObject("data");
@@ -64,7 +65,6 @@ public class thMonitorSocket extends Thread {
 
                         switch (dRequest) {
                             case "keepAlive":
-                                //gSub.sysOutln(CLASS_NAME+": ejecutando ... updateStatusServices: "+ rs.getJSONObject("params"));
                                 result = gSub.updateStatusServices(jData);
                                 if (result==0) {
                                     outputData = gSub.sendAssignedProc(jData.getString("srvID"));
@@ -76,7 +76,7 @@ public class thMonitorSocket extends Thread {
                                 outputData = gSub.sendDate();
                                 break;
                             case "getStatus":
-                                gSub.sysOutln(CLASS_NAME+": ejecutando ... getStatusServices");
+                                logger.info("ejecutando ... getStatusServices");
                                 outputData = gSub.getStatusServices();
                                 break;
                             case "putExecOSP":
@@ -100,7 +100,7 @@ public class thMonitorSocket extends Thread {
                 //
                 OutputStream outStr = skCliente.getOutputStream();
                 DataOutputStream dataOutput = new DataOutputStream(outStr);
-                gSub.sysOutln(CLASS_NAME+": Enviando respuesta: "+ outputData);
+                logger.debug("Enviando respuesta: "+ outputData);
                 if (outputData==null) {
                     dataOutput.writeUTF("{}");
                 } else {
@@ -115,7 +115,7 @@ public class thMonitorSocket extends Thread {
             }
         
         } catch (NumberFormatException | IOException e) {
-            System.out.println("Error: "+e.getMessage());
+            logger.error(e.getMessage());
         }
     }
 }

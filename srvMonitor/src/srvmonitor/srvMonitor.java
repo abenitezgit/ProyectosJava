@@ -11,9 +11,8 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import utilities.srvRutinas;
+import org.apache.log4j.Logger;
 
 /**
  *
@@ -23,7 +22,9 @@ public class srvMonitor {
     static globalAreaData gDatos;
     static srvRutinas gSub;
     static boolean isSocketActive;
-    static String CLASS_NAME = "srvMonitor";
+    
+    //Carga Clase log4
+    static Logger logger = Logger.getLogger("srvMonitor");    
     
     public srvMonitor() {
 
@@ -43,14 +44,14 @@ public class srvMonitor {
         if (gDatos.isSrvLoadParam()) {
             Timer mainTimer = new Timer();
             mainTimer.schedule(new mainTimerTask(), 2000, Integer.valueOf(gDatos.getTxpMain()));
-            gSub.sysOutln("Starting MainTask Schedule cada: "+ Integer.valueOf(gDatos.getTxpMain())/1000 + " segundos");
-            gSub.sysOutln("Server: "+ gDatos.getSrvName());
-            gSub.sysOutln("Listener Port: " + gDatos.getSrvPort());
-            gSub.sysOutln("Metadata Type: " + gDatos.getDbType());
-            gSub.sysOutln("Maximo Procesos: " +  gDatos.getNumProcMax());
-            gSub.sysOutln("Estado Servicio: " + String.valueOf(gDatos.isSrvActive()));
+            logger.info("Starting MainTask Schedule cada: "+ Integer.valueOf(gDatos.getTxpMain())/1000 + " segundos");
+            logger.info("Server: "+ gDatos.getSrvName());
+            logger.info("Listener Port: " + gDatos.getSrvPort());
+            logger.info("Metadata Type: " + gDatos.getDbType());
+            logger.info("Maximo Procesos: " +  gDatos.getNumProcMax());
+            logger.info("Estado Servicio: " + String.valueOf(gDatos.isSrvActive()));
         } else { 
-            System.out.println(CLASS_NAME+": Error cargando AreaData");
+            logger.error("Error cargando AreaData");
         }
     }
     
@@ -64,56 +65,24 @@ public class srvMonitor {
         
         //Constructor de la clase
         public mainTimerTask() {
-            
-            System.out.println(CLASS_NAME+": Inicio constructor");
-            
         }
-        
-        @Override
-        public void run() { 
-            System.out.println(CLASS_NAME+": Ejecutando MainTimerTask...");
 
-            
-            /*
-            //Starting Monitor Keep Alive Services Registered
-            //
-            try {
-                if (!thKeepMon.isAlive()) {
-                    if (gDatos.isSrvActive()) {
-                        System.out.println(CLASS_NAME+": iniciando thMonitorSocket...normal...");
-                        thKeepMon.start();
-                    }
-                } else {
-                    System.out.println(CLASS_NAME+": thread thMonitorSocket...operando en port.."+gDatos.getSrvPort());
-                }
-            } catch (Exception e) {
-                if (gDatos.isSrvActive()) {
-                    System.out.println(CLASS_NAME+": iniciando thMonitorSocket...forced...");
-                    thKeepMon = new thKeepAliveSocket(gDatos);
-                    thKeepMon.start();
-                }
-            }
-            */
-            
-            //Starting Monitor Thread Server
-            //
+        private void levantaServerSocket() {
             try {
                 if (!thSocket.isAlive()) {
-                    if (gDatos.isSrvActive()) {
-                        System.out.println(CLASS_NAME+": iniciando thMonitorSocket...normal...");
-                        thSocket.start();
-                    }
-                } else {
-                    System.out.println(CLASS_NAME+": thread thMonitorSocket...operando en port.."+gDatos.getSrvPort());
-                }
+                    thSocket.start();
+                    gDatos.setIsSocketServerActive(true);
+                    logger.info("iniciando thMonitorSocket...normal..."+thSocket.getName());
+                } 
             } catch (Exception e) {
-                if (gDatos.isSrvActive()) {
-                    System.out.println(CLASS_NAME+": iniciando thMonitorSocket...forced...");
                     thSocket = new thMonitorSocket(gDatos);
                     thSocket.start();
-                }
+                    gDatos.setIsSocketServerActive(true);
+                    logger.warn("iniciando thMonitorSocket...forced..."+thSocket.getName());
             }
-            
+        }
+    
+        private void metaDataConnect() {
             //Establece Conexión a Metadata
             if (!gDatos.isIsMetadataConnect()) {
                 if (gDatos.getDbType().equals("ORA")) {
@@ -121,18 +90,17 @@ public class srvMonitor {
                         Class.forName(gDatos.getDriver());
                         //isMetadataConnect = true;
                     } catch (ClassNotFoundException ex) {
-                        Logger.getLogger(srvMonitor.class.getName()).log(Level.SEVERE, null, ex);
+                        logger.error(ex.getMessage());
                     }
                     try {
                         DriverManager.setLoginTimeout(5);
                         gDatos.setMetadataConnection(DriverManager.getConnection(gDatos.getConnString(), gDatos.getDbORAUser(), gDatos.getDbORAPass()));
                         gDatos.setIsMetadataConnect(true);
-                        System.out.println(CLASS_NAME+": conectado a metadata ORA...");
+                        logger.info("conectado a metadata ORA...");
                     } catch (SQLException ex) {
-                        System.out.println(CLASS_NAME+": no es posible conectarse a metadata..."+ ex.getMessage());
+                        logger.error("no es posible conectarse a metadata..."+ ex.getMessage());
                         gDatos.setIsMetadataConnect(false);
                     }
-                    
                 
                 }
                 if (gDatos.getDbType().equals("SQL")) {
@@ -140,60 +108,65 @@ public class srvMonitor {
                         Class.forName(gDatos.getDriver());
                         //isMetadataConnect = true;
                     } catch (ClassNotFoundException ex) {
-                        Logger.getLogger(srvMonitor.class.getName()).log(Level.SEVERE, null, ex);
+                        logger.error(ex.getMessage());
                     }
                     try {
                         DriverManager.setLoginTimeout(5);
                         gDatos.setMetadataConnection(DriverManager.getConnection(gDatos.getConnString()));
                         gDatos.setIsMetadataConnect(true);
-                        System.out.println("Conectado a Metadata");
+                        logger.info("Conectado a Metadata");
                     } catch (SQLException ex) {
-                        System.out.println("No es posible conectarse a Metadata. Error: "+ ex.getMessage());
+                        logger.error("No es posible conectarse a Metadata. Error: "+ ex.getMessage());
                         gDatos.setIsMetadataConnect(false);
                     }
                 }
             }
+        }
+
+        
+        @Override
+        public void run() { 
+            logger.info("Ejecutando MainTimerTask...");
             
-            //Accede a la metada a recuperar parametros de los servicios registrados
-            if (gDatos.isIsMetadataConnect()) {
-                /*
-                    Busca en BD Tipos de Procesos asignados a los servicios
-                */
-                try {
-                    int result = gSub.getMDprocAssigned();
-                    if (result==0) {
-                        gSub.sysOutln(CLASS_NAME+": getMDprocAssigned OK...");
-                    } else {
-                        System.out.println(CLASS_NAME+": getMDprocAssigned ERROR...");
-                    }
-                } catch (SQLException ex) {
-                    gSub.sysOutln(ex.getMessage());
-                }
-                
-                /*
-                    Ejecuta Proceso en Thread para Buscar Agendas y Procesos Activos
-                */
-                try {
-                    if (!thAgendas.isAlive()) {
-                        if (gDatos.isSrvActive()) {
-                            thAgendas.start();
-                            System.out.println(CLASS_NAME+": iniciando thAgendas...normal...");
+            //Starting Monitor Thread Server
+            //
+            levantaServerSocket();
+            if (gDatos.isIsSocketServerActive()) {
+                metaDataConnect();
+                if (gDatos.isIsMetadataConnect()) {
+                    /*
+                        Busca en BD Tipos de Procesos asignados a los servicios
+                    */
+                    try {
+                        int result = gSub.getMDprocAssigned();
+                        if (result==0) {
+                            logger.info("Se recuperaron exitosamente los procesos asignados...");
+                        } else {
+                            logger.error("No es posible recuperar los procesos asignados...");
                         }
-                    } else {
-                        System.out.println(CLASS_NAME+": thread thAgendas...operando ");
+                    } catch (SQLException ex) {
+                        logger.error(ex.getMessage());
                     }
-                } catch (Exception e) {
-                    if (gDatos.isSrvActive()) {
+                    /*
+                    Ejecuta Proceso en Thread para Buscar Agendas y Procesos Activos
+                    */
+                    try {
+                        if (!thAgendas.isAlive()) {
+                            thAgendas.start();
+                            logger.info("iniciando thAgendas...normal...");
+                        } 
+                    } catch (Exception e) {
                         thAgendas = new thGetAgendas(gDatos);
                         thAgendas.start();
-                        System.out.println(CLASS_NAME+": iniciando thAgendas...forced...");
+                        logger.warn("iniciando thAgendas...forced...");
                     }
+                } else {
+                    logger.error("No es posible conectarse a BD Metadata...");
                 }
+            } else {
+                logger.error("No es posible levantar Socket Server...");
             }
-            gSub.sysOutln(CLASS_NAME+": FIN TimerMainTask...");
+                
         }
-        
-        
-            
     }
 }

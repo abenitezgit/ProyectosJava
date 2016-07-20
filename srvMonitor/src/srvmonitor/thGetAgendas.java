@@ -12,6 +12,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,6 +25,9 @@ import utilities.globalAreaData;
 public class thGetAgendas extends Thread{
     static globalAreaData gDatos;
     
+//Carga Clase log4
+    static Logger logger = Logger.getLogger("thGetAgendas");   
+    
     public thGetAgendas(globalAreaData m) {
         gDatos = m;
     }
@@ -33,7 +37,7 @@ public class thGetAgendas extends Thread{
         /*
             Recupera Parametros Fecha Actual
         */
-        System.out.println("Buscando Agendas Activas");
+        logger.info("Buscando Agendas Activas");
 
         String[] ids = TimeZone.getAvailableIDs(-4 * 60 * 60 * 1000);
         String clt = ids[0];
@@ -108,7 +112,7 @@ public class thGetAgendas extends Thread{
                     + "     and substr(weekOfYear,"+posweekOfYear+",1) = '1'"
                     + "     and substr(weekOfMonth,"+posweekOfMonth+",1) = '1'"
                     + "     and substr(hourOfDay,"+posIteratorHour +",1) = '1'";
-            System.out.println("i: "+i+" vSQL: "+vSQL);
+            logger.debug("i: "+i+" vSQL: "+vSQL);
             try {
                 stm = gDatos.getMetadataConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
                 jData = new JSONObject();
@@ -141,7 +145,7 @@ public class thGetAgendas extends Thread{
                 }
                 stm.close();
             } catch (SQLException | JSONException e) {
-                System.out.println("Error: "+e.getMessage());
+                logger.error(e.getMessage());
             }
         }
         
@@ -165,7 +169,7 @@ public class thGetAgendas extends Thread{
                     + "     and substr(weekOfMonth,"+posweekOfMonth+",1) = '1'"
                     + "     and substr(hourOfDay,"+posIteratorHour +",1) = '1'"
                     + "     and substr(minute,"+posIteratorMinute +",1) = '1'";
-            System.out.println("i: "+i+" vSQL: "+vSQL);
+            logger.debug("i: "+i+" vSQL: "+vSQL);
             try {
                 stm = gDatos.getMetadataConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 
@@ -186,30 +190,20 @@ public class thGetAgendas extends Thread{
                 }
                 stm.close();
             } catch (SQLException | JSONException e) {
-                System.out.println("Error: "+e.getMessage());
+                logger.error(e.getMessage());
             }
         }
 
-        System.out.println("HORAS........");
-        System.out.println(".................");
-        System.out.println(".................");
-        System.out.println(".................");
-
         for (int i=0; i<gDatos.getLstShowAgendas().size(); i++) {
-            System.out.println(gDatos.getLstShowAgendas().get(i).toString());
+            logger.debug(gDatos.getLstShowAgendas().get(i).toString());
         }
-
-        System.out.println("MINUTOS........");
-        System.out.println(".................");
-        System.out.println(".................");
-        System.out.println(".................");
         
         
         for (int i=0; i<gDatos.getLstActiveAgendas().size(); i++) {
-            System.out.println(gDatos.getLstActiveAgendas().get(i).toString());
+            logger.debug(gDatos.getLstActiveAgendas().get(i).toString());
         }
 
 
-        System.out.println("Finaliza busquenda agendas activas...");
+        logger.info("Finaliza busquenda agendas activas...");
     }
 }
