@@ -67,30 +67,67 @@ public class SrvServer {
         public mainTimerTask() {
         }
         
+        @Override
+        public void run() {
+            logger.info(" Iniciando mainTimerTask....");
+            
+            
+            /*
+            Validación Jerarquica de Procesos
+                1.- SocketServer Activo: Se necesita para recibir peticiones o ejeuciones de procesos, 
+                    como activar o desactivar el servicio general.
+                2.- Servidor de Monitoreo: para enviar y solicitar registro de actividades
+                4.- Servicio Activo: para evitar que se realicen ejecuciones cuando hay problemas de comunicación
+                    por ejemplo.
+                3.- Registro del Servicio en Server Monitor
+            */
+            
+            
+            //Levanta Server Socket
+            //
+            levantaServerSocket();
+            if (gDatos.isIsSocketServerActive()) {
+                //Valida Conexion a Server Monitor
+                //
+                validaServerMonitor();
+                if (gDatos.isIsConnectMonHost()) {
+                    //Envia a Registrar Servicio a Server Monitor
+                    //
+                    enviaRegistroServicio();
+                    if (gDatos.isIsRegisterService()) {
+                        if (gDatos.isSrvActive()) {
+                            ejecutaProcesos();
+                        } else {
+                            logger.warn(" Servicio Inactivo...");
+                        }
+                    }
+                    else {
+                        logger.warn(" Registro del Servicio no pudo realizarse...");
+                    }
+                }
+                else {
+                    logger.warn(" Server Monitor Inactivo...");
+                }
+            } else {
+                logger.warn(" SocketServer Inactivo...");
+            }
+        }
+        
+        
         private void levantaServerSocket() {
             //Monitor thSocket Server
             //
             try {
                 if (!thSocket.isAlive()) {
-                    if (gDatos.isSrvActive()) {
-                        thSocket.start();
-                        gDatos.setIsSocketServerActive(true);
-                        logger.info(" Iniciando thSocket Server....normal...");
-                    }
-                } else {
-                    if (!gDatos.isSrvActive()) {
-                        thSocket.interrupt();
-                        gDatos.setIsSocketServerActive(false);
-                        logger.warn("thSocket interrupted");
-                    }
-                }
-            } catch (Exception e) {
-                if (gDatos.isSrvActive()) {
-                    thSocket = new thServerSocket(gDatos);
                     thSocket.start();
                     gDatos.setIsSocketServerActive(true);
-                    logger.warn(" Iniciando thSocket Server....forced...");
-                }
+                    logger.info(" Iniciando thSocket Server....normal...");
+                } 
+            } catch (Exception e) {
+                thSocket = new thServerSocket(gDatos);
+                thSocket.start();
+                gDatos.setIsSocketServerActive(true);
+                logger.warn(" Iniciando thSocket Server....forced..."+ thSocket.getName());
             }
         }
         
@@ -262,50 +299,5 @@ public class SrvServer {
             }
         }
         
-        @Override
-        public void run() {
-            logger.info(" Iniciando mainTimerTask....");
-            
-            
-            /*
-            Validación Jerarquica de Procesos
-                1.- SocketServer Activo: Se necesita para recibir peticiones o ejeuciones de procesos, 
-                    como activar o desactivar el servicio general.
-                2.- Servidor de Monitoreo: para enviar y solicitar registro de actividades
-                4.- Servicio Activo: para evitar que se realicen ejecuciones cuando hay problemas de comunicación
-                    por ejemplo.
-                3.- Registro del Servicio en Server Monitor
-            */
-            
-            
-            //Levanta Server Socket
-            //
-            levantaServerSocket();
-            if (gDatos.isIsSocketServerActive()) {
-                //Valida Conexion a Server Monitor
-                //
-                validaServerMonitor();
-                if (gDatos.isIsConnectMonHost()) {
-                    //Envia a Registrar Servicio a Server Monitor
-                    //
-                    enviaRegistroServicio();
-                    if (gDatos.isIsRegisterService()) {
-                        if (gDatos.isSrvActive()) {
-                            ejecutaProcesos();
-                        } else {
-                            logger.warn(" Servicio Inactivo...");
-                        }
-                    }
-                    else {
-                        logger.warn(" Registro del Servicio no pudo realizarse...");
-                    }
-                }
-                else {
-                    logger.warn(" Server Monitor Inactivo...");
-                }
-            } else {
-                logger.warn(" SocketServer Inactivo...");
-            }
-        }
     }
 }

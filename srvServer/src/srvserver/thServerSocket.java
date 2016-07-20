@@ -7,6 +7,7 @@ package srvserver;
 import utilities.globalAreaData;
 import java.io.* ; 
 import java.net.* ;
+import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import utilities.srvRutinas;
@@ -21,7 +22,7 @@ public class thServerSocket extends Thread {
     static boolean isSocketActive = true;
     static String errNum;
     static String errDesc;
-    static String CLASS_NAME = "thServerSocket";
+    Logger logger = Logger.getLogger("thServerSocket");
    
     
     //Carga constructor para inicializar los datos
@@ -33,7 +34,7 @@ public class thServerSocket extends Thread {
     @Override
     public void run() {
         try {
-            gSub.sysOutln("Starting Listener Thread Service Server port: " + gDatos.getSrvPort());
+            logger.info("Starting Listener Thread Service Server port: " + gDatos.getSrvPort());
             String inputData;
             String outputData;
             String dRequest;
@@ -54,7 +55,7 @@ public class thServerSocket extends Thread {
                 //
                 try {
                     inputData  = dataInput.readUTF();
-                    System.out.println(CLASS_NAME+": Recibiendo TX: "+ inputData);
+                    logger.info("Recibiendo TX: "+ inputData);
                     //gSub.sysOutln(inputData);
                     
                     jHeader = new JSONObject(inputData);
@@ -89,7 +90,7 @@ public class thServerSocket extends Thread {
                                 //        <dependera del tipo de proceso>
                                 //      }
                                 // }
-                                System.out.println(CLASS_NAME+": ejecutando ...enqueProcess..: "+ inputData);
+                                logger.info("Ejecutando ...enqueProcess..: "+ inputData);
                                 int result = gSub.enqueProcess(jData);
                                 if (result==0) {
                                     outputData = gSub.sendOkTX();
@@ -107,6 +108,9 @@ public class thServerSocket extends Thread {
                             case "getList":
                                 outputData = gSub.sendList(jData);
                                 break;
+                            case "updateVar":
+                                outputData = gSub.updateVar(jData);
+                                break;
                             default:
                                 outputData = gSub.sendError(99,"Error desconocido..");
                         }
@@ -123,7 +127,7 @@ public class thServerSocket extends Thread {
                 OutputStream outStr = skCliente.getOutputStream();
                 DataOutputStream dataOutput = new DataOutputStream(outStr);
                 
-                System.out.println(CLASS_NAME+": Enviando respuesta: "+ outputData);
+                logger.info("Enviando respuesta: "+ outputData);
                 
                 if (outputData==null) {
                     dataOutput.writeUTF("{}");
@@ -139,7 +143,7 @@ public class thServerSocket extends Thread {
             }
         
         } catch (NumberFormatException | IOException e) {
-            System.out.println("thSocket error: "+e.getMessage());
+            logger.error(e.getMessage());
         }
     }
 }
