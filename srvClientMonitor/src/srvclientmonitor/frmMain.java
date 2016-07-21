@@ -58,16 +58,20 @@ public class frmMain extends javax.swing.JFrame {
         lblTimeNow3 = new javax.swing.JLabel();
         lblTime3 = new javax.swing.JLabel();
         lblTimeValue3 = new javax.swing.JLabel();
+        jToolBar1 = new javax.swing.JToolBar();
+        lblTimeNow = new javax.swing.JLabel();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
-        jMenu5 = new javax.swing.JMenu();
-        jMenu6 = new javax.swing.JMenu();
+        jMenuItem1 = new javax.swing.JMenuItem();
+        jMenuItem2 = new javax.swing.JMenuItem();
         jMenu4 = new javax.swing.JMenu();
         jMenu3 = new javax.swing.JMenu();
         jMenu2 = new javax.swing.JMenu();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(java.awt.Color.lightGray);
+
+        pnlMain.setFont(new java.awt.Font("Dialog", 0, 10)); // NOI18N
 
         pnlMonMain.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(51, 51, 51)));
 
@@ -95,11 +99,11 @@ public class frmMain extends javax.swing.JFrame {
                 .addGroup(pnlStatMonLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(pnlStatMonLayout.createSequentialGroup()
                         .addComponent(lblMon)
-                        .addGap(0, 24, Short.MAX_VALUE))
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(pnlStatMonLayout.createSequentialGroup()
                         .addComponent(lblTime)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(lblTimeValue0, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addComponent(lblTimeValue0, javax.swing.GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         pnlStatMonLayout.setVerticalGroup(
@@ -303,6 +307,15 @@ public class frmMain extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
+        jToolBar1.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(102, 102, 102), 1, true));
+        jToolBar1.setFloatable(false);
+        jToolBar1.setRollover(true);
+
+        lblTimeNow.setFont(new java.awt.Font("Dialog", 1, 10)); // NOI18N
+        lblTimeNow.setForeground(new java.awt.Color(255, 255, 255));
+        lblTimeNow.setText("    ");
+        jToolBar1.add(lblTimeNow);
+
         javax.swing.GroupLayout pnlMainLayout = new javax.swing.GroupLayout(pnlMain);
         pnlMain.setLayout(pnlMainLayout);
         pnlMainLayout.setHorizontalGroup(
@@ -310,37 +323,55 @@ public class frmMain extends javax.swing.JFrame {
             .addGroup(pnlMainLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(pnlMonMain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(287, Short.MAX_VALUE))
+                .addContainerGap(334, Short.MAX_VALUE))
+            .addComponent(jToolBar1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         pnlMainLayout.setVerticalGroup(
             pnlMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlMainLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(pnlMonMain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(205, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 236, Short.MAX_VALUE)
+                .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         jMenu1.setText("General");
+        jMenu1.setFont(new java.awt.Font("Dialog", 1, 10)); // NOI18N
 
-        jMenu5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/16x16_Login Manager.png"))); // NOI18N
-        jMenu5.setText("Login");
-        jMenu1.add(jMenu5);
+        jMenuItem1.setFont(new java.awt.Font("Dialog", 1, 10)); // NOI18N
+        jMenuItem1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/16x16_Login Manager.png"))); // NOI18N
+        jMenuItem1.setText("Login");
+        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem1ActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItem1);
 
-        jMenu6.setIcon(new javax.swing.ImageIcon(getClass().getResource("/16x16_Log Out.png"))); // NOI18N
-        jMenu6.setText("Exit");
-        jMenu1.add(jMenu6);
+        jMenuItem2.setFont(new java.awt.Font("Dialog", 1, 10)); // NOI18N
+        jMenuItem2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/16x16_Log Out.png"))); // NOI18N
+        jMenuItem2.setText("Exit");
+        jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem2ActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItem2);
 
         jMenuBar1.add(jMenu1);
 
         jMenu4.setText("Schedule");
+        jMenu4.setFont(new java.awt.Font("Dialog", 1, 10)); // NOI18N
         jMenuBar1.add(jMenu4);
 
         jMenu3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/16x16_report_01.png"))); // NOI18N
         jMenu3.setText("Report");
+        jMenu3.setFont(new java.awt.Font("Dialog", 1, 10)); // NOI18N
         jMenuBar1.add(jMenu3);
 
         jMenu2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/16x16_info_01.png"))); // NOI18N
         jMenu2.setText("About");
+        jMenu2.setFont(new java.awt.Font("Dialog", 1, 10)); // NOI18N
         jMenuBar1.add(jMenu2);
 
         setJMenuBar(jMenuBar1);
@@ -349,15 +380,28 @@ public class frmMain extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(pnlMain, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(pnlMain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(pnlMain, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(pnlMain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+        frmLogin _frmLogin = new frmLogin(gDatos);
+        _frmLogin.setVisible(true);
+    }//GEN-LAST:event_jMenuItem1ActionPerformed
+
+    private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
+       System.exit(0);
+    }//GEN-LAST:event_jMenuItem2ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -418,6 +462,11 @@ public class frmMain extends javax.swing.JFrame {
             _frmMain.lblTime1.setIcon(new ImageIcon(gDatos.getDIR_ICON_BASE()+gDatos.getICO_TIME_STATUS()));
             _frmMain.lblActive1.setIcon(new ImageIcon(gDatos.getDIR_ICON_BASE()+gDatos.getICO_TIME_STATUS()));
             _frmMain.lblActive2.setIcon(new ImageIcon(gDatos.getDIR_ICON_BASE()+gDatos.getICO_TIME_STATUS()));
+            
+            //Habilita Time Hour
+            Thread _thTime = new thTime(_frmMain.lblTimeNow);
+            _thTime.start();
+            
         });
     }
         
@@ -427,9 +476,10 @@ public class frmMain extends javax.swing.JFrame {
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenu jMenu3;
     private javax.swing.JMenu jMenu4;
-    private javax.swing.JMenu jMenu5;
-    private javax.swing.JMenu jMenu6;
     private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JMenuItem jMenuItem1;
+    private javax.swing.JMenuItem jMenuItem2;
+    private javax.swing.JToolBar jToolBar1;
     private javax.swing.JLabel lblActive1;
     private javax.swing.JLabel lblActive2;
     private javax.swing.JLabel lblMon;
@@ -440,6 +490,7 @@ public class frmMain extends javax.swing.JFrame {
     private javax.swing.JLabel lblTime1;
     private javax.swing.JLabel lblTime2;
     private javax.swing.JLabel lblTime3;
+    private javax.swing.JLabel lblTimeNow;
     private javax.swing.JLabel lblTimeNow2;
     private javax.swing.JLabel lblTimeNow3;
     private javax.swing.JLabel lblTimeValue0;
