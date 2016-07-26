@@ -37,14 +37,6 @@ public class globalAreaData {
     private boolean isSocketServerActive;
 
     
-    //Variables Operacionales
-    //Parametros de los Tipos de Procesos que puede ejecutar el servicio
-    //formato json:
-    //{"typeProc":"ETL","procID":"ETL00001","startTime":"2016-06-16 10:00:00","status":"Finished",
-    // "endTime":"2016-06-10 20:00:00"}
-    //private List<JSONObject> activeTypeProc = new ArrayList<>();
-    
-    
     //Parametros de los procesos asignados a servicios registrados
     //formato json:
     //{"srvName":"srv00001","srvActive":1,"procAssigned":[{"":""}]}

@@ -159,10 +159,10 @@ public class srvRutinas {
                 jaAssigned.put(gDatos.getAssignedServiceTypeProc().get(i));
             }
             
-            jo.put("procAssigned", jaServicios);
+            jo.put("procAssigned", jaAssigned);
             jo.put("servicios", jaServicios);
-            mainjo.put("params",jo);
-            mainjo.put("result", "getStatus");
+            mainjo.put("data",jo);
+            mainjo.put("result", "OK");
 
             return mainjo.toString();
         } catch (Exception e) {
