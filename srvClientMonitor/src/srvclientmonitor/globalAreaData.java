@@ -5,10 +5,16 @@
  */
 package srvclientmonitor;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import org.json.JSONArray;
 
 /**
  *
@@ -27,7 +33,106 @@ public class globalAreaData {
     private final String ICO_SPHERE_OFF_STATUS2 = "16x15_dialog-error.png";
     private final String ICO_TIME_STATUS = "16x16_emblem-urgent.png";
     private final String ICO_START_01 = "16x16_start.png";
+    
+    //Variables Globales
+    private String srvMonHost;
+    private String srvMonHostBack;
+    private String monPort;
+    private String monPortBack;
+    private String authKey;
+    private String activePrimaryMonHost;
+    
+    //Listas de Datos
+    private List<JSONArray> lstServiceStatus;
+    
+    public globalAreaData() {
+        Properties fileConf = new Properties();
+        
+        try {
 
+            //Parametros del File Properties
+            //
+            fileConf.load(new FileInputStream("/Users/andresbenitez/Documents/Apps/NetBeansProjects3/srvClientMonitor/src/newproperties.properties"));
+
+            srvMonHost = fileConf.getProperty("srvMonHost");
+            srvMonHostBack = fileConf.getProperty("srvMonHostBack");
+            monPort = fileConf.getProperty("monPort");
+            monPortBack = fileConf.getProperty("monPortBack");
+            authKey = fileConf.getProperty("authKey");
+            activePrimaryMonHost = fileConf.getProperty("activePrimaryMonHost");
+            
+        } catch (IOException | NumberFormatException e) {
+            System.out.println("Error: "+e.getMessage());
+        }
+        
+        //Inicializa variables
+        try {
+            lstServiceStatus = new ArrayList<>();
+        
+        } catch (Exception e) {
+            System.out.println("Error: "+e.getMessage());
+        }
+
+    }
+    
+    //Getter an Setter
+
+    public List<JSONArray> getLstServiceStatus() {
+        return lstServiceStatus;
+    }
+
+    public void setLstServiceStatus(List<JSONArray> lstServiceStatus) {
+        this.lstServiceStatus = lstServiceStatus;
+    }
+    
+    public String getSrvMonHost() {
+        return srvMonHost;
+    }
+
+    public void setSrvMonHost(String srvMonHost) {
+        this.srvMonHost = srvMonHost;
+    }
+
+    public String getSrvMonHostBack() {
+        return srvMonHostBack;
+    }
+
+    public void setSrvMonHostBack(String srvMonHostBack) {
+        this.srvMonHostBack = srvMonHostBack;
+    }
+
+    public String getMonPort() {
+        return monPort;
+    }
+
+    public void setMonPort(String monPort) {
+        this.monPort = monPort;
+    }
+
+    public String getMonPortBack() {
+        return monPortBack;
+    }
+
+    public void setMonPortBack(String monPortBack) {
+        this.monPortBack = monPortBack;
+    }
+
+    public String getAuthKey() {
+        return authKey;
+    }
+
+    public void setAuthKey(String authKey) {
+        this.authKey = authKey;
+    }
+
+    public String getActivePrimaryMonHost() {
+        return activePrimaryMonHost;
+    }
+
+    public void setActivePrimaryMonHost(String activePrimaryMonHost) {
+        this.activePrimaryMonHost = activePrimaryMonHost;
+    }
+    
     public String getICO_START_01() {
         return ICO_START_01;
     }

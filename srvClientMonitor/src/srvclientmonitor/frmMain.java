@@ -5,12 +5,23 @@
  */
 package srvclientmonitor;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.geom.Ellipse2D;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.renderer.category.LineAndShapeRenderer;
+import org.jfree.data.category.DefaultCategoryDataset;
 
 /**
  *
@@ -58,6 +69,9 @@ public class frmMain extends javax.swing.JFrame {
         lblTimeNow3 = new javax.swing.JLabel();
         lblTime3 = new javax.swing.JLabel();
         lblTimeValue3 = new javax.swing.JLabel();
+        jButton1 = new javax.swing.JButton();
+        jPanel1 = new javax.swing.JPanel();
+        jButton2 = new javax.swing.JButton();
         jToolBar1 = new javax.swing.JToolBar();
         lblTimeNow = new javax.swing.JLabel();
         jMenuBar1 = new javax.swing.JMenuBar();
@@ -307,33 +321,77 @@ public class frmMain extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
-        jToolBar1.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(102, 102, 102), 1, true));
-        jToolBar1.setFloatable(false);
-        jToolBar1.setRollover(true);
+        jButton1.setText("jButton1");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
 
-        lblTimeNow.setFont(new java.awt.Font("Dialog", 1, 10)); // NOI18N
-        lblTimeNow.setForeground(new java.awt.Color(255, 255, 255));
-        lblTimeNow.setText("    ");
-        jToolBar1.add(lblTimeNow);
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 387, Short.MAX_VALUE)
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 110, Short.MAX_VALUE)
+        );
+
+        jButton2.setText("jButton2");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout pnlMainLayout = new javax.swing.GroupLayout(pnlMain);
         pnlMain.setLayout(pnlMainLayout);
         pnlMainLayout.setHorizontalGroup(
             pnlMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlMainLayout.createSequentialGroup()
+                .addGap(43, 43, 43)
+                .addComponent(jButton1)
+                .addGap(56, 56, 56)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(218, Short.MAX_VALUE))
+            .addGroup(pnlMainLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(pnlMonMain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(334, Short.MAX_VALUE))
-            .addComponent(jToolBar1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jButton2)
+                .addGap(119, 119, 119))
         );
         pnlMainLayout.setVerticalGroup(
             pnlMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlMainLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(pnlMonMain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 236, Short.MAX_VALUE)
-                .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(pnlMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(pnlMainLayout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(pnlMonMain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(pnlMainLayout.createSequentialGroup()
+                        .addGap(41, 41, 41)
+                        .addComponent(jButton2)))
+                .addGroup(pnlMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(pnlMainLayout.createSequentialGroup()
+                        .addGap(80, 80, 80)
+                        .addComponent(jButton1))
+                    .addGroup(pnlMainLayout.createSequentialGroup()
+                        .addGap(38, 38, 38)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(78, Short.MAX_VALUE))
         );
+
+        jToolBar1.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(102, 102, 102), 1, true));
+        jToolBar1.setFloatable(false);
+        jToolBar1.setRollover(true);
+        jToolBar1.setFont(new java.awt.Font("Dialog", 1, 10)); // NOI18N
+
+        lblTimeNow.setFont(new java.awt.Font("Dialog", 1, 10)); // NOI18N
+        lblTimeNow.setForeground(new java.awt.Color(255, 255, 255));
+        lblTimeNow.setText("    ");
+        jToolBar1.add(lblTimeNow);
 
         jMenu1.setText("General");
         jMenu1.setFont(new java.awt.Font("Dialog", 1, 10)); // NOI18N
@@ -381,27 +439,100 @@ public class frmMain extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(pnlMain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+                .addComponent(pnlMain, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(0, 14, Short.MAX_VALUE))
+            .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(pnlMain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+                .addComponent(pnlMain, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, 23, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
-        frmLogin _frmLogin = new frmLogin(gDatos);
-        _frmLogin.setVisible(true);
+        try {
+            this.setEnabled(false);
+            frmLogin _frmLogin = new frmLogin(gDatos);
+            _frmLogin.setVisible(true);
+            _frmLogin.setAlwaysOnTop(true);
+        } catch (Exception e) {
+            System.out.println("Error: "+e.getMessage());
+        } 
     }//GEN-LAST:event_jMenuItem1ActionPerformed
 
     private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
        System.exit(0);
     }//GEN-LAST:event_jMenuItem2ActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        JPanel panel = new JPanel();
+        getContentPane().add(panel);
+        DefaultCategoryDataset data = new DefaultCategoryDataset();
+        //DefaultPieDataset data = new DefaultPieDataset();  //Para el Grafico PIE
+        
+        data.addValue(20, "OSP", "HOY");
+        data.addValue(99, "ETL", "HOY");
+        data.addValue(25, "LOR", "HOY");
+        data.addValue(12, "MOV", "HOY");
+        
+        // Creando el Grafico
+        //JFreeChart chart = ChartFactory.createPieChart(
+        //JFreeChart chart = ChartFactory.createBarChart("Ejemplo Rapido de Grafico en un ChartFrame", "Mes", "Valor", data);
+        
+        JFreeChart chart = ChartFactory.createBarChart("", "", "", data, PlotOrientation.VERTICAL, false, false, false);
+        chart.setBackgroundPaint(Color.BLACK);
+        chart.setTitle("");
+        
+        CategoryPlot plot = (CategoryPlot) chart.getPlot();
+            plot.setRangePannable(true);
+            plot.setRangeGridlinesVisible(false);
+            plot.setBackgroundAlpha(1);
+            plot.setBackgroundPaint(Color.BLACK);
+            plot.setForegroundAlpha(1);
+            plot.setDomainCrosshairPaint(Color.WHITE);
+            plot.setNoDataMessagePaint(Color.WHITE);
+            plot.setOutlinePaint(Color.WHITE);
+            plot.setRangeCrosshairPaint(Color.WHITE);
+            plot.setRangeMinorGridlinePaint(Color.WHITE);
+            plot.setRangeZeroBaselinePaint(Color.WHITE);
+            
+    //        Paint p = new GradientPaint(0, 0, Color.white, 1000, 0, Color.green);
+    //        plot.setBackgroundPaint(p);
+
+
+            NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
+            rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+            rangeAxis.setLabelPaint(Color.WHITE);
+            rangeAxis.setAxisLinePaint(Color.WHITE);
+            rangeAxis.setTickLabelPaint(Color.WHITE);
+            rangeAxis.setVerticalTickLabels(true);
+            
+            //ChartUtilities.applyCurrentTheme(chart);
+
+
+        // Crear el Panel del Grafico con ChartPanel
+        ChartPanel chartPanel = new ChartPanel(chart);
+        chartPanel.setSize(300, 150);
+        chartPanel.setBackground(Color.BLACK);
+        chartPanel.setOpaque(false);
+        chartPanel.setDomainZoomable(true);
+        this.jPanel1.setSize(300, 200);
+        this.jPanel1.setBackground(Color.DARK_GRAY);
+        this.jPanel1.add(chartPanel);
+
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        Thread thgetStatus = new thGetStatusServices(gDatos);
+        thgetStatus.start();
+        
+        
+    }//GEN-LAST:event_jButton2ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -472,6 +603,8 @@ public class frmMain extends javax.swing.JFrame {
         
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenu jMenu3;
@@ -479,6 +612,7 @@ public class frmMain extends javax.swing.JFrame {
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem2;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JLabel lblActive1;
     private javax.swing.JLabel lblActive2;
