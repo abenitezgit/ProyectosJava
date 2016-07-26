@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.Timer;
+import java.util.TimerTask;
 import javax.swing.ImageIcon;
 import org.json.JSONObject;
 import static srvclientmonitor.frmMain.gDatos;
@@ -28,6 +30,15 @@ public class thGetStatusServices extends Thread{
         gSub = new srvRutinas(gDatos);
     }
     
+    @Override
+    public void run() {
+        
+        Timer t1 = new Timer();
+        t1.schedule(new myTimerTask(), 5000, 5000);
+    }
+    
+    
+    class myTimerTask extends TimerTask {
     
     @Override
     public void run() {
@@ -69,5 +80,5 @@ public class thGetStatusServices extends Thread{
             System.out.println(" Error conexion a server de monitoreo primary...."+ e.getMessage());
         }
     }
-    
+}
 }
