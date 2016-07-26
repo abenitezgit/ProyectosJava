@@ -73,48 +73,6 @@ public class thKeepAliveServices extends Thread {
             Socket skCliente;
             String response;
             String dataSend;
-            try {
-                skCliente = new Socket(gDatos.getSrvMonHost(), Integer.valueOf(gDatos.getMonPort()));
-                OutputStream aux = skCliente.getOutputStream(); 
-                DataOutputStream flujo= new DataOutputStream( aux ); 
-
-                dataSend = gSub.sendDataKeep("keep");
-
-                flujo.writeUTF( dataSend ); 
-
-                InputStream inpStr = skCliente.getInputStream();
-                DataInputStream dataInput = new DataInputStream(inpStr);
-                response = dataInput.readUTF();
-
-                JSONObject jHeader = new JSONObject(response);
-
-                try {
-                    if (jHeader.getString("result").equals("keepAlive")) {
-                         qData = jHeader.getJSONObject("data");
-                        //Como es una repsuesta no se espera retorno de error del SP
-                        //el mismo lo resporta internamente si hay alguno.
-                        gSub.updateAssignedProcess(jData);
-                    } else {
-                        if (jHeader.getString("result").equals("error")) {
-                            JSONObject jData = jHeader.getJSONObject("data");
-                            System.out.println("Error result: "+jData.getString("errNum")+ " " +jData.getString("errMesg"));
-                        }
-                    }
-                } catch (Exception e) {
-                    System.out.println("Error en formato de respuesta...");
-                }
-
-                //Analiza Respuesta
-                dataInput.close();
-                inpStr.close();
-                flujo.close();
-                aux.close();
-                skCliente.close();
-            }
-            catch (NumberFormatException | IOException e) {
-                gSub.sysOutln(CLASS_NAME+": Error Conectando a Socket monitor: " + e.getMessage());
-                gSub.wait(CLASS_NAME, e.getMessage());
-            }
         }
     }
 }
