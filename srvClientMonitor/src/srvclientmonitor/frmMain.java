@@ -5,22 +5,15 @@
  */
 package srvclientmonitor;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.geom.Ellipse2D;
 import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JSplitPane;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
-import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.renderer.category.LineAndShapeRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
 
 /**
@@ -593,6 +586,9 @@ public class frmMain extends javax.swing.JFrame {
             _frmMain.lblTime1.setIcon(new ImageIcon(gDatos.getDIR_ICON_BASE()+gDatos.getICO_TIME_STATUS()));
             _frmMain.lblActive1.setIcon(new ImageIcon(gDatos.getDIR_ICON_BASE()+gDatos.getICO_TIME_STATUS()));
             _frmMain.lblActive2.setIcon(new ImageIcon(gDatos.getDIR_ICON_BASE()+gDatos.getICO_TIME_STATUS()));
+            
+            //Asocia a variables Globales
+            gDatos.setLblMonDesc(_frmMain.lblMon);
             
             //Habilita Time Hour
             Thread _thTime = new thTime(_frmMain.lblTimeNow);

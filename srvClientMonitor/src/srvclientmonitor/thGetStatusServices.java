@@ -11,7 +11,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import javax.swing.ImageIcon;
 import org.json.JSONObject;
+import static srvclientmonitor.frmMain.gDatos;
 
 /**
  *
@@ -47,15 +49,23 @@ public class thGetStatusServices extends Thread{
             if (ds.getString("result").equals("OK")) {
                 JSONObject jData = ds.getJSONObject("data");
                 
-            
             }
             
-            
-            
+            //Enable Status Monitor
+                gDatos.getLblMonDesc().setIcon(new ImageIcon(gDatos.getDIR_ICON_BASE()+gDatos.getICO_START_01()));
+                
+                
+            dataInput.close();
+            inpStr.close();
+            flujo.close();
+            aux.close();
+            skCliente.close();
             
             System.out.println(response);
             
         } catch (NumberFormatException | IOException e) {
+            //Enable Status Monitor
+                gDatos.getLblMonDesc().setIcon(new ImageIcon(gDatos.getDIR_ICON_BASE()+gDatos.getICO_SPHERE_OFF_STATUS()));
             System.out.println(" Error conexion a server de monitoreo primary...."+ e.getMessage());
         }
     }

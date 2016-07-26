@@ -42,6 +42,11 @@ public class globalAreaData {
     private String authKey;
     private String activePrimaryMonHost;
     
+    private boolean statusMonActive;
+    private String  statusMonStartDate;
+    
+    
+    
     //Listas de Datos
     private List<JSONArray> lstServiceStatus;
     
