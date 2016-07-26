@@ -16,7 +16,6 @@ import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
-import javax.swing.table.DefaultTableModel;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -26,6 +25,7 @@ import org.json.JSONObject;
  */
 public class thMonitor extends Thread {
     static globalAreaData gDatos;
+    static org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger("srvMonitor"); 
     
     public thMonitor(globalAreaData m) {
         gDatos = m;
@@ -64,8 +64,11 @@ public class thMonitor extends Thread {
                 JSONObject jo = new JSONObject();
                 jo.put("auth", "qwerty0987");
                 jo.put("request", "getStatus");
+                jo.put("data", "{}");
                 
-                dataSend = jo.toString();
+                logger.info("enviando: "+jo.toString());
+                
+                dataSend = "{\"request\":\"getStatus\",\"auth\":\"qwerty0987\",\"data\":{}}";       //jo.toString();
                 
                 flujo.writeUTF( dataSend );
                 
@@ -73,12 +76,17 @@ public class thMonitor extends Thread {
                 DataInputStream dataInput = new DataInputStream(inpStr);
                 response = dataInput.readUTF();
                 
+                logger.info("recibiendo: "+response);
+                
+                System.exit(numTotalExec);
+                
                 //Parsea la respuesta
                 JSONObject rs = new JSONObject(response);
-                JSONArray srvList = rs.getJSONArray("params");
+                JSONObject params = rs.getJSONObject("params");
+                JSONArray srvList = params.getJSONArray("servicios");
+                JSONArray procAssigned = params.getJSONArray("procAssigned");
                 JSONObject srvRow = srvList.getJSONObject(0);
                 JSONArray jaProcActives = srvRow.getJSONArray("procActive");
-                JSONArray jaProcAssigned = srvRow.getJSONArray("procAssigned");
                 
                 srvName = srvRow.getString("srvName");
                 srvPort = srvRow.getString("srvPort");
@@ -115,6 +123,9 @@ public class thMonitor extends Thread {
                     dlm.addElement(srvName+" - [FecIni]: "+srvStart+" - [ProcExec]: "+String.valueOf(numProcExec)+" -[TotalExec]: "+String.valueOf(numTotalExec)+" - [MaxProc]: "+String.valueOf(numProcMax));
                     
                 //Analiza Respuesta
+                DefaultListModel dlm2 = new DefaultListModel();
+                gDatos.getLstMonProcActive().setModel(dlm2);
+                dlm2.addElement(procAssigned.toString());
                 
                 dataInput.close();
                 inpStr.close();
