@@ -5,13 +5,13 @@
  */
 package utilities;
 
+import dataClass.dcAssignedTypeProc;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
-import java.lang.management.OperatingSystemMXBean;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -21,6 +21,7 @@ import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,8 +31,9 @@ import org.json.JSONObject;
  * @author andresbenitez
  */
 public class srvRutinas {
-    static String CLASS_NAME = "srvRutinas";
     static globalAreaData gDatos;
+    //Carga Clase log4
+    Logger logger = Logger.getLogger("srvRutinas");    
     
     //Constructor de la clase
     //
@@ -73,12 +75,14 @@ public class srvRutinas {
             
             dataSend = sendDataKeep("keep");
             
+            logger.info("Enviando (tx)...: "+dataSend);
             flujo.writeUTF( dataSend ); 
             
             InputStream inpStr = skCliente.getInputStream();
             DataInputStream dataInput = new DataInputStream(inpStr);
             response = dataInput.readUTF();
             
+            logger.info("Recibiendo (tx)...: "+response);
             /*
                 Analiza la respuesta
             */
@@ -95,11 +99,11 @@ public class srvRutinas {
                 } else {
                     if (jHeader.getString("result").equals("error")) {
                         JSONObject jData = jHeader.getJSONObject("data");
-                        System.out.println(CLASS_NAME+" Error sendRegisterService result: "+jData.getString("errNum")+ " " +jData.getString("errMesg"));
+                        logger.error("Error sendRegisterService result: "+jData.getString("errNum")+ " " +jData.getString("errMesg"));
                     }
                 }
             } catch (Exception e) {
-                System.out.println(CLASS_NAME+" Error sendRegisterService en formato de respuesta...");
+                logger.error("Error sendRegisterService en formato de respuesta...");
             }
 
             dataInput.close();
@@ -115,7 +119,7 @@ public class srvRutinas {
             }
             
         } catch (NumberFormatException | IOException | JSONException e) {
-            sysOutln(CLASS_NAME+" Error sendRegisterService Conectando a Socket monitor: " + e.getMessage());
+            logger.error("Error sendRegisterService Conectando a Socket monitor: " + e.getMessage());
             return 1;
         }
     }
@@ -379,29 +383,12 @@ public class srvRutinas {
     
     public void updateAssignedProcess(JSONObject jData) {
         try {
-            /* Request JSON jData
-            // update: solo actualiza lo informado
-            // delete: borra y registra lo nuevo
-            {
-                "cmd":"update/delete",
-                "ArrayTypeProc":
-                  [´
-                    {
-                      "typeProc":"<string value>",
-                      "priority":<int value>,
-                      "maxThread":<int values>
-                    }
-                  ]
-            }
-            
-            */
 
             String dCmd = jData.getString("cmd");
             JSONArray dArrayTypeProc = jData.getJSONArray("ArrayTypeProc");
             
             String typeProc;
             String myTypeProc;
-            int myUsedThread;
             int priority;
             int maxThread;
             boolean isFindItem;
@@ -413,52 +400,63 @@ public class srvRutinas {
                         typeProc = dArrayTypeProc.getJSONObject(i).getString("typeProc");
                         priority = dArrayTypeProc.getJSONObject(i).getInt("priority");
                         maxThread = dArrayTypeProc.getJSONObject(i).getInt("maxThread");
-                        isFindItem = false;
-                        for (int j=0; j<gDatos.getAssignedTypeProc().size(); j++) {
-                            myTypeProc = gDatos.getAssignedTypeProc().get(j).getString("typeProc");
-                            if (typeProc.equals(myTypeProc)) {
-                                gDatos.getAssignedTypeProc().get(j).put("priority", priority);
-                                gDatos.getAssignedTypeProc().get(j).put("maxThread", maxThread);
-                                isFindItem = true;
-                            }
-                        }
-                        if (!isFindItem) {
-                            gDatos.getAssignedTypeProc().add(dArrayTypeProc.getJSONObject(i));
+                        
+                        //Se referencia a un Data Class
+                        dcAssignedTypeProc objTypeProc = new dcAssignedTypeProc();
+                        
+                        int posFound = gDatos.getPosTypeProc(typeProc);
+                        if (posFound!=0) {
+                            //TypeProc es encontrado en una posicion de la lista
+                            objTypeProc.setMaxThread(maxThread);
+                            objTypeProc.setTypeProc(typeProc);
+                            objTypeProc.setPriority(priority);
+                            objTypeProc.setUsedThread(gDatos.getLstTypeProc().get(posFound).getUsedThread());
+                            gDatos.getLstTypeProc().set(posFound, objTypeProc);
+                        } else {
+                            //TypeProc no es encontrado en una posicion de la lista
+                            objTypeProc.setMaxThread(maxThread);
+                            objTypeProc.setTypeProc(typeProc);
+                            objTypeProc.setPriority(priority);
+                            objTypeProc.setUsedThread(0);
+                            gDatos.getLstTypeProc().add(objTypeProc);
                         }
                     }
                     break;
                 case "delete":
-                    for (int i=0; i<gDatos.getAssignedTypeProc().size(); i++) {
-                        //Busca en cada Item nuevo informado
-                        myTypeProc = gDatos.getAssignedTypeProc().get(i).getString("typeProc");
-                        myUsedThread = gDatos.getAssignedTypeProc().get(i).getInt("usedThread");
-                        isFindItem = false;
+                    //A partir de la Lista Guardada busca en lista informada para
+                    //actualizar el dato o borrarlo si no se encuentra
+                    for (int i=0; i<gDatos.getLstTypeProc().size(); i++) {
                         for (int j=0; j<dArrayTypeProc.length(); j++) {
-                            typeProc = dArrayTypeProc.getJSONObject(i).getString("typeProc");
-                            priority = dArrayTypeProc.getJSONObject(i).getInt("priority");
-                            maxThread = dArrayTypeProc.getJSONObject(i).getInt("maxThread");
-                            if (typeProc.equals(myTypeProc)) {
-                                gDatos.getAssignedTypeProc().get(j).put("priority", priority);
-                                gDatos.getAssignedTypeProc().get(j).put("maxThread", maxThread);
-                                isFindItem = true;
+                            int posFound = getPosIndexJsonArray(dArrayTypeProc,"typeProc",gDatos.getLstTypeProc().get(i).getTypeProc());
+                            if (posFound!=0) {
+                                //Se referencia a un Data Class
+                                dcAssignedTypeProc objTypeProc = new dcAssignedTypeProc();
+                                objTypeProc.setTypeProc(dArrayTypeProc.getJSONObject(posFound).getString("typeProc"));
+                                objTypeProc.setMaxThread(dArrayTypeProc.getJSONObject(posFound).getInt("maxThread"));
+                                objTypeProc.setPriority(dArrayTypeProc.getJSONObject(posFound).getInt("priority"));
+                                objTypeProc.setUsedThread(gDatos.getLstTypeProc().get(i).getUsedThread());
+                                gDatos.getLstTypeProc().set(posFound, objTypeProc);
+                            } else {
+                                gDatos.getLstTypeProc().remove(i);
                             }
                         }
-                        if (!isFindItem) {
-                            gDatos.getAssignedTypeProc().remove(i);
-                        }
-                    } 
+                    
+                    }
+                    
+                    //A partir de la lista informada busca en lista guardada para actualizar o ingresar
+                    //una nueva asignacion
+                    
                     for (int i=0; i<dArrayTypeProc.length(); i++) {
-                        //Busca en cada item de la lista
-                        typeProc = dArrayTypeProc.getJSONObject(i).getString("typeProc");
-                        isFindItem = false;
-                        for (int j=0; j<gDatos.getAssignedTypeProc().size(); j++) {
-                            myTypeProc = gDatos.getAssignedTypeProc().get(j).getString("typeProc");
-                            if (typeProc.equals(myTypeProc)) {
-                                isFindItem = true;
+                        for (int j=0; j<gDatos.getLstTypeProc().size(); j++) {
+                            int posFound = gDatos.getPosTypeProc(dArrayTypeProc.getJSONObject(i).getString("typeProc"));
+                            if (posFound==0) {
+                                dcAssignedTypeProc objTypeProc = new dcAssignedTypeProc();
+                                objTypeProc.setTypeProc(dArrayTypeProc.getJSONObject(i).getString("typeProc"));
+                                objTypeProc.setMaxThread(dArrayTypeProc.getJSONObject(i).getInt("maxThread"));
+                                objTypeProc.setPriority(dArrayTypeProc.getJSONObject(i).getInt("priority"));
+                                objTypeProc.setUsedThread(0);
+                                gDatos.getLstTypeProc().add(objTypeProc);
                             }
-                        }
-                        if (!isFindItem) {
-                            gDatos.getAssignedTypeProc().add(dArrayTypeProc.getJSONObject(i));
                         }
                     }
                     break;
@@ -470,6 +468,21 @@ public class srvRutinas {
         }
     }
     
+    public int getPosIndexJsonArray(JSONArray lstArray, String item, Object value) {
+        int posFound = 0;
+        if (lstArray!=null) {
+            int numItems = lstArray.length();
+            for (int i=0; i<numItems; i++) {
+                if (lstArray.getJSONObject(i).getString(item).equals(value)) {
+                    posFound=i;
+                }
+            }
+            return posFound;
+        } else {
+            return 0;
+        }
+    }
+
     public String sendPoolProcess() {
         try {
             String output = null;

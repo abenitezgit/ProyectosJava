@@ -7,6 +7,7 @@ package srvserver;
 import utilities.globalAreaData;
 import java.io.* ; 
 import java.net.* ;
+import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import utilities.srvRutinas;
 
@@ -20,7 +21,7 @@ public class thKeepAliveSocket extends Thread {
     static boolean isSocketActive;
     static String errNum;
     static String errDesc;
-    static String CLASS_NAME = "thKeepAliveSocket";
+    Logger logger = Logger.getLogger("thKeepAlive");
     
     //Carga constructor para inicializar los datos
     public thKeepAliveSocket(globalAreaData m) {
@@ -46,16 +47,18 @@ public class thKeepAliveSocket extends Thread {
             
             dataSend = gSub.sendDataKeep("keep");
             
+            logger.info("Enviando (tx)...: "+dataSend);
             flujo.writeUTF( dataSend ); 
             
             InputStream inpStr = skCliente.getInputStream();
             DataInputStream dataInput = new DataInputStream(inpStr);
             response = dataInput.readUTF();
             
+            logger.info("Recibiendo (tx)...: "+response);
             JSONObject jHeader = new JSONObject(response);
             
             try {
-                if (jHeader.getString("result").equals("keepAlive")) {
+                if (jHeader.getString("result").equals("OK")) {
                     JSONObject jData = jHeader.getJSONObject("data");
                     //Como es una repsuesta no se espera retorno de error del SP
                     //el mismo lo resporta internamente si hay alguno.
@@ -67,7 +70,7 @@ public class thKeepAliveSocket extends Thread {
                     }
                 }
             } catch (Exception e) {
-                System.out.println("Error en formato de respuesta...");
+                logger.error("Error en formato de respuesta");
             }
 
             //Analiza Respuesta
@@ -78,7 +81,7 @@ public class thKeepAliveSocket extends Thread {
             skCliente.close();
         }
         catch (NumberFormatException | IOException e) {
-            gSub.sysOutln(CLASS_NAME+": Error Conectando a Socket monitor: " + e.getMessage());
+            logger.error("Error Conectando a Socket monitor: " + e.getMessage());
         }
     }
 }

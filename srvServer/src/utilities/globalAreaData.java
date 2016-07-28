@@ -5,6 +5,8 @@
  */
 package utilities;
 
+import dataClass.dcAssignedTypeProc;
+import dataClass.dcPoolProcess;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -20,11 +22,13 @@ import org.json.JSONObject;
  * @author andresbenitez
  */
 public class globalAreaData {
-    //Variable nombre de Class
-    private String CLASS_NAME = "globalAreaData";
-    
     //Carga Clase log4
     Logger logger = Logger.getLogger("globalAreaData");
+    
+    //Carga Clases de Datos
+    
+    List<dcAssignedTypeProc> lstTypeProc = new ArrayList<>();
+    List<dcPoolProcess> lstPoolProcess = new ArrayList<>();
     
     //Parametros globales del servicio
     //
@@ -68,6 +72,40 @@ public class globalAreaData {
     
     //Metodos de Acceso a los Datos
     //
+    public int getPosTypeProc(String typeProc) {
+        int posFound=0;
+        if (lstTypeProc!=null) {
+            int numItems= lstTypeProc.size();
+            if (numItems!=0) {
+                for (int i=0; i<numItems; i++) {
+                    if (lstTypeProc.get(i).getTypeProc().equals(typeProc)) {
+                        posFound=i;
+                    }
+                }
+                return posFound;
+            } else {
+                return 0;
+            }
+        } else {
+            return 0;
+        }
+    }
+
+    public List<dcAssignedTypeProc> getLstTypeProc() {
+        return lstTypeProc;
+    }
+
+    public void setLstTypeProc(List<dcAssignedTypeProc> lstTypeProc) {
+        this.lstTypeProc = lstTypeProc;
+    }
+
+    public List<dcPoolProcess> getLstPoolProcess() {
+        return lstPoolProcess;
+    }
+
+    public void setLstPoolProcess(List<dcPoolProcess> lstPoolProcess) {
+        this.lstPoolProcess = lstPoolProcess;
+    }
 
     public boolean isIsSocketServerActive() {
         return isSocketServerActive;
@@ -300,7 +338,7 @@ public class globalAreaData {
             
             return 0;
         } catch (Exception e) {
-            System.out.println(CLASS_NAME+" Error updateRunningPoolProcess: "+e.getMessage());
+            System.out.println(" Error updateRunningPoolProcess: "+e.getMessage());
             return 1;
         }
     }
@@ -317,7 +355,7 @@ public class globalAreaData {
             }
             return findProcID;
         } catch (Exception e) {
-            System.out.println(CLASS_NAME+" Error isExistPoolProcess: "+e.getMessage());
+            System.out.println(" Error isExistPoolProcess: "+e.getMessage());
             return false;
         }
     }
@@ -327,7 +365,7 @@ public class globalAreaData {
             poolProcess.add(itemData);
             return 0;
         } catch (Exception e) {
-            System.out.println(CLASS_NAME+" Error addPoolProcess: "+e.getMessage());
+            System.out.println(" Error addPoolProcess: "+e.getMessage());
             return 1;
         }
     

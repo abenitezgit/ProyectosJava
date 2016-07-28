@@ -25,7 +25,6 @@ import utilities.srvRutinas;
 public class SrvServer {
     static globalAreaData gDatos = new globalAreaData();
     static srvRutinas gSub ;
-    static String CLASS_NAME = "srvServer";
     
     //Carga Clase log4
     static Logger logger = Logger.getLogger("srvServer");
