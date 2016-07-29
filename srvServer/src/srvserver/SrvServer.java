@@ -296,6 +296,5 @@ public class SrvServer {
                 logger.info(" no hay procesos en pool de ejecucion...");
             }
         }
-        
     }
 }
