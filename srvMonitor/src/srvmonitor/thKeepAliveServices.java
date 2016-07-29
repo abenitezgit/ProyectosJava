@@ -5,7 +5,6 @@
  */
 package srvmonitor;
 import utilities.globalAreaData;
-import java.io.* ; 
 import java.net.* ;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -47,7 +46,7 @@ public class thKeepAliveServices extends Thread {
             */
             
             JSONObject jData;
-            int numServices = gDatos.getServiceStatus().size();
+            int numServices = gDatos.getLstServiceInfo().size();
             
             if (numServices>0) {
                 /*
@@ -55,14 +54,11 @@ public class thKeepAliveServices extends Thread {
                     ejecutando el getStatus
                 */
                 for (int i=0; i<numServices; i++) {
-                    jData = new JSONObject(gDatos.getServiceStatus().get(i));
+                    jData = new JSONObject(gDatos.getLstServiceInfo().get(i));
                     String srvHost = jData.getString("srvHost");
                     String srvPort = jData.getString("srvPort");
                 
                 }
- 
-                
-            
             } else {
                 System.out.println("Warning: No hay servicios por monitorear...");
             }

@@ -25,14 +25,10 @@ public class srvMonitor {
     static boolean isSocketActive;
     
     //Carga Clase log4
-    static Logger logger = Logger.getLogger("srvMonitor");    
+    static Logger logger = Logger.getLogger("srvMonitor");
     
     public srvMonitor() {
-
     }   
-
-    //Aplicacion Servidor
-    //Levanta Puerto para informar status
 
     public static void main(String[] args) throws IOException {
         //Instancia las Clases
@@ -68,6 +64,52 @@ public class srvMonitor {
         public mainTimerTask() {
         }
 
+        @Override
+        public void run() { 
+            logger.info("Ejecutando MainTimerTask...");
+            
+            //Starting Monitor Thread Server
+            //
+            levantaServerSocket();
+            if (gDatos.isIsSocketServerActive()) {
+                metaDataConnect();
+                if (gDatos.isIsMetadataConnect()) {
+                    /*
+                        Busca en BD Tipos de Procesos asignados a los servicios
+                    */
+                    try {
+                        int result = gSub.getMDprocAssigned();
+                        if (result==0) {
+                            logger.info("Se recuperaron exitosamente los procesos asignados...");
+                        } else {
+                            logger.error("No es posible recuperar los procesos asignados...");
+                        }
+                    } catch (SQLException ex) {
+                        logger.error(ex.getMessage());
+                    } catch (IOException ex) {
+                        java.util.logging.Logger.getLogger(srvMonitor.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    /*
+                    Ejecuta Proceso en Thread para Buscar Agendas y Procesos Activos
+                    */
+                    try {
+                        if (!thAgendas.isAlive()) {
+                            thAgendas.start();
+                            logger.info("iniciando thAgendas...normal...");
+                        } 
+                    } catch (Exception e) {
+                        thAgendas = new thGetAgendas(gDatos);
+                        thAgendas.start();
+                        logger.warn("iniciando thAgendas...forced...");
+                    }
+                } else {
+                    logger.error("No es posible conectarse a BD Metadata...");
+                }
+            } else {
+                logger.error("No es posible levantar Socket Server...");
+            }
+        }
+        
         private void levantaServerSocket() {
             try {
                 if (!thSocket.isAlive()) {
@@ -122,54 +164,6 @@ public class srvMonitor {
                     }
                 }
             }
-        }
-
-        
-        @Override
-        public void run() { 
-            logger.info("Ejecutando MainTimerTask...");
-            
-            //Starting Monitor Thread Server
-            //
-            levantaServerSocket();
-            if (gDatos.isIsSocketServerActive()) {
-                metaDataConnect();
-                if (gDatos.isIsMetadataConnect()) {
-                    /*
-                        Busca en BD Tipos de Procesos asignados a los servicios
-                    */
-                    try {
-                        int result = gSub.getMDprocAssigned();
-                        if (result==0) {
-                            logger.info("Se recuperaron exitosamente los procesos asignados...");
-                        } else {
-                            logger.error("No es posible recuperar los procesos asignados...");
-                        }
-                    } catch (SQLException ex) {
-                        logger.error(ex.getMessage());
-                    } catch (IOException ex) {
-                        java.util.logging.Logger.getLogger(srvMonitor.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                    /*
-                    Ejecuta Proceso en Thread para Buscar Agendas y Procesos Activos
-                    */
-                    try {
-                        if (!thAgendas.isAlive()) {
-                            thAgendas.start();
-                            logger.info("iniciando thAgendas...normal...");
-                        } 
-                    } catch (Exception e) {
-                        thAgendas = new thGetAgendas(gDatos);
-                        thAgendas.start();
-                        logger.warn("iniciando thAgendas...forced...");
-                    }
-                } else {
-                    logger.error("No es posible conectarse a BD Metadata...");
-                }
-            } else {
-                logger.error("No es posible levantar Socket Server...");
-            }
-                
         }
     }
 }

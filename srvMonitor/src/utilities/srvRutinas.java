@@ -4,7 +4,7 @@
 package utilities;
 
 import dataClass.AssignedTypeProc;
-import dataClass.ServiceStatus;
+import dataClass.ServiceInfo;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -154,7 +154,7 @@ public class srvRutinas {
             JSONArray jArray;
             ObjectMapper mapper = new ObjectMapper();
             
-            jArray = new JSONArray(mapper.writeValueAsString(gDatos.getLstServiceStatus()));
+            jArray = new JSONArray(mapper.writeValueAsString(gDatos.getLstServiceInfo()));
             
             jData.put("servicios", jArray);
             jData.put("metadataConnect",gDatos.isIsMetadataConnect());
@@ -170,16 +170,17 @@ public class srvRutinas {
     public int updateStatusServices(JSONObject jData) {
         try {            
             String srvID    = jData.get("srvID").toString();
-            int myNumItems  = gDatos.getServiceStatus().size();
+            int myNumItems  = gDatos.getLstServiceInfo().size();
+            ObjectMapper mapper = new ObjectMapper();
             
             if (myNumItems>0) {
                 for (int i=0; i<myNumItems; i++) {
-                    if (gDatos.getServiceStatus().get(i).getString("srvID").equals(srvID)) {
-                        gDatos.getServiceStatus().remove(i);
+                    if (gDatos.getLstServiceInfo().get(i).getSrvID().equals(srvID)) {
+                        gDatos.getLstServiceInfo().remove(i);
                     }
                 }
             } 
-            gDatos.getServiceStatus().add(jData);
+            gDatos.getLstServiceInfo().add(jData);
             return 0;
         } catch (Exception e) {
             return 1;
@@ -193,10 +194,10 @@ public class srvRutinas {
             JSONArray assignedTypeProc = new JSONArray();
             ObjectMapper mapper = new ObjectMapper();
             
-            int numItems = gDatos.getLstServiceStatus().size();
+            int numItems = gDatos.getLstServiceInfo().size();
             for (int i=0; i<numItems; i++) {
-                if (gDatos.getLstServiceStatus().get(i).getSrvID().equals(srvID)) {
-                    assignedTypeProc = new JSONArray(mapper.writeValueAsString(gDatos.getLstServiceStatus().get(i).getAssignedTypeProc()));
+                if (gDatos.getLstServiceInfo().get(i).getSrvID().equals(srvID)) {
+                    assignedTypeProc = new JSONArray(mapper.writeValueAsString(gDatos.getLstServiceInfo().get(i).getAssignedTypeProc()));
                 }
                 break;
             }
@@ -249,7 +250,7 @@ public class srvRutinas {
         ObjectMapper mapper = new ObjectMapper();
         
         //Data Classes
-        ServiceStatus serviceStatus = null;
+        ServiceInfo serviceInfo = null;
         
         try {
             String vSQL = "select srvID, srvDesc, srvEnable, srvTypeProc "
@@ -282,15 +283,15 @@ public class srvRutinas {
                     /**
                      * Se crea nuevo objeto por cada servicio encontrado en la BD
                      */
-                    serviceStatus = new ServiceStatus(rs.getString("srvID"), rs.getString("srvDesc"), rs.getInt("srvEnable"), lstAssignedTypeProc);
+                    serviceInfo = new ServiceInfo(rs.getString("srvID"), rs.getString("srvDesc"), rs.getInt("srvEnable"), lstAssignedTypeProc);
                     }
                     /**
                      * Se agrega objeto servicio a lista de objetos
                      */
-                    gDatos.getLstServiceStatus().add(serviceStatus);
+                    gDatos.getLstServiceInfo().add(serviceInfo);
                 }
             mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
-            sysOutln(mapper.writeValueAsString(gDatos.getLstServiceStatus()));
+            sysOutln(mapper.writeValueAsString(gDatos.getLstServiceInfo()));
         
             return 0;
         } catch (SQLException | JSONException e) {

@@ -12,16 +12,16 @@ import java.util.List;
  *
  * @author andresbenitez
  */
-public class ServiceStatus {
+public class ServiceInfo {
     String srvID;
     String srvDesc;
     int srvEnable;
     List<AssignedTypeProc> assignedTypeProc = new ArrayList<>();
     
-    public ServiceStatus() {
+    public ServiceInfo() {
     }
     
-    public ServiceStatus(String srvID, String srvDesc, int srvEnable, List<AssignedTypeProc> assignedTypeProc) {
+    public ServiceInfo(String srvID, String srvDesc, int srvEnable, List<AssignedTypeProc> assignedTypeProc) {
         this.srvID = srvID;
         this.srvDesc = srvDesc;
         this.srvEnable = srvEnable;
@@ -59,6 +59,4 @@ public class ServiceStatus {
     public void setAssignedTypeProc(List<AssignedTypeProc> assignedTypeProc) {
         this.assignedTypeProc = assignedTypeProc;
     }
-    
-    
 }

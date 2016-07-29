@@ -12,16 +12,14 @@ package dataClass;
 public class AssignedTypeProc {
     String typeProc;
     int maxThread;
-    int usedThread;
     int priority;
     
     public AssignedTypeProc() {
     }
     
-    public AssignedTypeProc (String typeProc, int maxThread, int usedThread, int priority) {
+    public AssignedTypeProc (String typeProc, int maxThread, int priority) {
         this.typeProc = typeProc;
         this.maxThread = maxThread;
-        this.usedThread = usedThread;
         this.priority = priority;
     }
 
@@ -39,14 +37,6 @@ public class AssignedTypeProc {
 
     public void setMaxThread(int maxThread) {
         this.maxThread = maxThread;
-    }
-
-    public int getUsedThread() {
-        return usedThread;
-    }
-
-    public void setUsedThread(int usedThread) {
-        this.usedThread = usedThread;
     }
 
     public int getPriority() {

@@ -5,7 +5,7 @@
  */
 package utilities;
 
-import dataClass.ServiceStatus;
+import dataClass.ServiceInfo;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.Connection;
@@ -48,7 +48,7 @@ public class globalAreaData {
     //{"srvName":"srv00000","srvStart":"2016-06-16 10:00:00","numTotalExec":100,
     //  "srvPort":"9090","numProcMax":"30","numProcExec":0,
     //  "procActive":[],"procAssigned":[] }
-    private List<JSONObject> serviceStatus = new ArrayList<>();
+    //private List<JSONObject> serviceStatus = new ArrayList<>();
     
     /*
     Listas para Agendas24HH y AgendasPendientes
@@ -57,7 +57,7 @@ public class globalAreaData {
     
     private List<JSONObject> lstActiveAgendas = new ArrayList<>();
     
-    private List<ServiceStatus> lstServiceStatus = new ArrayList<>();
+    private List<ServiceInfo> lstServiceInfo = new ArrayList<>();
     
        
     //Parametros de Control Online
@@ -92,12 +92,12 @@ public class globalAreaData {
 
     //Declarion de Metodos de GET / SET
 
-    public List<ServiceStatus> getLstServiceStatus() {
-        return lstServiceStatus;
+    public List<ServiceInfo> getLstServiceInfo() {
+        return lstServiceInfo;
     }
 
-    public void setLstServiceStatus(List<ServiceStatus> lstServiceStatus) {
-        this.lstServiceStatus = lstServiceStatus;
+    public void setLstServiceInfo(List<ServiceInfo> lstServiceInfo) {
+        this.lstServiceInfo = lstServiceInfo;
     }
     
     public boolean isIsSocketServerActive() {
@@ -220,14 +220,6 @@ public class globalAreaData {
         this.assignedServiceTypeProc = assignedServiceTypeProc;
     }
 
-    public List<JSONObject> getServiceStatus() {
-        return serviceStatus;
-    }
-
-    public void setServiceStatus(List<JSONObject> serviceStatus) {
-        this.serviceStatus = serviceStatus;
-    }
-    
     public int getNumProcExec() {
         return numProcExec;
     }
