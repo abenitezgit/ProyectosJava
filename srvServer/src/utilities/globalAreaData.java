@@ -5,8 +5,10 @@
  */
 package utilities;
 
+import dataClass.ActiveTypeProc;
 import dataClass.AssignedTypeProc;
-import dataClass.dcPoolProcess;
+import dataClass.ServiceInfo;
+import dataClass.ServiceStatus;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -22,53 +24,56 @@ import org.json.JSONObject;
  * @author andresbenitez
  */
 public class globalAreaData {
-    //Carga Clase log4
+    /**
+     * Clase de Logger4
+     */
     Logger logger = Logger.getLogger("globalAreaData");
     
-    //Carga Clases de Datos
-    
-    List<AssignedTypeProc> lstAssignedTypeProc = new ArrayList<>();
-    List<dcPoolProcess> lstPoolProcess = new ArrayList<>();
-    
-    //Parametros globales del servicio
-    //
-    private String srvID;          //Identificador unico del Servicio
-    private String txpMain;          //Tiempo de ciclo del timerTask principal
-    private String srvPort;          //Puerto del Socket Server     
-    private String srvStart;         //Fecha Inicio del Servicio
-    private String srvHost;
-    private boolean srvGetTypeProc;     //Indica si recibio o no los parametros de configuracion de servicios
-    private boolean srvActive;       //indice si Servicio se encuentra activo o no
-    private boolean srvLoadParam;
-    private String monPort;
-    private String monPortBack;
-    private String authKey;
-    private String srvMonHost;
-    private String srvMonHostBack;
-    private boolean isRegisterService;
-    private boolean isActivePrimaryMonHost;
-    private boolean isConnectMonHost;
-    private boolean isSocketServerActive;
-    
-        
     /**
-     * Parametros para recibir assigned Process
-     * format json:
-     * {"typeProc":"ETL","priority":"1","maxThread":"10","usedThread":"0"}
+     * Clases de Estructuras de Datos
+     */
+    List<AssignedTypeProc> lstAssignedTypeProc = new ArrayList<>();
+    List<ActiveTypeProc> lstActiveTypeProc = new ArrayList<>();
+    ServiceInfo serviceInfo = new ServiceInfo();
+    ServiceStatus serviceStatus = new ServiceStatus();
+
+    
+    /**
+     * Getter And Setter Area
+     * @return 
      */
     
-    List<JSONObject> assignedTypeProc = new ArrayList<>();
-    
-    
-    //Lista para almacenar el pool de ejecuciones a realizar
-    //
-    List<JSONObject> poolProcess = new ArrayList<>();
-       
-    //Parametros de Control Online
-    //
-    private int numProcExec;         //Numero de procesos en ejecucion
-    private int numProcMax;          //Maximo numero permitido de procesos simultaneos
-    private int numTotalExec;        //Total de procesos ejecutados desde el startup
+    public List<AssignedTypeProc> getLstAssignedTypeProc() {
+        return lstAssignedTypeProc;
+    }
+
+    public void setLstAssignedTypeProc(List<AssignedTypeProc> lstAssignedTypeProc) {
+        this.lstAssignedTypeProc = lstAssignedTypeProc;
+    }
+
+    public List<ActiveTypeProc> getLstActiveTypeProc() {
+        return lstActiveTypeProc;
+    }
+
+    public void setLstActiveTypeProc(List<ActiveTypeProc> lstActiveTypeProc) {
+        this.lstActiveTypeProc = lstActiveTypeProc;
+    }
+
+    public ServiceInfo getServiceInfo() {
+        return serviceInfo;
+    }
+
+    public void setServiceInfo(ServiceInfo serviceInfo) {
+        this.serviceInfo = serviceInfo;
+    }
+
+    public ServiceStatus getServiceStatus() {
+        return serviceStatus;
+    }
+
+    public void setServiceStatus(ServiceStatus serviceStatus) {
+        this.serviceStatus = serviceStatus;
+    }
     
     //Metodos de Acceso a los Datos
     //
@@ -91,198 +96,6 @@ public class globalAreaData {
         }
     }
 
-    public List<AssignedTypeProc> getLstAssignedTypeProc() {
-        return lstAssignedTypeProc;
-    }
-
-    public void setLstTypeProc(List<AssignedTypeProc> lstAssignedTypeProc) {
-        this.lstAssignedTypeProc = lstAssignedTypeProc;
-    }
-
-    public List<dcPoolProcess> getLstPoolProcess() {
-        return lstPoolProcess;
-    }
-
-    public void setLstPoolProcess(List<dcPoolProcess> lstPoolProcess) {
-        this.lstPoolProcess = lstPoolProcess;
-    }
-
-    public boolean isIsSocketServerActive() {
-        return isSocketServerActive;
-    }
-
-    public void setIsSocketServerActive(boolean isSocketServerActive) {
-        this.isSocketServerActive = isSocketServerActive;
-    }
-
-    public boolean isIsConnectMonHost() {
-        return isConnectMonHost;
-    }
-
-    public void setIsConnectMonHost(boolean isConnectMonHost) {
-        this.isConnectMonHost = isConnectMonHost;
-    }
-
-    public String getSrvMonHostBack() {
-        return srvMonHostBack;
-    }
-
-    public void setSrvMonHostBack(String srvMonHostBack) {
-        this.srvMonHostBack = srvMonHostBack;
-    }
-
-    public boolean isIsActivePrimaryMonHost() {
-        return isActivePrimaryMonHost;
-    }
-
-    public void setIsActivePrimaryMonHost(boolean isActivePrimaryMonHost) {
-        this.isActivePrimaryMonHost = isActivePrimaryMonHost;
-    }
-    
-    public boolean isIsRegisterService() {
-        return isRegisterService;
-    }
-
-    public void setIsRegisterService(boolean isRegisterService) {
-        this.isRegisterService = isRegisterService;
-    }
-    
-    public List<JSONObject> getPoolProcess() {
-        return poolProcess;
-    }
-
-    public void setPoolProcess(List<JSONObject> poolProcess) {
-        this.poolProcess = poolProcess;
-    }
-    
-    public List<JSONObject> getAssignedTypeProc() {
-        return assignedTypeProc;
-    }
-
-    public void setAssignedTypeProc(List<JSONObject> assignedTypeProc) {
-        this.assignedTypeProc = assignedTypeProc;
-    }
-
-    public boolean isSrvGetTypeProc() {
-        return srvGetTypeProc;
-    }
-
-    public void setSrvGetTypeProc(boolean srvGetTypeProc) {
-        this.srvGetTypeProc = srvGetTypeProc;
-    }
-
-    public String getSrvMonHost() {
-        return srvMonHost;
-    }
-
-    public void setSrvMonHost(String srvMonHost) {
-        this.srvMonHost = srvMonHost;
-    }
-
-    public String getSrvID() {
-        return srvID;
-    }
-
-    public void setSrvID(String srvID) {
-        this.srvID = srvID;
-    }
-
-    public String getTxpMain() {
-        return txpMain;
-    }
-
-    public void setTxpMain(String txpMain) {
-        this.txpMain = txpMain;
-    }
-
-    public String getSrvPort() {
-        return srvPort;
-    }
-
-    public void setSrvPort(String srvPort) {
-        this.srvPort = srvPort;
-    }
-
-    public String getSrvStart() {
-        return srvStart;
-    }
-
-    public void setSrvStart(String srvStart) {
-        this.srvStart = srvStart;
-    }
-
-    public String getSrvHost() {
-        return srvHost;
-    }
-
-    public void setSrvHost(String srvHost) {
-        this.srvHost = srvHost;
-    }
-
-    public boolean isSrvActive() {
-        return srvActive;
-    }
-
-    public void setSrvActive(boolean srvActive) {
-        this.srvActive = srvActive;
-    }
-
-    public boolean isSrvLoadParam() {
-        return srvLoadParam;
-    }
-
-    public void setSrvLoadParam(boolean srvLoadParam) {
-        this.srvLoadParam = srvLoadParam;
-    }
-
-    public String getMonPort() {
-        return monPort;
-    }
-
-    public void setMonPort(String monPort) {
-        this.monPort = monPort;
-    }
-
-    public String getMonPortBack() {
-        return monPortBack;
-    }
-
-    public void setMonPortBack(String monPortBack) {
-        this.monPortBack = monPortBack;
-    }
-
-    public String getAuthKey() {
-        return authKey;
-    }
-
-    public void setAuthKey(String authKey) {
-        this.authKey = authKey;
-    }
-
-    public int getNumProcExec() {
-        return numProcExec;
-    }
-
-    public void setNumProcExec(int numProcExec) {
-        this.numProcExec = numProcExec;
-    }
-
-    public int getNumProcMax() {
-        return numProcMax;
-    }
-
-    public void setNumProcMax(int numProcMax) {
-        this.numProcMax = numProcMax;
-    }
-
-    public int getNumTotalExec() {
-        return numTotalExec;
-    }
-
-    public void setNumTotalExec(int numTotalExec) {
-        this.numTotalExec = numTotalExec;
-    }
-    
     //Procimientos y/p Metodos uilitarios
     //
     public int updateRunningPoolProcess(JSONObject ds) {
@@ -402,7 +215,6 @@ public class globalAreaData {
         }
     }
     
-    
     public boolean isExistFreeThreadServices() {
         try {
             int maxThreadServices;
@@ -417,7 +229,6 @@ public class globalAreaData {
             return false;
         }
     }
-
     
     public globalAreaData() {
             Properties fileConf = new Properties();
@@ -427,48 +238,44 @@ public class globalAreaData {
 
                 //Parametros del File Properties
                 //
+                
                 fileConf.load(new FileInputStream("/Users/andresbenitez/Documents/Apps/NetBeansProjects3/srvServer/src/utilities/srvServer.properties"));
 
-                srvID   = fileConf.getProperty("srvID");
-                txpMain = fileConf.getProperty("txpMain");
-                srvPort = fileConf.getProperty("srvPort");
-                monPort = fileConf.getProperty("monPort");
-                monPortBack = fileConf.getProperty("monPortBack");
-                numProcMax = Integer.valueOf(fileConf.getProperty("numProcMax"));
-                srvHost = fileConf.getProperty("srvHost");
-                authKey = fileConf.getProperty("authKey");
-                srvMonHost = fileConf.getProperty("srvMonHost");
-                srvMonHostBack = fileConf.getProperty("srvMonHostBack");
-                isActivePrimaryMonHost = fileConf.getProperty("activePrimaryMonHost").equals("true");
+                serviceInfo.setSrvID(fileConf.getProperty("srvID"));
+                serviceInfo.setTxpMain(Integer.valueOf(fileConf.getProperty("txpMain")));
+                serviceInfo.setAuthKey(fileConf.getProperty("authKey"));
+                serviceInfo.setMonPort(Integer.valueOf(fileConf.getProperty("monPort")));
+                serviceInfo.setMonPortBack(Integer.valueOf(fileConf.getProperty("monPortBack")));
+                serviceInfo.setSrvHost(fileConf.getProperty("srvHost"));
+                serviceInfo.setSrvMonHost(fileConf.getProperty("srvMonHost"));
+                serviceInfo.setSrvMonHostBack(fileConf.getProperty("srvMonHostBack"));
+                serviceInfo.setSrvPort(Integer.valueOf(fileConf.getProperty("srvPort")));
                 
-                
-                //Setea Parametros iniciales
-                //
-                isSocketServerActive = false;
-                isConnectMonHost = false;
-                isRegisterService = false;
-                numProcExec = 0;
-                numTotalExec = 0;
-                
-                srvGetTypeProc = false;
-                srvActive = true;
-
+                serviceStatus.setSrvID(fileConf.getProperty("srvID"));
+                serviceStatus.setNumProcMax(Integer.valueOf(fileConf.getProperty("numProcMax")));
+                serviceStatus.setSrvEnable(1);
+                serviceStatus.setSrvActive(true);
+                serviceStatus.setIsActivePrimaryMonHost(true);
+                serviceStatus.setIsSocketServerActive(false);
+                serviceStatus.setIsConnectMonHost(false);
+                serviceStatus.setIsRegisterService(false);
+                serviceStatus.setNumProcExec(0);
+                serviceStatus.setNumTotalExec(0);
                 
                 //Extrae Fecha de Hoy
                 //
-                Date today;
-                SimpleDateFormat formatter;
-                formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                System.out.println(formatter.getTimeZone());
-                today = new Date();
-                srvStart = formatter.format(today);                
-                
-                srvLoadParam= true;
+                    Date today;
+                    SimpleDateFormat formatter;
+                    formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    today = new Date();
+
+                serviceStatus.setSrvStartTime(formatter.format(today));
+                serviceStatus.setSrvLoadParam(true);
                 
                 logger.info(" Se ha iniciado correctamente la globalAreaData...");
                 
             } catch (IOException | NumberFormatException e) {
-                srvLoadParam = false;
+                serviceStatus.setSrvLoadParam(false);
                 logger.error(" Error general: "+e.getMessage());
             }
     }

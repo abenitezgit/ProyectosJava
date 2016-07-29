@@ -32,7 +32,11 @@ import org.json.JSONObject;
  * @author andresbenitez
  */
 public class srvRutinas {
+    /**
+     * Clase de Traspaso de Datos
+     */
     static globalAreaData gDatos;
+        
     //Carga Clase log4
     Logger logger = Logger.getLogger("srvRutinas");    
     
@@ -41,6 +45,7 @@ public class srvRutinas {
     public srvRutinas(globalAreaData m) {
         gDatos = m;
     }
+    
     
     public void sysOutln(Object obj) {
         System.out.println(obj);
@@ -416,39 +421,30 @@ public class srvRutinas {
                 case "delete":
                     //A partir de la Lista Guardada busca en lista informada para
                     //actualizar el dato o borrarlo si no se encuentra
-                    for (int i=0; i<gDatos.getLstTypeProc().size(); i++) {
+                    for (int i=0; i<gDatos.getLstAssignedTypeProc().size(); i++) {
+                        boolean isFound = false;
                         for (int j=0; j<jArray.length(); j++) {
-                            AssignedTypeProc assignedTypeProc = mapper.readValue(jArray.getJSONObject(i).toString(), AssignedTypeProc.class);
+                            AssignedTypeProc assignedTypeProc = mapper.readValue(jArray.getJSONObject(j).toString(), AssignedTypeProc.class);
                             
-                            int posFound = getPosIndexJsonArray(dArrayTypeProc,"typeProc",gDatos.getLstTypeProc().get(i).getTypeProc());
-                            if (posFound!=0) {
-                                //Se referencia a un Data Class
-                                AssignedTypeProc objTypeProc = new AssignedTypeProc();
-                                objTypeProc.setTypeProc(dArrayTypeProc.getJSONObject(posFound).getString("typeProc"));
-                                objTypeProc.setMaxThread(dArrayTypeProc.getJSONObject(posFound).getInt("maxThread"));
-                                objTypeProc.setPriority(dArrayTypeProc.getJSONObject(posFound).getInt("priority"));
-                                objTypeProc.setUsedThread(gDatos.getLstTypeProc().get(i).getUsedThread());
-                                gDatos.getLstTypeProc().set(posFound, objTypeProc);
-                            } else {
-                                gDatos.getLstTypeProc().remove(i);
+                            if (gDatos.getLstAssignedTypeProc().get(i).getTypeProc().equals(assignedTypeProc.getTypeProc())) {
+                                gDatos.getLstAssignedTypeProc().set(i, assignedTypeProc);
+                                isFound = true;
                             }
                         }
-                    
+                        if (!isFound) {
+                            gDatos.getLstAssignedTypeProc().remove(i);
+                        }
                     }
                     
                     //A partir de la lista informada busca en lista guardada para actualizar o ingresar
                     //una nueva asignacion
                     
-                    for (int i=0; i<dArrayTypeProc.length(); i++) {
-                        for (int j=0; j<gDatos.getLstTypeProc().size(); j++) {
-                            int posFound = gDatos.getPosTypeProc(dArrayTypeProc.getJSONObject(i).getString("typeProc"));
+                    for (int i=0; i<jArray.length(); i++) {
+                        AssignedTypeProc assignedTypeProc = mapper.readValue(jArray.getJSONObject(i).toString(), AssignedTypeProc.class);
+                        for (int j=0; j<gDatos.getLstAssignedTypeProc().size(); j++) {
+                            int posFound = gDatos.getPosTypeProc(assignedTypeProc.getTypeProc());
                             if (posFound==0) {
-                                AssignedTypeProc objTypeProc = new AssignedTypeProc();
-                                objTypeProc.setTypeProc(dArrayTypeProc.getJSONObject(i).getString("typeProc"));
-                                objTypeProc.setMaxThread(dArrayTypeProc.getJSONObject(i).getInt("maxThread"));
-                                objTypeProc.setPriority(dArrayTypeProc.getJSONObject(i).getInt("priority"));
-                                objTypeProc.setUsedThread(0);
-                                gDatos.getLstTypeProc().add(objTypeProc);
+                                gDatos.getLstAssignedTypeProc().add(assignedTypeProc);
                             }
                         }
                     }
