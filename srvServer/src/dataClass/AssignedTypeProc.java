@@ -9,10 +9,9 @@ package dataClass;
  *
  * @author andresbenitez
  */
-public class dcAssignedTypeProc {
+public class AssignedTypeProc {
     String typeProc;
     int maxThread;
-    int usedThread;
     int priority;
 
     public String getTypeProc() {
@@ -29,14 +28,6 @@ public class dcAssignedTypeProc {
 
     public void setMaxThread(int maxThread) {
         this.maxThread = maxThread;
-    }
-
-    public int getUsedThread() {
-        return usedThread;
-    }
-
-    public void setUsedThread(int usedThread) {
-        this.usedThread = usedThread;
     }
 
     public int getPriority() {

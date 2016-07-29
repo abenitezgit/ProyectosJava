@@ -5,7 +5,7 @@
  */
 package utilities;
 
-import dataClass.dcAssignedTypeProc;
+import dataClass.AssignedTypeProc;
 import dataClass.dcPoolProcess;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -27,7 +27,7 @@ public class globalAreaData {
     
     //Carga Clases de Datos
     
-    List<dcAssignedTypeProc> lstTypeProc = new ArrayList<>();
+    List<AssignedTypeProc> lstAssignedTypeProc = new ArrayList<>();
     List<dcPoolProcess> lstPoolProcess = new ArrayList<>();
     
     //Parametros globales del servicio
@@ -74,11 +74,11 @@ public class globalAreaData {
     //
     public int getPosTypeProc(String typeProc) {
         int posFound=0;
-        if (lstTypeProc!=null) {
-            int numItems= lstTypeProc.size();
+        if (lstAssignedTypeProc!=null) {
+            int numItems= lstAssignedTypeProc.size();
             if (numItems!=0) {
                 for (int i=0; i<numItems; i++) {
-                    if (lstTypeProc.get(i).getTypeProc().equals(typeProc)) {
+                    if (lstAssignedTypeProc.get(i).getTypeProc().equals(typeProc)) {
                         posFound=i;
                     }
                 }
@@ -91,12 +91,12 @@ public class globalAreaData {
         }
     }
 
-    public List<dcAssignedTypeProc> getLstTypeProc() {
-        return lstTypeProc;
+    public List<AssignedTypeProc> getLstAssignedTypeProc() {
+        return lstAssignedTypeProc;
     }
 
-    public void setLstTypeProc(List<dcAssignedTypeProc> lstTypeProc) {
-        this.lstTypeProc = lstTypeProc;
+    public void setLstTypeProc(List<AssignedTypeProc> lstAssignedTypeProc) {
+        this.lstAssignedTypeProc = lstAssignedTypeProc;
     }
 
     public List<dcPoolProcess> getLstPoolProcess() {

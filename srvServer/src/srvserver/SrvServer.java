@@ -112,7 +112,6 @@ public class SrvServer {
             }
         }
         
-        
         private void levantaServerSocket() {
             //Monitor thSocket Server
             //

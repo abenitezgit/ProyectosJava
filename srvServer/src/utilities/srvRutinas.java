@@ -5,7 +5,7 @@
  */
 package utilities;
 
-import dataClass.dcAssignedTypeProc;
+import dataClass.AssignedTypeProc;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -21,6 +21,7 @@ import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import org.apache.htrace.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -385,7 +386,8 @@ public class srvRutinas {
         try {
 
             String dCmd = jData.getString("cmd");
-            JSONArray dArrayTypeProc = jData.getJSONArray("ArrayTypeProc");
+            JSONArray jArray = jData.getJSONArray("assignedTypeProc");
+            ObjectMapper mapper = new ObjectMapper();
             
             String typeProc;
             String myTypeProc;
@@ -395,30 +397,19 @@ public class srvRutinas {
             
             switch (dCmd) {
                 case "update":
-                    for (int i=0; i<dArrayTypeProc.length(); i++) {
-                        //Busca en cada item de la lista
-                        typeProc = dArrayTypeProc.getJSONObject(i).getString("typeProc");
-                        priority = dArrayTypeProc.getJSONObject(i).getInt("priority");
-                        maxThread = dArrayTypeProc.getJSONObject(i).getInt("maxThread");
-                        
-                        //Se referencia a un Data Class
-                        dcAssignedTypeProc objTypeProc = new dcAssignedTypeProc();
-                        
-                        int posFound = gDatos.getPosTypeProc(typeProc);
+                    for (int i=0; i<jArray.length(); i++) {
+                        //Crea objeto Data Class
+
+                        //Asigna JSON to Data Class
+                        AssignedTypeProc assignedTypeProc = mapper.readValue(jArray.getJSONObject(i).toString(), AssignedTypeProc.class);
+                                                
+                        int posFound = gDatos.getPosTypeProc(assignedTypeProc.getTypeProc());
                         if (posFound!=0) {
                             //TypeProc es encontrado en una posicion de la lista
-                            objTypeProc.setMaxThread(maxThread);
-                            objTypeProc.setTypeProc(typeProc);
-                            objTypeProc.setPriority(priority);
-                            objTypeProc.setUsedThread(gDatos.getLstTypeProc().get(posFound).getUsedThread());
-                            gDatos.getLstTypeProc().set(posFound, objTypeProc);
+                            gDatos.getLstAssignedTypeProc().set(posFound, assignedTypeProc);
                         } else {
                             //TypeProc no es encontrado en una posicion de la lista
-                            objTypeProc.setMaxThread(maxThread);
-                            objTypeProc.setTypeProc(typeProc);
-                            objTypeProc.setPriority(priority);
-                            objTypeProc.setUsedThread(0);
-                            gDatos.getLstTypeProc().add(objTypeProc);
+                            gDatos.getLstAssignedTypeProc().add(assignedTypeProc);
                         }
                     }
                     break;
@@ -426,11 +417,13 @@ public class srvRutinas {
                     //A partir de la Lista Guardada busca en lista informada para
                     //actualizar el dato o borrarlo si no se encuentra
                     for (int i=0; i<gDatos.getLstTypeProc().size(); i++) {
-                        for (int j=0; j<dArrayTypeProc.length(); j++) {
+                        for (int j=0; j<jArray.length(); j++) {
+                            AssignedTypeProc assignedTypeProc = mapper.readValue(jArray.getJSONObject(i).toString(), AssignedTypeProc.class);
+                            
                             int posFound = getPosIndexJsonArray(dArrayTypeProc,"typeProc",gDatos.getLstTypeProc().get(i).getTypeProc());
                             if (posFound!=0) {
                                 //Se referencia a un Data Class
-                                dcAssignedTypeProc objTypeProc = new dcAssignedTypeProc();
+                                AssignedTypeProc objTypeProc = new AssignedTypeProc();
                                 objTypeProc.setTypeProc(dArrayTypeProc.getJSONObject(posFound).getString("typeProc"));
                                 objTypeProc.setMaxThread(dArrayTypeProc.getJSONObject(posFound).getInt("maxThread"));
                                 objTypeProc.setPriority(dArrayTypeProc.getJSONObject(posFound).getInt("priority"));
@@ -450,7 +443,7 @@ public class srvRutinas {
                         for (int j=0; j<gDatos.getLstTypeProc().size(); j++) {
                             int posFound = gDatos.getPosTypeProc(dArrayTypeProc.getJSONObject(i).getString("typeProc"));
                             if (posFound==0) {
-                                dcAssignedTypeProc objTypeProc = new dcAssignedTypeProc();
+                                AssignedTypeProc objTypeProc = new AssignedTypeProc();
                                 objTypeProc.setTypeProc(dArrayTypeProc.getJSONObject(i).getString("typeProc"));
                                 objTypeProc.setMaxThread(dArrayTypeProc.getJSONObject(i).getInt("maxThread"));
                                 objTypeProc.setPriority(dArrayTypeProc.getJSONObject(i).getInt("priority"));
@@ -463,7 +456,7 @@ public class srvRutinas {
                 default:
                    break;
             }
-        } catch (Exception e) {
+        } catch (JSONException | IOException e) {
             sysOutln("Error: " + e.getMessage());
         }
     }
@@ -639,8 +632,8 @@ public class srvRutinas {
 
             jo.put("fecha", getDateNow("yyyy-MM-dd HH:mm:ss"));
             ja.put(jo);
-            mainjo.put("params", ja);
-            mainjo.put("result", "sendDate");
+            mainjo.put("data", ja);
+            mainjo.put("result", "OK");
             return mainjo.toString();
         } catch (Exception e) {
             return sendError(99, e.getMessage());
