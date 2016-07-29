@@ -5,6 +5,7 @@
  */
 package utilities;
 
+import dataClass.ServiceStatus;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.Connection;
@@ -56,6 +57,7 @@ public class globalAreaData {
     
     private List<JSONObject> lstActiveAgendas = new ArrayList<>();
     
+    private List<ServiceStatus> lstServiceStatus = new ArrayList<>();
     
        
     //Parametros de Control Online
@@ -89,6 +91,15 @@ public class globalAreaData {
 
 
     //Declarion de Metodos de GET / SET
+
+    public List<ServiceStatus> getLstServiceStatus() {
+        return lstServiceStatus;
+    }
+
+    public void setLstServiceStatus(List<ServiceStatus> lstServiceStatus) {
+        this.lstServiceStatus = lstServiceStatus;
+    }
+    
     public boolean isIsSocketServerActive() {
         return isSocketServerActive;
     }

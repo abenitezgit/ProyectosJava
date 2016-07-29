@@ -3,7 +3,9 @@
  */
 package utilities;
 
-import java.sql.Connection;
+import dataClass.AssignedTypeProc;
+import dataClass.ServiceStatus;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -11,6 +13,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializationConfig;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -143,29 +147,22 @@ public class srvRutinas {
         }    
     }
 
-    public String getStatusServices() {
+    public String sendStatusServices() {
         try {
-            JSONObject jo = new JSONObject();
-            JSONArray jaServicios = new JSONArray();
-            JSONArray jaAssigned = new JSONArray();
+            JSONObject jData = new JSONObject();
+            JSONObject jHeader = new JSONObject();
+            JSONArray jArray;
+            ObjectMapper mapper = new ObjectMapper();
             
-            JSONObject mainjo = new JSONObject();
+            jArray = new JSONArray(mapper.writeValueAsString(gDatos.getLstServiceStatus()));
+            
+            jData.put("servicios", jArray);
+            jData.put("metadataConnect",gDatos.isIsMetadataConnect());
+            jHeader.put("data",jData);
+            jHeader.put("result", "OK");
 
-            for (int i=0; i<gDatos.getServiceStatus().size(); i++) {
-                jaServicios.put(gDatos.getServiceStatus().get(i));
-            }
-            
-            for (int i=0; i<gDatos.getAssignedServiceTypeProc().size(); i++) {
-                jaAssigned.put(gDatos.getAssignedServiceTypeProc().get(i));
-            }
-            
-            jo.put("procAssigned", jaAssigned);
-            jo.put("servicios", jaServicios);
-            mainjo.put("data",jo);
-            mainjo.put("result", "OK");
-
-            return mainjo.toString();
-        } catch (Exception e) {
+            return jHeader.toString();
+        } catch (IOException | JSONException e) {
             return sendError(0,e.getMessage());
         }
     }
@@ -193,23 +190,22 @@ public class srvRutinas {
         try {
             JSONObject jData = new JSONObject();
             JSONObject jHeader = new JSONObject();
-            JSONArray arrayAssignedProc = new JSONArray();
-            String respuesta;
-                        
-            int myNumItems = gDatos.getAssignedServiceTypeProc().size();
-            if (myNumItems>0) {
-                for (int i=0; i<myNumItems; i++) {
-                    if (gDatos.getAssignedServiceTypeProc().get(i).get("srvID").equals(srvID)) {
-                        arrayAssignedProc = gDatos.getAssignedServiceTypeProc().get(i).getJSONArray("procAssigned");
-                    }
+            JSONArray assignedTypeProc = new JSONArray();
+            ObjectMapper mapper = new ObjectMapper();
+            
+            int numItems = gDatos.getLstServiceStatus().size();
+            for (int i=0; i<numItems; i++) {
+                if (gDatos.getLstServiceStatus().get(i).getSrvID().equals(srvID)) {
+                    assignedTypeProc = new JSONArray(mapper.writeValueAsString(gDatos.getLstServiceStatus().get(i).getAssignedTypeProc()));
                 }
+                break;
             }
-            jData.put("ArrayTypeProc", arrayAssignedProc);
+            jData.put("assignedTypeProc", assignedTypeProc);
             jData.put("cmd", "update");
             jHeader.put("data",jData);
             jHeader.put("result", "OK");
             return jHeader.toString();
-        } catch (Exception e) {
+        } catch (IOException | JSONException e) {
             return sendError(1,e.getMessage());
         }
     }
@@ -246,39 +242,57 @@ public class srvRutinas {
         return result;
     }
     
-    public int getMDprocAssigned() throws SQLException {
+    public int getMDprocAssigned() throws SQLException, IOException {
+        //Json Data
+        JSONArray ja;
+        List<AssignedTypeProc> lstAssignedTypeProc = new ArrayList<>();
+        ObjectMapper mapper = new ObjectMapper();
+        
+        //Data Classes
+        ServiceStatus serviceStatus = null;
+        
         try {
             String vSQL = "select srvID, srvDesc, srvEnable, srvTypeProc "
                     + "     from process.tb_services"
                     + "     order by srvID";
             Statement stm;
             stm = gDatos.getMetadataConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-            List<JSONObject> lstTemp = new ArrayList<>();
-            lstTemp.clear();
-
             ResultSet rs = stm.executeQuery(vSQL);
             if (rs!=null) {
-                JSONObject jData;
-                JSONArray jArray;
                 while (rs.next()) {
-                    jData = new JSONObject();
-                    jArray = new JSONArray(rs.getString("srvTypeProc"));
-                    jData.put("procAssigned", jArray);
-                    jData.put("srvEnable", rs.getInt("srvEnable"));
-                    jData.put("srvDesc", rs.getString("srvDesc"));
-                    jData.put("srvID", rs.getString("srvID"));
-                    lstTemp.add(jData);
+
+                    /**
+                     * Se extrae columna srvTypeProc viene en formato JSONArray
+                     */
+                          
+                    ja = new JSONArray(rs.getString("srvTypeProc"));
+                    for (int i=0; i<ja.length(); i++) {
+                        /**
+                         * Se crea un objeto nuevo por cada fila encontrada en el Array
+                         * y se asigna la Data Asociada por medio de Des-Serializacion de JSON
+                         */
+                        AssignedTypeProc assignedTypeProc = mapper.readValue(ja.getJSONObject(i).toString(), AssignedTypeProc.class);
+                        
+                        /**
+                         * Se agrega objeto a lista de objetos encontrados
+                         */
+                        lstAssignedTypeProc.add(assignedTypeProc);
+                    }
+                        
+                    /**
+                     * Se crea nuevo objeto por cada servicio encontrado en la BD
+                     */
+                    serviceStatus = new ServiceStatus(rs.getString("srvID"), rs.getString("srvDesc"), rs.getInt("srvEnable"), lstAssignedTypeProc);
+                    }
+                    /**
+                     * Se agrega objeto servicio a lista de objetos
+                     */
+                    gDatos.getLstServiceStatus().add(serviceStatus);
                 }
-            }
-            stm.close();
-            //rs.close();
-            /*
-                Actualiza la lista assignedServiceTypeProc como JSONObject()
-            */
-            gDatos.getAssignedServiceTypeProc().clear();
-            gDatos.setAssignedServiceTypeProc(lstTemp);
+            mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
+            sysOutln(mapper.writeValueAsString(gDatos.getLstServiceStatus()));
+        
             return 0;
-            
         } catch (SQLException | JSONException e) {
             sysOutln(e.getMessage());
             return 1;

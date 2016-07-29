@@ -11,6 +11,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Level;
 import utilities.srvRutinas;
 import org.apache.log4j.Logger;
 
@@ -146,6 +147,8 @@ public class srvMonitor {
                         }
                     } catch (SQLException ex) {
                         logger.error(ex.getMessage());
+                    } catch (IOException ex) {
+                        java.util.logging.Logger.getLogger(srvMonitor.class.getName()).log(Level.SEVERE, null, ex);
                     }
                     /*
                     Ejecuta Proceso en Thread para Buscar Agendas y Procesos Activos

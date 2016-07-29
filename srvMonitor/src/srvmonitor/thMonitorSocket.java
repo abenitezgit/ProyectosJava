@@ -77,7 +77,7 @@ public class thMonitorSocket extends Thread {
                                 break;
                             case "getStatus":
                                 logger.info("ejecutando ... getStatusServices");
-                                outputData = gSub.getStatusServices();
+                                outputData = gSub.sendStatusServices();
                                 break;
                             case "putExecOSP":
                                 gSub.putExecOSP(inputData);
