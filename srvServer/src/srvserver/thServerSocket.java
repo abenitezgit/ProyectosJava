@@ -34,7 +34,7 @@ public class thServerSocket extends Thread {
     @Override
     public void run() {
         try {
-            logger.info("Starting Listener Thread Service Server port: " + gDatos.getSrvPort());
+            logger.info("Starting Listener Thread Service Server port: " + gDatos.getServiceInfo().getSrvPort());
             String inputData;
             String outputData;
             String dRequest;
@@ -42,7 +42,7 @@ public class thServerSocket extends Thread {
             JSONObject jHeader;
             JSONObject jData;
             
-            ServerSocket skServidor = new ServerSocket(Integer.valueOf(gDatos.getSrvPort()));
+            ServerSocket skServidor = new ServerSocket(gDatos.getServiceInfo().getSrvPort());
             
             while (isSocketActive) {
                 Socket skCliente = skServidor.accept();
@@ -55,16 +55,16 @@ public class thServerSocket extends Thread {
                 //
                 try {
                     inputData  = dataInput.readUTF();
-                    logger.info("Recibiendo TX: "+ inputData);
                     //gSub.sysOutln(inputData);
                     
+                    logger.info("Recibiendo TX: "+ inputData);
                     jHeader = new JSONObject(inputData);
                     jData = jHeader.getJSONObject("data");
                     
                     dAuth = jHeader.getString("auth");
                     dRequest = jHeader.getString("request");
                     
-                    if (dAuth.equals(gDatos.getAuthKey())) {
+                    if (dAuth.equals(gDatos.getServiceInfo().getAuthKey())) {
 
                         switch (dRequest) {
                             case "getStatus":
@@ -78,18 +78,6 @@ public class thServerSocket extends Thread {
                                 outputData = gSub.sendOkTX();
                                 break;
                             case "executeProcess":
-                                //json format:
-                                // {
-                                //   "request":"executeProcess",
-                                //   "auth":"qwerty0987",
-                                //   "typeProc":"OSP",
-                                //   "procID":"OSP00001",
-                                //   "sendDate":"2016-10-02 10:09:10",
-                                //   "params":
-                                //      {
-                                //        <dependera del tipo de proceso>
-                                //      }
-                                // }
                                 logger.info("Ejecutando ...enqueProcess..: "+ inputData);
                                 int result = gSub.enqueProcess(jData);
                                 if (result==0) {

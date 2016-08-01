@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import org.apache.log4j.Logger;
@@ -38,13 +39,17 @@ public class SrvServer {
     }   
 
     public static void main(String[] args) throws IOException {
-        gSub = new srvRutinas(gDatos);
+        try {
+            gSub = new srvRutinas(gDatos);
 
-        if (gDatos.isSrvLoadParam()) {
-            Timer mainTimer = new Timer();
-            mainTimer.schedule(new mainTimerTask(), 2000, Integer.valueOf(gDatos.getTxpMain()));
-        } else {
-            logger.error(" Error leyendo archivo de parametros");
+            if (gDatos.getServiceStatus().isSrvLoadParam()) {
+                Timer mainTimer = new Timer();
+                mainTimer.schedule(new mainTimerTask(), 2000, gDatos.getServiceInfo().getTxpMain());
+            } else {
+                logger.error("Error leyendo archivo de parametros");
+            }
+        } catch (Exception e) {
+            logger.error("Error General: "+e.getMessage());
         }
     }
     
@@ -52,8 +57,8 @@ public class SrvServer {
         
         //Declare los Thread de cada proceso
         //
-        Thread thSocket;
-        Thread thKeep;
+        Thread thSocket = new thServerSocket(gDatos);
+        Thread thKeep; // = new thKeepAliveSocket(gDatos);
         Thread thOSP;
         Thread thLOR;
         Thread thMOV;
@@ -70,6 +75,74 @@ public class SrvServer {
         public void run() {
             logger.info(" Iniciando mainTimerTask....");
             
+            /*
+            Buscando Thread Activos
+            */
+                boolean thServerFound=false;
+                boolean thKeepFound= false;
+                Thread tr = Thread.currentThread();
+                Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+                for ( Thread t : threadSet){
+                    System.out.println("Thread :"+t+":"+"state:"+t.getState());
+                    if (t.getName().equals("thServerSocket")) {
+                        thServerFound=true;
+                    }
+                    if (t.getName().equals("thKeepAlive")) {
+                        thKeepFound=true;
+                    }
+                }
+                //Resulta Busqueda
+                if (!thServerFound) {
+                    gDatos.getServiceStatus().setIsSocketServerActive(false);
+                } else {
+                    gDatos.getServiceStatus().setIsSocketServerActive(true);
+                }
+                
+                if (!thKeepFound) {
+                    gDatos.getServiceStatus().setIsKeepAliveActive(false);
+                } else {
+                    gDatos.getServiceStatus().setIsKeepAliveActive(true);
+                }
+            
+            /*
+            Se aplicara validacion modular de procesos, ya que se encuentran en un bucle infinito.
+            */
+            
+            //Levanta Socket Server
+            //
+            try {
+                if (!gDatos.getServiceStatus().isIsSocketServerActive()) {
+                //if (!thSocket.isAlive()) {
+                    
+                    thSocket.setName("thServerSocket");
+                    gDatos.getServiceStatus().setIsSocketServerActive(true);
+                    thSocket.start();
+                    logger.info(" Iniciando thSocket Server....normal...");
+                } 
+            } catch (Exception e) {
+                gDatos.getServiceStatus().setIsSocketServerActive(false);
+                System.out.println("Error. "+e.getMessage());
+                logger.error("no se ha podido levantar socket server "+ thSocket.getName());
+            }
+            
+            //Levanta KeepAlive
+            //
+            try {
+                if (!gDatos.getServiceStatus().isIsKeepAliveActive()) {
+                //if (!thSocket.isAlive()) {
+                    thKeep = new thKeepAliveSocket(gDatos);
+                    thKeep.setName("thKeepAlive");
+                    gDatos.getServiceStatus().setIsKeepAliveActive(true);
+                    logger.info(" Iniciando thread KeepAlive....normal...");
+                    thKeep.start();
+                } 
+            } catch (Exception e) {
+                gDatos.getServiceStatus().setIsKeepAliveActive(false);
+                System.out.println("Error. "+e.getMessage());
+                logger.error("no se ha podido levantar thread: "+ thKeep.getName());
+            }
+
+
             
             /*
             Validación Jerarquica de Procesos
@@ -84,6 +157,8 @@ public class SrvServer {
             
             //Levanta Server Socket
             //
+            
+            /*
             levantaServerSocket();
             if (gDatos.isIsSocketServerActive()) {
                 //Valida Conexion a Server Monitor
@@ -118,6 +193,9 @@ public class SrvServer {
             try {
                 if (!thSocket.isAlive()) {
                     thSocket.start();
+                    
+                    
+                    
                     gDatos.setIsSocketServerActive(true);
                     logger.info(" Iniciando thSocket Server....normal...");
                 } 
@@ -131,12 +209,15 @@ public class SrvServer {
         
         private void validaServerMonitor() {
             try {
-                /*
-                Valida conexion a server primario
-                */
+                //
+                //Valida conexion a server primario
+                //
                 if (gDatos.isIsActivePrimaryMonHost()) {
                     try {
                         Socket skCliente = new Socket(gDatos.getSrvMonHost(), Integer.valueOf(gDatos.getMonPort()));
+                        
+                        skCliente.
+                        
                         OutputStream aux = skCliente.getOutputStream(); 
                         DataOutputStream flujo= new DataOutputStream( aux ); 
                         String dataSend = gSub.sendPing();
@@ -160,9 +241,9 @@ public class SrvServer {
                     }
                 
                 } else {
-                    /*
-                    Valida conexion a server secundario Backup
-                    */
+                    //
+                    //Valida conexion a server secundario Backup
+                    //
                     try {
                         Socket skCliente = new Socket(gDatos.getSrvMonHostBack(), Integer.valueOf(gDatos.getMonPortBack()));
                         OutputStream aux = skCliente.getOutputStream(); 
@@ -216,9 +297,9 @@ public class SrvServer {
             JSONObject rowList;
             JSONObject params;
 
-            /*
-                Revisa la Lista poolProcess para ver si existen registros con estado enqued
-            */
+            //
+            //    Revisa la Lista poolProcess para ver si existen registros con estado enqued
+            //
             int numProc = gDatos.getPoolProcess().size();
             if (numProc>0) {
                 for (int i=0;i<numProc;i++) {
@@ -234,9 +315,9 @@ public class SrvServer {
                         params      = rowList.getJSONObject("params");
 
 
-                        /*
-                            Solo se tomaran acciones si el estado es queued (encolado)
-                        */
+                        //
+                        //    Solo se tomaran acciones si el estado es queued (encolado)
+                        //
                         if (status.equals("queued")) {
                             //Valida si existen thread libres nivel de servicio
                             //
@@ -295,6 +376,7 @@ public class SrvServer {
             } else {
                 logger.info(" no hay procesos en pool de ejecucion...");
             }
+*/
         }
     }
 }
