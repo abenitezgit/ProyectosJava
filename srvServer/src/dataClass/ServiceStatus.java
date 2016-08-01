@@ -5,24 +5,44 @@
  */
 package dataClass;
 
+import java.net.Socket;
+
 /**
  *
  * @author andresbenitez
  */
 public class ServiceStatus {
     String srvID;
-    int numProcMax;
-    int srvEnable;
+    String srvStartTime;
     boolean srvActive;
     boolean isActivePrimaryMonHost;
     boolean isSocketServerActive;
     boolean isConnectMonHost;
     boolean isRegisterService;
+    boolean isKeepAliveActive;
+    boolean srvLoadParam;
     int numProcExec;
     int numTotalExec;
-    String srvStartTime;
-    boolean srvLoadParam;
+    int numProcMax;
+    int srvEnable;
+    Socket skCliente;
 
+    public Socket getSkCliente() {
+        return skCliente;
+    }
+
+    public void setSkCliente(Socket skCliente) {
+        this.skCliente = skCliente;
+    }
+
+    public boolean isIsKeepAliveActive() {
+        return isKeepAliveActive;
+    }
+
+    public void setIsKeepAliveActive(boolean isKeepAliveActive) {
+        this.isKeepAliveActive = isKeepAliveActive;
+    }
+    
     public String getSrvStartTime() {
         return srvStartTime;
     }

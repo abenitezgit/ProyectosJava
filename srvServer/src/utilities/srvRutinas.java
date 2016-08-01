@@ -21,6 +21,7 @@ import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import org.apache.htrace.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.htrace.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -50,6 +51,78 @@ public class srvRutinas {
     public void sysOutln(Object obj) {
         System.out.println(obj);
     }
+    
+    
+    public Socket getSocketClient() {
+            Socket skCliente = null;
+            try {
+                //
+                //Valida conexion a server primario
+                //
+                if (gDatos.getServiceStatus().isIsActivePrimaryMonHost()) {
+                    try {
+                        if (!gDatos.getServiceStatus().isIsConnectMonHost()) {
+                            skCliente = new Socket(gDatos.getServiceInfo().getSrvMonHost(), gDatos.getServiceInfo().getMonPort());
+                        } else {
+                            skCliente = gDatos.getServiceStatus().getSkCliente();
+                        }
+                        OutputStream aux = skCliente.getOutputStream(); 
+                        DataOutputStream flujo= new DataOutputStream( aux ); 
+                        String dataSend = sendPing();
+                        flujo.writeUTF( dataSend ); 
+                        InputStream inpStr = skCliente.getInputStream();
+                        DataInputStream dataInput = new DataInputStream(inpStr);
+                        String response = dataInput.readUTF();
+                        if (response.equals("OK")) {
+                            gDatos.getServiceStatus().setIsConnectMonHost(true);
+                            logger.info(" Conectado a server monitor primary");
+                        } else {
+                            gDatos.getServiceStatus().setIsActivePrimaryMonHost(false);
+                            gDatos.getServiceStatus().setIsConnectMonHost(false);
+                        }
+                    } catch (NumberFormatException | IOException e) {
+                        gDatos.getServiceStatus().setIsActivePrimaryMonHost(false);
+                        gDatos.getServiceStatus().setIsConnectMonHost(false);
+                        logger.error(" Error conexion a server de monitoreo primary...."+ e.getMessage());
+                    }
+                
+                } else {
+                    //
+                    //Valida conexion a server secundario Backup
+                    //
+                    try {
+                        if (!gDatos.getServiceStatus().isIsConnectMonHost()) {
+                            skCliente = new Socket(gDatos.getServiceInfo().getSrvMonHostBack(), gDatos.getServiceInfo().getMonPortBack());
+                        } else {
+                            skCliente = gDatos.getServiceStatus().getSkCliente();
+                        }
+                        OutputStream aux = skCliente.getOutputStream(); 
+                        DataOutputStream flujo= new DataOutputStream( aux ); 
+                        String dataSend = sendPing();
+                        flujo.writeUTF( dataSend ); 
+                        InputStream inpStr = skCliente.getInputStream();
+                        DataInputStream dataInput = new DataInputStream(inpStr);
+                        String response = dataInput.readUTF();
+                        if (response.equals("OK")) {
+                            gDatos.getServiceStatus().setIsConnectMonHost(true);
+                            logger.info(" Conectado a server monitor secundary");
+                        } else {
+                            gDatos.getServiceStatus().setIsActivePrimaryMonHost(true);
+                            gDatos.getServiceStatus().setIsConnectMonHost(false);
+                        }
+                    } catch (NumberFormatException | IOException e) {
+                        gDatos.getServiceStatus().setIsActivePrimaryMonHost(true);
+                        gDatos.getServiceStatus().setIsConnectMonHost(false);
+                        logger.error(" Error conexion a server de monitoreo backup...."+ e.getMessage());
+                    }
+                }
+                return skCliente;
+            } catch (Exception e) {
+                gDatos.getServiceStatus().setIsConnectMonHost(false);
+                logger.error(" Error general conexion a server de monitoreo...."+ e.getMessage());
+                return null;
+            }
+    }    
     
     public String updateVar(JSONObject jData) {
         try {
@@ -213,7 +286,7 @@ public class srvRutinas {
         JSONObject jHeader = new JSONObject();
         
         jHeader.put("data", jData);
-        jHeader.put("auth", gDatos.getAuthKey());
+        jHeader.put("auth", gDatos.getServiceInfo().getAuthKey());
         jHeader.put("request", "sendPing");
             
         return jHeader.toString();
@@ -336,45 +409,32 @@ public class srvRutinas {
     }    
     
     public String sendDataKeep(String type) {
-        //Enviara en forma JSON
-        // Parametros actuales del servicio
-        // procesos asignados
-        // procesos en ejecución
-        //
-        // Se requiere el acceso a dos listas
-        //  assignedTypeProc - activeTypeProc
         //
         Runtime instance = Runtime.getRuntime();
+        ObjectMapper mapper = new ObjectMapper();
         
         try {
             // Se genera la salida de la lista 
             JSONObject jHeader = new JSONObject();
             JSONObject jData = new JSONObject();
             
-            //Si existem proceso activos
-            //if (gDatos.getPoolProcess().size()>0) {
-                //JSONArray jaPoolProcess = jaGetPoolProcess();
-                jData.put("procActive", jaGetPoolProcess());
-            //} else {
-            //    response.put("procActive", mainja);
-            //}
+            JSONObject jo = new JSONObject(mapper.writeValueAsString(gDatos.getServiceStatus()));
+            JSONArray jaAss = new JSONArray(mapper.writeValueAsString(gDatos.getLstAssignedTypeProc()));
+            JSONArray jaAct = new JSONArray(mapper.writeValueAsString(gDatos.getLstActiveTypeProc()));
             
-            jData.put("srvID", gDatos.getSrvID());
-            jData.put("srvPort", gDatos.getSrvPort());
-            jData.put("srvHost", gDatos.getSrvHost());
-            jData.put("numTotalExec", String.valueOf(gDatos.getNumTotalExec()));
-            jData.put("numProcMax", String.valueOf(gDatos.getNumProcMax()));
-            jData.put("numProcExec", String.valueOf(gDatos.getNumProcExec()));
-            jData.put("srvStart", gDatos.getSrvStart());
-            jData.put("isRegisterService", gDatos.isIsRegisterService());
-            jData.put("totalMemory", instance.totalMemory()/1024/1024);
-            jData.put("cpuLoad", getProcessCpuLoad());
+            
+            jData.put("AssignedTypeProc", jaAss);
+            jData.put("ActiveTypeProc", jaAct);
+            jData.put("ServiceStatus", jo);
+            
+            //jData.put("totalMemory", instance.totalMemory()/1024/1024);
+            //jData.put("cpuLoad", getProcessCpuLoad());
             
             //mainja.put(response);
             jHeader.put("data", jData);
             
             if (type.equals("keep")) {
-                jHeader.put("auth", gDatos.getAuthKey());
+                jHeader.put("auth", gDatos.getServiceInfo().getAuthKey());
                 jHeader.put("request", "keepAlive");
             
             } else {
@@ -382,7 +442,7 @@ public class srvRutinas {
             }
             
             return jHeader.toString();
-        } catch (Exception e) {
+        } catch (JsonProcessingException | JSONException e) {
             return sendError(10,e.getMessage());
         }
     }
