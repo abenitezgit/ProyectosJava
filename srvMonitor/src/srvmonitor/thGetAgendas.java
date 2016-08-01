@@ -114,7 +114,7 @@ public class thGetAgendas extends Thread{
                     + "     and substr(hourOfDay,"+posIteratorHour +",1) = '1'";
             logger.debug("i: "+i+" vSQL: "+vSQL);
             try {
-                stm = gDatos.getMetadataConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+                stm = gDatos.getServerStatus().getMetadataConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
                 jData = new JSONObject();
 
                 ResultSet rs = stm.executeQuery(vSQL);
@@ -171,7 +171,7 @@ public class thGetAgendas extends Thread{
                     + "     and substr(minute,"+posIteratorMinute +",1) = '1'";
             logger.debug("i: "+i+" vSQL: "+vSQL);
             try {
-                stm = gDatos.getMetadataConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+                stm = gDatos.getServerStatus().getMetadataConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 
                 ResultSet rs = stm.executeQuery(vSQL);
                 if (rs!=null) {

@@ -46,7 +46,7 @@ public class thKeepAliveServices extends Thread {
             */
             
             JSONObject jData;
-            int numServices = gDatos.getLstServiceInfo().size();
+            int numServices = gDatos.getLstServiceStatus().size();
             
             if (numServices>0) {
                 /*
@@ -54,9 +54,9 @@ public class thKeepAliveServices extends Thread {
                     ejecutando el getStatus
                 */
                 for (int i=0; i<numServices; i++) {
-                    jData = new JSONObject(gDatos.getLstServiceInfo().get(i));
-                    String srvHost = jData.getString("srvHost");
-                    String srvPort = jData.getString("srvPort");
+                    jData = new JSONObject(gDatos.getLstServiceStatus().get(i));
+                    //String srvHost = jData.getString("srvHost");
+                    //String srvPort = jData.getString("srvPort");
                 
                 }
             } else {

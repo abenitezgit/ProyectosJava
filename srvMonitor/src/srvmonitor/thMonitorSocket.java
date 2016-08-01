@@ -34,8 +34,8 @@ public class thMonitorSocket extends Thread {
     @Override
     public void run() {
         try {
-            logger.info("Starting Listener Thread Monitor Server port: " + gDatos.getSrvPort());
-            ServerSocket skServidor = new ServerSocket(Integer.valueOf(gDatos.getSrvPort()));
+            logger.info("Starting Listener Thread Monitor Server port: " + gDatos.getServerInfo().getSrvPort());
+            ServerSocket skServidor = new ServerSocket(gDatos.getServerInfo().getSrvPort());
             String inputData;
             String outputData;
             String dRequest;
@@ -61,7 +61,7 @@ public class thMonitorSocket extends Thread {
                     dAuth = jHeader.getString("auth");
                     dRequest = jHeader.getString("request");
 
-                    if (dAuth.equals(gDatos.getAuthKey())) {
+                    if (dAuth.equals(gDatos.getServerInfo().getAuthKey())) {
 
                         switch (dRequest) {
                             case "keepAlive":
