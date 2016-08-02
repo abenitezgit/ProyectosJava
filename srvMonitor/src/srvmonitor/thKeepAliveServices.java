@@ -68,9 +68,6 @@ public class thKeepAliveServices extends Thread {
                 System.out.println("Warning: No hay servicios por monitorear...");
             }
             
-  
-            
-            
             Socket skCliente;
             String response;
             String dataSend;

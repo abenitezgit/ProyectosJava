@@ -176,8 +176,6 @@ public class ServerInfo {
     public void setDbSqlDBInstance(String dbSqlDBInstance) {
         this.dbSqlDBInstance = dbSqlDBInstance;
     }
-    
-    
 
     public String getSrvID() {
         return srvID;

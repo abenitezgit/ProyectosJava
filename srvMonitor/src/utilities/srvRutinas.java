@@ -50,23 +50,7 @@ public class srvRutinas {
             return null;
         }
     }
-    
-    public void incNumTotalExec() {
-        gDatos.setNumTotalExec(gDatos.getNumTotalExec()+1);
-    }
-    
-    public void decNumTotalExec() {
-        gDatos.setNumTotalExec(gDatos.getNumTotalExec()-1);
-    }
-
-    public void incNumProcExec() {
-        gDatos.setNumProcExec(gDatos.getNumProcExec()+1);
-    }
-
-    public void decNumProcExec() {
-        gDatos.setNumProcExec(gDatos.getNumProcExec()-1);
-    }
-    
+        
     public String appendJSonParam(String cadena, String param, String valor) {
         String output="{}";
         
@@ -239,23 +223,7 @@ public class srvRutinas {
             return sendError(99, e.getMessage());
         }
     }
-              
-    public List<String> getDataParams(String inputData) {
-        //Devuelve Lista de Parametros de un mensaje JSON
-        //
-        List<String> result = new ArrayList<>();
-        
-        JSONObject ds = new JSONObject(inputData);
-        JSONArray rows = ds.getJSONArray("params");
-        JSONObject row;
-        
-        for (int i=0; i<rows.length(); i++) {
-            row = rows.getJSONObject(i);
-            result.add(row.toString());
-        }
-        return result;
-    }
-    
+                  
     public int getMDprocAssigned() throws SQLException, IOException {
         JSONArray ja;
         JSONObject jo = new JSONObject();
