@@ -29,7 +29,11 @@ public class thKeepAliveServices extends Thread {
         
     @Override
     public void run() {
-        Timer timerMain = new Timer();
+        Thread tr = Thread.currentThread();
+        System.out.println("Current Thread KeepAlive: "+tr.getName()+ " ID: "+tr.getId());
+        
+        
+        Timer timerMain = new Timer("thSubKeep");
         timerMain.schedule(new mainKeepTask(), 1000, 10000);
     }
     
@@ -47,6 +51,7 @@ public class thKeepAliveServices extends Thread {
             
             JSONObject jData;
             int numServices = gDatos.getLstServiceStatus().size();
+            System.out.println("Inicia thKeepAlive");
             
             if (numServices>0) {
                 /*

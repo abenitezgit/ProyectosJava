@@ -3,6 +3,7 @@
  */
 package utilities;
 
+import dataClass.AssignedTypeProc;
 import dataClass.ServiceStatus;
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -165,42 +166,56 @@ public class srvRutinas {
         }
     }
         
-    public int updateStatusServices(JSONObject jData) {
-        try {            
-            String srvID    = jData.get("srvID").toString();
-            int myNumItems  = gDatos.getLstServiceStatus().size();
+    public int updateStatusService(JSONObject jData) {
+        try {
             ObjectMapper mapper = new ObjectMapper();
+            ServiceStatus serviceStatus;
+            List<AssignedTypeProc> lstAssignedTypeProc;
             
-            if (myNumItems>0) {
-                for (int i=0; i<myNumItems; i++) {
-                    if (gDatos.getLstServiceInfo().get(i).getSrvID().equals(srvID)) {
-                        gDatos.getLstServiceInfo().remove(i);
-                    }
+            serviceStatus = mapper.readValue(jData.toString(), ServiceStatus.class);
+            int numItems = gDatos.getLstServiceStatus().size();
+            boolean itemFound = false;
+            
+            for (int i=0; i<numItems; i++) {
+                if (gDatos.getLstServiceStatus().get(i).getSrvID().equals(serviceStatus.getSrvID())) {
+                    lstAssignedTypeProc = gDatos.getLstServiceStatus().get(i).getLstAssignedTypeProc();
+                    serviceStatus.setLstAssignedTypeProc(lstAssignedTypeProc);
+                    gDatos.getLstServiceStatus().set(i, serviceStatus);
+                    itemFound = true;
                 }
-            } 
-            gDatos.getLstServiceStatus().add(jData);
+            }
+            
+            if (!itemFound) {
+                gDatos.getLstServiceStatus().add(serviceStatus);
+            }
+            
             return 0;
-        } catch (Exception e) {
+        } catch (JSONException | IOException e) {
             return 1;
         }
     }
     
     public String sendAssignedProc(String srvID) {
         try {
+            List<AssignedTypeProc> lstAssignedTypeProc = null;
+            
             JSONObject jData = new JSONObject();
             JSONObject jHeader = new JSONObject();
-            JSONArray assignedTypeProc = new JSONArray();
+            
             ObjectMapper mapper = new ObjectMapper();
             
-            int numItems = gDatos.getLstServiceInfo().size();
+            int numItems = gDatos.getLstServiceStatus().size();
+            
             for (int i=0; i<numItems; i++) {
-                if (gDatos.getLstServiceInfo().get(i).getSrvID().equals(srvID)) {
-                    assignedTypeProc = new JSONArray(mapper.writeValueAsString(gDatos.getLstServiceInfo().get(i).getAssignedTypeProc()));
+                if (gDatos.getLstServiceStatus().get(i).getSrvID().equals(srvID)) {
+                    lstAssignedTypeProc = gDatos.getLstServiceStatus().get(i).getLstAssignedTypeProc();
                 }
-                break;
+            
             }
-            jData.put("assignedTypeProc", assignedTypeProc);
-            jData.put("cmd", "update");
+            
+            JSONArray assignedTypeProc = new JSONArray(mapper.writeValueAsString(lstAssignedTypeProc));
+
+            jData.put("AssignedTypeProc", assignedTypeProc);
             jHeader.put("data",jData);
             jHeader.put("result", "OK");
             return jHeader.toString();

@@ -41,7 +41,7 @@ public class srvMonitor {
         gSub = new srvRutinas(gDatos);
                 
         if (gDatos.getServerStatus().isSrvLoadParam()) {
-            Timer mainTimer = new Timer();
+            Timer mainTimer = new Timer("thMain");
             mainTimer.schedule(new mainTimerTask(), 2000, gDatos.getServerInfo().getTxpMain());
             logger.info("Starting MainTask Schedule cada: "+ gDatos.getServerInfo().getTxpMain()/1000 + " segundos");
             logger.info("Server: "+ gDatos.getServerInfo().getSrvID());
@@ -76,10 +76,12 @@ public class srvMonitor {
                 boolean thMonitorFound=false;
                 boolean thKeepFound= false;
                 boolean thAgendaFound = false;
+                boolean thSubKeepFound = false;
                 Thread tr = Thread.currentThread();
                 Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+                System.out.println("Current Thread: "+tr.getName()+" ID: "+tr.getId());
                 for ( Thread t : threadSet){
-                    System.out.println("Thread :"+t+":"+"state:"+t.getState());
+                    System.out.println("Thread :"+t+":"+"state:"+t.getState()+" ID: "+t.getId());
                     if (t.getName().equals("thMonitorSocket")) {
                         thMonitorFound=true;
                     }
@@ -88,6 +90,9 @@ public class srvMonitor {
                     }
                     if (t.getName().equals("thGetAgendas")) {
                         thAgendaFound=true;
+                    }
+                    if (t.getName().equals("thSubKeep")) {
+                        thSubKeepFound=true;
                     }
                 }
             
@@ -103,7 +108,13 @@ public class srvMonitor {
                 } else {
                     gDatos.getServerStatus().setIsKeepAliveActive(true);
                 }
-            
+
+                if (!thSubKeepFound) {
+                    gDatos.getServerStatus().setIsKeepAliveActive(false);
+                } else {
+                    gDatos.getServerStatus().setIsKeepAliveActive(true);
+                }
+                
                 if (!thAgendaFound) {
                     gDatos.getServerStatus().setIsGetAgendaActive(false);
                 } else {
@@ -138,6 +149,7 @@ public class srvMonitor {
                 //if (!thSocket.isAlive()) {
                     thKeep = new thKeepAliveServices(gDatos);
                     thKeep.setName("thKeepAlive");
+                    System.out.println(thKeep.getId());
                     gDatos.getServerStatus().setIsKeepAliveActive(true);
                     logger.info(" Iniciando thread KeepAlive....normal...");
                     thKeep.start();
