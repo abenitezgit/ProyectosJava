@@ -94,10 +94,10 @@ public class thServerSocket extends Thread {
                                 outputData = gSub.sendPoolProcess();
                                 break;
                             case "getList":
-                                outputData = gSub.sendList(jData);
+                                outputData = ""; //gSub.sendList(jData);
                                 break;
                             case "updateVar":
-                                outputData = gSub.updateVar(jData);
+                                outputData = ""; //gSub.updateVar(jData);
                                 break;
                             default:
                                 outputData = gSub.sendError(99,"Error desconocido..");

@@ -36,7 +36,6 @@ public class globalAreaData {
     List<ActiveTypeProc> lstActiveTypeProc = new ArrayList<>();
     ServiceInfo serviceInfo = new ServiceInfo();
     ServiceStatus serviceStatus = new ServiceStatus();
-
     
     /**
      * Getter And Setter Area
@@ -99,6 +98,8 @@ public class globalAreaData {
     //Procimientos y/p Metodos uilitarios
     //
     public int updateRunningPoolProcess(JSONObject ds) {
+        return 1;
+        /*
         try {
             String procID;
             String typeProc;
@@ -154,79 +155,34 @@ public class globalAreaData {
             System.out.println(" Error updateRunningPoolProcess: "+e.getMessage());
             return 1;
         }
+        */
     }
     
-    public boolean isExistPoolProcess(String procID) {
+    public int getFreeThreadProcess(String typeProc) {
         try {
-            //Busca el procID en lista de pool de procesos
-            int numProc = poolProcess.size();
-            boolean findProcID= false;
-            for (int i=0; i<numProc; i++) {
-                if (poolProcess.get(i).getString("procID").equals(procID)) {
-                    findProcID = true;
+            int numItems = lstAssignedTypeProc.size();
+            for (int i=0; i<numItems; i++) {
+                if (lstAssignedTypeProc.get(i).getTypeProc().equals(typeProc)) {
+                    int numItemsActive = lstActiveTypeProc.size();
+                    for (int j=0; j<numItemsActive; j++) {
+                        if (lstActiveTypeProc.get(i).getTypeProc().equals(typeProc)) {
+                            return lstAssignedTypeProc.get(i).getMaxThread()-lstActiveTypeProc.get(j).getUsedThread();
+                        }
+                    }
+                    break;
                 }
             }
-            return findProcID;
-        } catch (Exception e) {
-            System.out.println(" Error isExistPoolProcess: "+e.getMessage());
-            return false;
-        }
-    }
-    
-    public int addPoolProcess (JSONObject itemData) {
-        try {
-            poolProcess.add(itemData);
             return 0;
         } catch (Exception e) {
-            System.out.println(" Error addPoolProcess: "+e.getMessage());
-            return 1;
-        }
-    
-    }
-    
-    public boolean isExistFreeThreadProcess(String typeProc) {
-        try {
-            boolean result = false;
-            int maxThreadProc;
-            int usedThreadProc;
-            int numItems;
-            
-            numItems = getAssignedTypeProc().size();
-            
-            for (int i=0; i<numItems; i++) {
-                if (getAssignedTypeProc().get(i).getString("typeProc").equals(typeProc)) {
-                    maxThreadProc = getAssignedTypeProc().get(i).getInt("maxThread") ;
-                    try {
-                        usedThreadProc = getAssignedTypeProc().get(i).getInt("usedThread");
-                    } catch (Exception e) {
-                        usedThreadProc = 0;
-                    }
-                    result = usedThreadProc < maxThreadProc;
-                    logger.info(" maxThreadProc: "+maxThreadProc);
-                    logger.info(" usedThreadProc: "+usedThreadProc);
-                }
-            }
-
-            return result;
-        
-        } catch (Exception e) {
-            logger.error(" Error isExistFreeThreadProcess: "+e.getMessage());
-            return false;
+            return 0;
         }
     }
     
-    public boolean isExistFreeThreadServices() {
+    public int getFreeThreadServices() {
         try {
-            int maxThreadServices;
-            int maxThreadProcess;
-            maxThreadProcess = getNumProcExec();
-            maxThreadServices = getNumProcMax();
-            
-            return maxThreadProcess < maxThreadServices;
-        
+            return serviceStatus.getNumProcMax()-serviceStatus.getNumProcExec();
         } catch (Exception e) {
-            logger.error(" Error isExistFreeThreadServices: "+e.getMessage());
-            return false;
+            return 0;
         }
     }
     

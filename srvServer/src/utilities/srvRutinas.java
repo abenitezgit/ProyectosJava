@@ -6,13 +6,8 @@
 package utilities;
 
 import dataClass.AssignedTypeProc;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
-import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -52,157 +47,6 @@ public class srvRutinas {
         System.out.println(obj);
     }
     
-    
-    public Socket getSocketClient() {
-            Socket skCliente = null;
-            try {
-                //
-                //Valida conexion a server primario
-                //
-                if (gDatos.getServiceStatus().isIsActivePrimaryMonHost()) {
-                    try {
-                        if (!gDatos.getServiceStatus().isIsConnectMonHost()) {
-                            skCliente = new Socket(gDatos.getServiceInfo().getSrvMonHost(), gDatos.getServiceInfo().getMonPort());
-                        } else {
-                            skCliente = gDatos.getServiceStatus().getSkCliente();
-                        }
-                        OutputStream aux = skCliente.getOutputStream(); 
-                        DataOutputStream flujo= new DataOutputStream( aux ); 
-                        String dataSend = sendPing();
-                        flujo.writeUTF( dataSend ); 
-                        InputStream inpStr = skCliente.getInputStream();
-                        DataInputStream dataInput = new DataInputStream(inpStr);
-                        String response = dataInput.readUTF();
-                        if (response.equals("OK")) {
-                            gDatos.getServiceStatus().setIsConnectMonHost(true);
-                            logger.info(" Conectado a server monitor primary");
-                        } else {
-                            gDatos.getServiceStatus().setIsActivePrimaryMonHost(false);
-                            gDatos.getServiceStatus().setIsConnectMonHost(false);
-                        }
-                    } catch (NumberFormatException | IOException e) {
-                        gDatos.getServiceStatus().setIsActivePrimaryMonHost(false);
-                        gDatos.getServiceStatus().setIsConnectMonHost(false);
-                        logger.error(" Error conexion a server de monitoreo primary...."+ e.getMessage());
-                    }
-                
-                } else {
-                    //
-                    //Valida conexion a server secundario Backup
-                    //
-                    try {
-                        if (!gDatos.getServiceStatus().isIsConnectMonHost()) {
-                            skCliente = new Socket(gDatos.getServiceInfo().getSrvMonHostBack(), gDatos.getServiceInfo().getMonPortBack());
-                        } else {
-                            skCliente = gDatos.getServiceStatus().getSkCliente();
-                        }
-                        OutputStream aux = skCliente.getOutputStream(); 
-                        DataOutputStream flujo= new DataOutputStream( aux ); 
-                        String dataSend = sendPing();
-                        flujo.writeUTF( dataSend ); 
-                        InputStream inpStr = skCliente.getInputStream();
-                        DataInputStream dataInput = new DataInputStream(inpStr);
-                        String response = dataInput.readUTF();
-                        if (response.equals("OK")) {
-                            gDatos.getServiceStatus().setIsConnectMonHost(true);
-                            logger.info(" Conectado a server monitor secundary");
-                        } else {
-                            gDatos.getServiceStatus().setIsActivePrimaryMonHost(true);
-                            gDatos.getServiceStatus().setIsConnectMonHost(false);
-                        }
-                    } catch (NumberFormatException | IOException e) {
-                        gDatos.getServiceStatus().setIsActivePrimaryMonHost(true);
-                        gDatos.getServiceStatus().setIsConnectMonHost(false);
-                        logger.error(" Error conexion a server de monitoreo backup...."+ e.getMessage());
-                    }
-                }
-                return skCliente;
-            } catch (Exception e) {
-                gDatos.getServiceStatus().setIsConnectMonHost(false);
-                logger.error(" Error general conexion a server de monitoreo...."+ e.getMessage());
-                return null;
-            }
-    }    
-    
-    public String updateVar(JSONObject jData) {
-        try {
-            JSONArray jArrayVar = jData.getJSONArray("arrayVar");
-            int items = jArrayVar.length();
-            for (int i=0; i<items; i++) {
-                if (jArrayVar.getJSONObject(i).names().get(i).equals("srvActive")) {
-                    gDatos.setSrvActive(jArrayVar.getJSONObject(i).getInt("srvActive")==1);
-                }
-            }
-            return sendOkTX();
-            
-        } catch (Exception e) {
-            return sendError(1);
-        }
-    }
-    
-    public int sendRegisterService() {
-        try {
-            boolean processOK = false;
-
-            Socket skCliente;
-            String response;
-            String dataSend;
-
-            skCliente = new Socket(gDatos.getSrvMonHost(), Integer.valueOf(gDatos.getMonPort()));
-            OutputStream aux = skCliente.getOutputStream(); 
-            DataOutputStream flujo= new DataOutputStream( aux ); 
-            
-            dataSend = sendDataKeep("keep");
-            
-            logger.info("Enviando (tx)...: "+dataSend);
-            flujo.writeUTF( dataSend ); 
-            
-            InputStream inpStr = skCliente.getInputStream();
-            DataInputStream dataInput = new DataInputStream(inpStr);
-            response = dataInput.readUTF();
-            
-            logger.info("Recibiendo (tx)...: "+response);
-            /*
-                Analiza la respuesta
-            */
-            
-            JSONObject jHeader = new JSONObject(response);
-            
-            try {
-                if (jHeader.getString("result").equals("OK")) {
-                    JSONObject jData = jHeader.getJSONObject("data");
-                    //Como es una repsuesta no se espera retorno de error del SP
-                    //el mismo lo resporta internamente si hay alguno.
-                    updateAssignedProcess(jData);
-                    processOK = true;
-                } else {
-                    if (jHeader.getString("result").equals("error")) {
-                        JSONObject jData = jHeader.getJSONObject("data");
-                        logger.error("Error sendRegisterService result: "+jData.getString("errNum")+ " " +jData.getString("errMesg"));
-                    }
-                }
-            } catch (Exception e) {
-                logger.error("Error sendRegisterService en formato de respuesta...");
-            }
-
-            dataInput.close();
-            inpStr.close();
-            flujo.close();
-            aux.close();
-            skCliente.close();
-            
-            if (processOK) {
-                return 0;
-            } else {
-                return 1;
-            }
-            
-        } catch (NumberFormatException | IOException | JSONException e) {
-            logger.error("Error sendRegisterService Conectando a Socket monitor: " + e.getMessage());
-            return 1;
-        }
-    }
-    
     public String getDateNow(String xformat) {
         try {
             //Extrae Fecha de Hoy
@@ -216,22 +60,6 @@ public class srvRutinas {
         } catch (Exception e) {
             return null;
         }
-    }
-    
-    public void incNumTotalExec() {
-        gDatos.setNumTotalExec(gDatos.getNumTotalExec()+1);
-    }
-    
-    public void decNumTotalExec() {
-        gDatos.setNumTotalExec(gDatos.getNumTotalExec()-1);
-    }
-
-    public void incNumProcExec() {
-        gDatos.setNumProcExec(gDatos.getNumProcExec()+1);
-    }
-
-    public void decNumProcExec() {
-        gDatos.setNumProcExec(gDatos.getNumProcExec()-1);
     }
     
     public String sendError(int errCode, String errMesg) {
@@ -280,18 +108,6 @@ public class srvRutinas {
         return jHeader.toString();
     }
     
-    public String sendPing() {
-        
-        JSONObject jData = new JSONObject();
-        JSONObject jHeader = new JSONObject();
-        
-        jHeader.put("data", jData);
-        jHeader.put("auth", gDatos.getServiceInfo().getAuthKey());
-        jHeader.put("request", "sendPing");
-            
-        return jHeader.toString();
-    }
-
     public String sendOkTX() {
         
         JSONObject jData = new JSONObject();
@@ -301,93 +117,6 @@ public class srvRutinas {
         jHeader.put("result", "OK");
             
         return jHeader.toString();
-    }
-    
-    public List<String> lstFindInListjSon (List<String> lstSource, String param, String valor) {
-        try {
-            List<String> lstReturn = new ArrayList<>();
-            int numRows = lstSource.size();
-            for (int i=0; i<numRows; i++) {
-                JSONObject jo = new JSONObject(lstSource.get(i));
-                if (jo.get(param).toString().equals(valor)) {
-                    lstReturn.add(jo.toString());
-                }
-            }
-            return lstReturn;
-        } catch (Exception e) {
-            sysOutln(e.getMessage());
-            return null;
-        }
-    }
-    
-    public String jsonAddObject (String jsonSource, String jsonParam, Object jsonValor) {
-        try {
-            JSONObject jo = new JSONObject(jsonSource);
-            jo.append(jsonParam, jsonValor);
-            return jo.toString();
-        } catch (Exception e) {
-            sysOutln(e.getMessage());
-            return jsonSource;
-        }
-    
-    }
-    
-    public JSONArray jaGetAssignedTypeProc() {
-        try {
-            JSONArray ja = new JSONArray();
-            int numProc = gDatos.getAssignedTypeProc().size();
-            if (numProc>0) {
-                for (int i=0; i<numProc; i++) {
-                    ja.put(gDatos.getAssignedTypeProc().get(i));
-                }
-                return ja;
-            } else {
-                return ja;
-            }
-        } catch (Exception e) {
-            sysOutln(e.getMessage());
-            return null;
-        }
-    }
-
-    public JSONArray jaGetPoolProcess() {
-        JSONObject jo;
-        JSONArray ja = new JSONArray();
-        try {
-            int numProc = gDatos.getPoolProcess().size();
-            if (numProc>0) {
-                for (int i=0; i<numProc; i++) {
-                    jo = new JSONObject();
-                    jo.put("typeProc", gDatos.getPoolProcess().get(i).getString("typeProc"));
-                    jo.put("procID", gDatos.getPoolProcess().get(i).getString("procID"));
-                    jo.put("sendDate", gDatos.getPoolProcess().get(i).getString("sendDate"));
-                    jo.put("receiveDate", gDatos.getPoolProcess().get(i).getString("receiveDate"));
-                    jo.put("status", gDatos.getPoolProcess().get(i).getString("status"));
-                    ja.put(jo);
-                }
-            }
-            return ja;
-        } catch (Exception e) {
-            return ja;
-        }
-    }        
-    
-    public List<String> lstGetAssignedTypeProc() {
-        try {
-            List<String> lstReturn = new ArrayList<>();
-            int numProc = gDatos.getAssignedTypeProc().size();
-            if (numProc>0) {
-                for (int i=0; i<numProc; i++) {
-                   // lstReturn.add(gDatos.getAssignedTypeProc().get(i));
-                }
-                return lstReturn;
-            } else {
-                return null;
-            }
-        } catch (Exception e) {
-            sysOutln(e.getMessage());
-            return null;
-        }
     }
     
     public static double getProcessCpuLoad() throws Exception {
@@ -425,14 +154,8 @@ public class srvRutinas {
             jo.put("lstAssignedTypeProc", jaAss);
             jo.put("lstActiveTypeProc", jaAct);
             
-            //jData.put("lstAssignedTypeProc", jaAss);
-            //jData.put("lstActiveTypeProc", jaAct);
             jData.put("ServiceStatus", jo);
             
-            //jData.put("totalMemory", instance.totalMemory()/1024/1024);
-            //jData.put("cpuLoad", getProcessCpuLoad());
-            
-            //mainja.put(response);
             jHeader.put("data", jData);
             
             if (type.equals("keep")) {
@@ -470,115 +193,20 @@ public class srvRutinas {
         }
     }
     
-    public int getPosIndexJsonArray(JSONArray lstArray, String item, Object value) {
-        int posFound = 0;
-        if (lstArray!=null) {
-            int numItems = lstArray.length();
-            for (int i=0; i<numItems; i++) {
-                if (lstArray.getJSONObject(i).getString(item).equals(value)) {
-                    posFound=i;
-                }
-            }
-            return posFound;
-        } else {
-            return 0;
-        }
-    }
-
     public String sendPoolProcess() {
         try {
-            String output = null;
-            JSONObject jo ;
-            JSONArray ja = new JSONArray();
-            JSONObject mainjo = new JSONObject();
-            
-            int numProc = gDatos.getPoolProcess().size();
-            sysOutln("numproc: "+numProc);
-            if (numProc>0) {
-              for (int i=0; i<numProc; i++) {
-                  jo = gDatos.getPoolProcess().get(i);
-                  ja.put(jo);
-                  
-              }  
-            }
-            mainjo.put("params", ja);
-            mainjo.put("result", "getPoolProcess");
-            return mainjo.toString();
+
+            return null;
         } catch (Exception e) {
             return sendError(1, "error en send pool process: "+e.getMessage());
         }
     }
     
     public int enqueProcess(JSONObject jData) {
-        //inputData:
-        //{
-        //  "request":"executeProcess","auth":"querty0987","typeProc":"OSP","procID":"OSP00001","params":
-        //  {
-        //   "ospName":"sp_001",
-        //   "ospUser":"process",
-        //   "ospPass":"proc01",
-        //   "ospOwner":"process",
-        //   "ospServer":"localhost",
-        //   "ospDBPort":"1521",
-        //   "ospDBName":"oratest",
-        //   "ospDBInstance":"default",
-        //   "ospDBType":"ORA",
-        //   "parametros":
-        //      [
-        //          {"value":"20160612","type":"string"},
-        //          {"value":"10","type":"int"}
-        //      ]
-        //  }
-        //}
         try {
-            //Ingresa la peticion de ejecucion en una lista
-            //
-            System.out.println("..........................................");
-            System.out.println("..........................................");
-            System.out.println(jData.toString());
-            System.out.println("..........................................");
-            System.out.println("..........................................");
-            
-            String procID = jData.getString("procID");
-                        
-            if (!gDatos.isExistPoolProcess(procID)) {
-                jData.put("receiveDate", getDateNow("yyyy-MM-dd HH:mi:ss"));
-                jData.put("status","queued");
-                gDatos.poolProcess.add(jData);
-                return 0;
-            } else {
-                return 2;
-            }
+            return 0;
         } catch (Exception e) {
             return 1;
-        }
-    }
-    
-    public String sendList(JSONObject jData) {
-        try {
-            JSONObject jHeader = new JSONObject();
-            JSONArray ja = new JSONArray();
-            
-            String inputLista = jData.getString("lista");
-            
-            switch (inputLista) {
-                case "pool":
-                    for (int i=0; i<gDatos.getPoolProcess().size(); i++) {
-                        ja.put(gDatos.getPoolProcess().get(i));
-                    }
-                    break;
-                case "assignedProc":
-                    for (int i=0; i<gDatos.getAssignedTypeProc().size(); i++) {
-                        ja.put(gDatos.getAssignedTypeProc().get(i));
-                    }
-                    break;
-                default:
-                    break;
-            }
-            
-            return ja.toString();
-        } catch (Exception e) {
-            return null;
         }
     }
     
@@ -593,7 +221,7 @@ public class srvRutinas {
             
             if (rows.length()>0) {
             
-                List<String> lstActiveProcess = new ArrayList<>();
+                List<String> lstActiveProcess;
                 List<String> newListActiveProcess = new ArrayList<>();
                 String procType;
                 String threadActive;
@@ -648,39 +276,4 @@ public class srvRutinas {
             return sendError(99, e.getMessage());
         }
     }
-
-    public String getAuthData (String inputData) {
-        try {
-            JSONObject ds = new JSONObject(inputData);
-               
-            return ds.get("auth").toString();
-        } catch (Exception e) {
-            return sendError(0,e.getMessage());
-        }
-    }    
-    
-    public List<String> getDataParams(String inputData) {
-        List<String> result = new ArrayList<>();
-        
-        JSONObject ds = new JSONObject(inputData);
-        JSONArray rows = ds.getJSONArray("params");
-        JSONObject row;
-        
-        for (int i=0; i<rows.length(); i++) {
-            row = rows.getJSONObject(i);
-            result.add(row.toString());
-        }
-        return result;
-    }
-    
-    public String getRequest(String inputData) {
-        try {
-            JSONObject ds = new JSONObject(inputData);
-            
-            return ds.get("request").toString();
-        } catch (Exception e) {
-            return sendError(50); 
-        }
-    } 
-    
 }
