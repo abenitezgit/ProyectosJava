@@ -43,7 +43,7 @@ public class SrvServer {
             gSub = new srvRutinas(gDatos);
 
             if (gDatos.getServiceStatus().isSrvLoadParam()) {
-                Timer mainTimer = new Timer();
+                Timer mainTimer = new Timer("thMain");
                 mainTimer.schedule(new mainTimerTask(), 2000, gDatos.getServiceInfo().getTxpMain());
             } else {
                 logger.error("Error leyendo archivo de parametros");

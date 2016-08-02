@@ -422,9 +422,11 @@ public class srvRutinas {
             JSONArray jaAss = new JSONArray(mapper.writeValueAsString(gDatos.getLstAssignedTypeProc()));
             JSONArray jaAct = new JSONArray(mapper.writeValueAsString(gDatos.getLstActiveTypeProc()));
             
+            jo.put("lstAssignedTypeProc", jaAss);
+            jo.put("lstActiveTypeProc", jaAct);
             
-            jData.put("AssignedTypeProc", jaAss);
-            jData.put("ActiveTypeProc", jaAct);
+            //jData.put("lstAssignedTypeProc", jaAss);
+            //jData.put("lstActiveTypeProc", jaAct);
             jData.put("ServiceStatus", jo);
             
             //jData.put("totalMemory", instance.totalMemory()/1024/1024);
@@ -449,69 +451,20 @@ public class srvRutinas {
     
     public void updateAssignedProcess(JSONObject jData) {
         try {
-
-            String dCmd = jData.getString("cmd");
-            JSONArray jArray = jData.getJSONArray("assignedTypeProc");
             ObjectMapper mapper = new ObjectMapper();
+            List<AssignedTypeProc> lstAssignedTypeProc = new ArrayList<>();
+            AssignedTypeProc assignedTypeProc;
             
-            String typeProc;
-            String myTypeProc;
-            int priority;
-            int maxThread;
-            boolean isFindItem;
+            JSONArray jArray = jData.getJSONArray("AssignedTypeProc");
+            int numItems = jArray.length();
             
-            switch (dCmd) {
-                case "update":
-                    for (int i=0; i<jArray.length(); i++) {
-                        //Crea objeto Data Class
-
-                        //Asigna JSON to Data Class
-                        AssignedTypeProc assignedTypeProc = mapper.readValue(jArray.getJSONObject(i).toString(), AssignedTypeProc.class);
-                                                
-                        int posFound = gDatos.getPosTypeProc(assignedTypeProc.getTypeProc());
-                        if (posFound!=0) {
-                            //TypeProc es encontrado en una posicion de la lista
-                            gDatos.getLstAssignedTypeProc().set(posFound, assignedTypeProc);
-                        } else {
-                            //TypeProc no es encontrado en una posicion de la lista
-                            gDatos.getLstAssignedTypeProc().add(assignedTypeProc);
-                        }
-                    }
-                    break;
-                case "delete":
-                    //A partir de la Lista Guardada busca en lista informada para
-                    //actualizar el dato o borrarlo si no se encuentra
-                    for (int i=0; i<gDatos.getLstAssignedTypeProc().size(); i++) {
-                        boolean isFound = false;
-                        for (int j=0; j<jArray.length(); j++) {
-                            AssignedTypeProc assignedTypeProc = mapper.readValue(jArray.getJSONObject(j).toString(), AssignedTypeProc.class);
-                            
-                            if (gDatos.getLstAssignedTypeProc().get(i).getTypeProc().equals(assignedTypeProc.getTypeProc())) {
-                                gDatos.getLstAssignedTypeProc().set(i, assignedTypeProc);
-                                isFound = true;
-                            }
-                        }
-                        if (!isFound) {
-                            gDatos.getLstAssignedTypeProc().remove(i);
-                        }
-                    }
-                    
-                    //A partir de la lista informada busca en lista guardada para actualizar o ingresar
-                    //una nueva asignacion
-                    
-                    for (int i=0; i<jArray.length(); i++) {
-                        AssignedTypeProc assignedTypeProc = mapper.readValue(jArray.getJSONObject(i).toString(), AssignedTypeProc.class);
-                        for (int j=0; j<gDatos.getLstAssignedTypeProc().size(); j++) {
-                            int posFound = gDatos.getPosTypeProc(assignedTypeProc.getTypeProc());
-                            if (posFound==0) {
-                                gDatos.getLstAssignedTypeProc().add(assignedTypeProc);
-                            }
-                        }
-                    }
-                    break;
-                default:
-                   break;
+            for (int i=0; i<numItems; i++) {
+                assignedTypeProc = mapper.readValue(jArray.get(i).toString(), AssignedTypeProc.class);
+                lstAssignedTypeProc.add(assignedTypeProc);
             }
+                        
+            gDatos.setLstAssignedTypeProc(lstAssignedTypeProc);
+            
         } catch (JSONException | IOException e) {
             sysOutln("Error: " + e.getMessage());
         }
