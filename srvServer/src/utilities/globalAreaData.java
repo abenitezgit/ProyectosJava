@@ -7,6 +7,7 @@ package utilities;
 
 import dataClass.ActiveTypeProc;
 import dataClass.AssignedTypeProc;
+import dataClass.PoolProcess;
 import dataClass.ServiceInfo;
 import dataClass.ServiceStatus;
 import java.io.FileInputStream;
@@ -34,13 +35,21 @@ public class globalAreaData {
      */
     List<AssignedTypeProc> lstAssignedTypeProc = new ArrayList<>();
     List<ActiveTypeProc> lstActiveTypeProc = new ArrayList<>();
+    List<PoolProcess> lstPoolProcess = new ArrayList<>();
     ServiceInfo serviceInfo = new ServiceInfo();
     ServiceStatus serviceStatus = new ServiceStatus();
-    
+
     /**
      * Getter And Setter Area
      * @return 
      */
+    public List<PoolProcess> getLstPoolProcess() {
+        return lstPoolProcess;
+    }
+
+    public void setLstPoolProcess(List<PoolProcess> lstPoolProcess) {
+        this.lstPoolProcess = lstPoolProcess;
+    }
     
     public List<AssignedTypeProc> getLstAssignedTypeProc() {
         return lstAssignedTypeProc;
@@ -180,7 +189,7 @@ public class globalAreaData {
     
     public int getFreeThreadServices() {
         try {
-            return serviceStatus.getNumProcMax()-serviceStatus.getNumProcExec();
+            return serviceStatus.getNumProcMax()-serviceStatus.getNumProcRunning();
         } catch (Exception e) {
             return 0;
         }
@@ -215,7 +224,9 @@ public class globalAreaData {
                 serviceStatus.setIsSocketServerActive(false);
                 serviceStatus.setIsConnectMonHost(false);
                 serviceStatus.setIsRegisterService(false);
-                serviceStatus.setNumProcExec(0);
+                serviceStatus.setNumProcRunning(0);
+                serviceStatus.setNumProcSleeping(0);
+                serviceStatus.setNumProcFinished(0);
                 serviceStatus.setNumTotalExec(0);
                 
                 //Extrae Fecha de Hoy
