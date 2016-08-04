@@ -22,15 +22,51 @@ public class ServiceStatus {
     boolean isConnectMonHost;
     boolean isRegisterService;
     boolean isKeepAliveActive;
+    boolean isSubRunProcActive;
     boolean srvLoadParam;
-    int numProcExec;
+    int numProcRunning;
+    int numProcSleeping;
+    int numProcFinished;
     int numTotalExec;
     int numProcMax;
     int srvEnable;
     Socket skCliente;
+    
     List<AssignedTypeProc> lstAssignedTypeProc = new ArrayList<>();
     List<ActiveTypeProc> lstActiveTypeProc = new ArrayList<>();
 
+    public boolean isIsSubRunProcActive() {
+        return isSubRunProcActive;
+    }
+
+    public void setIsSubRunProcActive(boolean isSubRunProcActive) {
+        this.isSubRunProcActive = isSubRunProcActive;
+    }
+    
+    public int getNumProcRunning() {
+        return numProcRunning;
+    }
+
+    public void setNumProcRunning(int numProcRunning) {
+        this.numProcRunning = numProcRunning;
+    }
+
+    public int getNumProcSleeping() {
+        return numProcSleeping;
+    }
+
+    public void setNumProcSleeping(int numProcSleeping) {
+        this.numProcSleeping = numProcSleeping;
+    }
+
+    public int getNumProcFinished() {
+        return numProcFinished;
+    }
+
+    public void setNumProcFinished(int numProcFinished) {
+        this.numProcFinished = numProcFinished;
+    }
+    
     public List<AssignedTypeProc> getLstAssignedTypeProc() {
         return lstAssignedTypeProc;
     }
@@ -109,14 +145,6 @@ public class ServiceStatus {
 
     public void setIsRegisterService(boolean isRegisterService) {
         this.isRegisterService = isRegisterService;
-    }
-
-    public int getNumProcExec() {
-        return numProcExec;
-    }
-
-    public void setNumProcExec(int numProcExec) {
-        this.numProcExec = numProcExec;
     }
 
     public int getNumTotalExec() {
