@@ -50,11 +50,11 @@ public class thRunProcess extends Thread {
             /*
             Valida Ejecucion de Procesos Sleeping (Encolados)
             */
-            class pesoTypeProc {
+            class pesoAssigned {
                 String typeProc;
                 int peso;
 
-                public pesoTypeProc(String typeProc, int peso) {
+                public pesoAssigned(String typeProc, int peso) {
                     this.typeProc = typeProc;
                     this.peso = peso;
                 }
@@ -76,7 +76,7 @@ public class thRunProcess extends Thread {
                 }
             }
             
-            List<pesoTypeProc> lstPesoTypeProc = new ArrayList<>();
+            List<pesoAssigned> lstPesoAssigned = new ArrayList<>();
 
             long numTotalAssignedProc = gDatos.getLstAssignedTypeProc().size();
             if (numTotalAssignedProc!=0) {
@@ -85,14 +85,77 @@ public class thRunProcess extends Thread {
                     int priority = gDatos.getLstAssignedTypeProc().get(i).getPriority();
                     float count = gDatos.getLstAssignedTypeProc().stream().filter(p -> p.getPriority()==priority).count();
                     float peso = count/numTotalAssignedProc*100;
-                    pesoTypeProc pesoTypeProc = new pesoTypeProc(typeProc, (int) peso);
-                    lstPesoTypeProc.add(pesoTypeProc);
+                    pesoAssigned pesoAssigned = new pesoAssigned(typeProc, (int) peso);
+                    lstPesoAssigned.add(pesoAssigned);
                 }
             }
             
-            for (int i=0; i<lstPesoTypeProc.size(); i++) {
-                System.out.println("typeProc: "+lstPesoTypeProc.get(i).getTypeProc());
-                System.out.println("perso: "+lstPesoTypeProc.get(i).getPeso());
+            for (int i=0; i<lstPesoAssigned.size(); i++) {
+                System.out.println("typeProc: "+lstPesoAssigned.get(i).getTypeProc());
+                System.out.println("perso: "+lstPesoAssigned.get(i).getPeso());
+            }
+
+            class pesoActive {
+                String typeProc;
+                int peso;
+
+                public pesoActive(String typeProc, int peso) {
+                    this.typeProc = typeProc;
+                    this.peso = peso;
+                }
+
+                public String getTypeProc() {
+                    return typeProc;
+                }
+
+                public void setTypeProc(String typeProc) {
+                    this.typeProc = typeProc;
+                }
+
+                public float getPeso() {
+                    return peso;
+                }
+
+                public void setPeso(int peso) {
+                    this.peso = peso;
+                }
+            }
+            
+            List<pesoActive> lstPesoActive = new ArrayList<>();
+            
+            ActiveTypeProc activeType = new ActiveTypeProc();
+            activeType.setTypeProc("OSP");
+            activeType.setUsedThread(1);
+            
+            gDatos.getLstActiveTypeProc().add(activeType);
+            activeType = new ActiveTypeProc();
+            
+            activeType.setTypeProc("ETL");
+            activeType.setUsedThread(2);
+
+            gDatos.getLstActiveTypeProc().add(activeType);
+            activeType = new ActiveTypeProc();
+
+            activeType.setTypeProc("FTP");
+            activeType.setUsedThread(1);
+            
+            gDatos.getLstActiveTypeProc().add(activeType);
+            
+            long numTotalActiveProc = gDatos.getLstActiveTypeProc().size();
+            if (numTotalActiveProc!=0) {
+                for (int i=0; i<numTotalActiveProc; i++) {
+                    String typeProc = gDatos.getLstActiveTypeProc().get(i).getTypeProc();
+                    int usedThread = gDatos.getLstActiveTypeProc().get(i).getUsedThread();
+                    float sumThread = gDatos.getLstActiveTypeProc().stream().collect(Collectors.summingInt(p -> p.getUsedThread()));
+                    float peso = usedThread/sumThread*100;
+                    pesoActive pesoActive = new pesoActive(typeProc, (int) peso);
+                    lstPesoActive.add(pesoActive);
+                }
+            }
+            
+            for (int i=0; i<lstPesoActive.size(); i++) {
+                System.out.println("typeProcAct: "+lstPesoActive.get(i).getTypeProc());
+                System.out.println("pesoAct: "+lstPesoActive.get(i).getPeso());
             }
             
             /*
