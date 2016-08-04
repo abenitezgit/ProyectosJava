@@ -7,6 +7,7 @@ package srvserver;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import utilities.globalAreaData;
 import utilities.srvRutinas;
@@ -20,6 +21,7 @@ public class thExecOSP extends Thread{
     static globalAreaData gDatos;
     private JSONObject params = new JSONObject();
     private String procID = null;
+    Logger logger = Logger.getLogger("thExecOSP");
     
     public thExecOSP(globalAreaData m, JSONObject rs) {
         gDatos = m;
@@ -29,14 +31,14 @@ public class thExecOSP extends Thread{
     
     @Override
     public void run() {
-        System.out.println("Ejecutando OSP");
+        logger.info("Ejecutando OSP");
         
         //Recuperando los parametros de entrada
         String hostName;
         String ospName;
 
         Timer t1 = new Timer();
-        t1.schedule(new task(), 20000);
+        t1.schedule(new task(), 40000);
        
     
     }
@@ -46,7 +48,7 @@ public class thExecOSP extends Thread{
         
         @Override
         public void run() {
-            System.out.println("task executed...");
+            logger.info("task executed...");
             
             //Actualiza estado de termino del proceso
             //

@@ -5,9 +5,11 @@
  */
 package utilities;
 
+import dataClass.ServerStatus;
+import dataClass.ServerInfo;
+import dataClass.ServiceStatus;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.sql.Connection;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -20,329 +22,92 @@ import org.json.JSONObject;
  * @author andresbenitez
  */
 public class globalAreaData {
-    
-    //Parametros globales del servicio
-    //
-    private String srvName;          //Identificador unico del Servicio
-    private String txpMain;          //Tiempo de ciclo del timerTask principal
-    private String srvPort;          //Puerto del Socket Server     
-    private String srvStart;         //Fecha Inicio del Servicio
-    private boolean srvGetParam;     //Indica si recibio o no los parametros de configuracion de servicios
-    private boolean srvActive;       //indice si Servicio se encuentra activo o no
-    private String monPort;
-    private boolean srvLoadParam;
-    private String authKey;
-    private String Driver;
-    private String ConnString;
+        
+    //Referencia Data Class
+    private ServerInfo serverInfo = new ServerInfo();
+    private ServerStatus serverStatus = new ServerStatus();
+    private ServiceStatus serviceStatus = new ServiceStatus();
+    private List<ServiceStatus> lstServiceStatus = new ArrayList<>();
 
-    
-    //Variables Operacionales
-    //Parametros de los Tipos de Procesos que puede ejecutar el servicio
-    //formato json:
-    //{"typeProc":"ETL","procID":"ETL00001","startTime":"2016-06-16 10:00:00","status":"Finished",
-    // "endTime":"2016-06-10 20:00:00"}
-    //private List<JSONObject> activeTypeProc = new ArrayList<>();
-    
-    
-    //Parametros de los procesos asignados a servicios registrados
-    //formato json:
-    //{"srvName":"srv00001","srvActive":1,"procAssigned":[{"":""}]}
-    private List<JSONObject> assignedServiceTypeProc = new ArrayList<>();
-    
-    //Parametros de los Servicios que se registran
-    //formato json:
-    //{"srvName":"srv00000","srvStart":"2016-06-16 10:00:00","numTotalExec":100,
-    //  "srvPort":"9090","numProcMax":"30","numProcExec":0,
-    //  "procActive":[],"procAssigned":[] }
-    private List<JSONObject> serviceStatus = new ArrayList<>();
-    
        
-    //Parametros de Control Online
-    //
-    private int numProcExec;         //Numero de procesos en ejecucion
-    private int numProcMax;          //Maximo numero permitido de procesos simultaneos
-    private int numTotalExec;        //Total de procesos ejecutados desde el startup
-    private int numSrvActives;       //Numero de servicios (servers) Activos
+    /*
+    Listas para Agendas24HH y AgendasPendientes
+    */
+    private List<JSONObject> lstShowAgendas = new ArrayList<>();
     
+    private List<JSONObject> lstActiveAgendas = new ArrayList<>();
     
-    //Parametros de Acceso a Metada
-    //
-    private String dbType;
-    private boolean isMetadataConnect;
-    private Connection metadataConnection;
-    
-    //Parametros ORA Metadata
-    private String dbORAHost;
-    private String dbORAPort;
-    private String dbORAUser;
-    private String dbORAPass;
-    private String dbORADbName;
-    
-    //Parametros SQL Metadata
-    private String dbSQLHost;
-    private String dbSQLPort;
-    private String dbSQLUser;
-    private String dbSQLPass;
-    private String dbSQLInstance;
-    private String dbSQLDbName;
-    
-
 
     //Declarion de Metodos de GET / SET
 
-    public String getSrvName() {
-        return srvName;
-    }
-
-    public void setSrvName(String srvName) {
-        this.srvName = srvName;
-    }
-
-    public String getTxpMain() {
-        return txpMain;
-    }
-
-    public void setTxpMain(String txpMain) {
-        this.txpMain = txpMain;
-    }
-
-    public String getSrvPort() {
-        return srvPort;
-    }
-
-    public void setSrvPort(String srvPort) {
-        this.srvPort = srvPort;
-    }
-
-    public String getSrvStart() {
-        return srvStart;
-    }
-
-    public void setSrvStart(String srvStart) {
-        this.srvStart = srvStart;
-    }
-
-    public boolean isSrvGetParam() {
-        return srvGetParam;
-    }
-
-    public void setSrvGetParam(boolean srvGetParam) {
-        this.srvGetParam = srvGetParam;
-    }
-
-    public boolean isSrvActive() {
-        return srvActive;
-    }
-
-    public void setSrvActive(boolean srvActive) {
-        this.srvActive = srvActive;
-    }
-
-    public String getMonPort() {
-        return monPort;
-    }
-
-    public void setMonPort(String monPort) {
-        this.monPort = monPort;
-    }
-
-    public boolean isSrvLoadParam() {
-        return srvLoadParam;
-    }
-
-    public void setSrvLoadParam(boolean srvLoadParam) {
-        this.srvLoadParam = srvLoadParam;
-    }
-
-    public String getAuthKey() {
-        return authKey;
-    }
-
-    public void setAuthKey(String authKey) {
-        this.authKey = authKey;
-    }
-
-    public String getDriver() {
-        return Driver;
-    }
-
-    public void setDriver(String Driver) {
-        this.Driver = Driver;
-    }
-
-    public String getConnString() {
-        return ConnString;
-    }
-
-    public void setConnString(String ConnString) {
-        this.ConnString = ConnString;
-    }
-
-    public List<JSONObject> getAssignedServiceTypeProc() {
-        return assignedServiceTypeProc;
-    }
-
-    public void setAssignedServiceTypeProc(List<JSONObject> assignedServiceTypeProc) {
-        this.assignedServiceTypeProc = assignedServiceTypeProc;
-    }
-
-    public List<JSONObject> getServiceStatus() {
+    public ServiceStatus getServiceStatus() {
         return serviceStatus;
     }
 
-    public void setServiceStatus(List<JSONObject> serviceStatus) {
+    public void setServiceStatus(ServiceStatus serviceStatus) {
         this.serviceStatus = serviceStatus;
     }
-    
-    public int getNumProcExec() {
-        return numProcExec;
+
+    public List<ServiceStatus> getLstServiceStatus() {
+        return lstServiceStatus;
     }
 
-    public void setNumProcExec(int numProcExec) {
-        this.numProcExec = numProcExec;
-    }
-
-    public int getNumProcMax() {
-        return numProcMax;
-    }
-
-    public void setNumProcMax(int numProcMax) {
-        this.numProcMax = numProcMax;
-    }
-
-    public int getNumTotalExec() {
-        return numTotalExec;
-    }
-
-    public void setNumTotalExec(int numTotalExec) {
-        this.numTotalExec = numTotalExec;
-    }
-
-    public int getNumSrvActives() {
-        return numSrvActives;
-    }
-
-    public void setNumSrvActives(int numSrvActives) {
-        this.numSrvActives = numSrvActives;
-    }
-
-    public String getDbType() {
-        return dbType;
-    }
-
-    public void setDbType(String dbType) {
-        this.dbType = dbType;
-    }
-
-    public boolean isIsMetadataConnect() {
-        return isMetadataConnect;
-    }
-
-    public void setIsMetadataConnect(boolean isMetadataConnect) {
-        this.isMetadataConnect = isMetadataConnect;
-    }
-
-    public Connection getMetadataConnection() {
-        return metadataConnection;
-    }
-
-    public void setMetadataConnection(Connection metadataConnection) {
-        this.metadataConnection = metadataConnection;
-    }
-
-    public String getDbORAHost() {
-        return dbORAHost;
-    }
-
-    public void setDbORAHost(String dbORAHost) {
-        this.dbORAHost = dbORAHost;
-    }
-
-    public String getDbORAPort() {
-        return dbORAPort;
-    }
-
-    public void setDbORAPort(String dbORAPort) {
-        this.dbORAPort = dbORAPort;
-    }
-
-    public String getDbORAUser() {
-        return dbORAUser;
-    }
-
-    public void setDbORAUser(String dbORAUser) {
-        this.dbORAUser = dbORAUser;
-    }
-
-    public String getDbORAPass() {
-        return dbORAPass;
-    }
-
-    public void setDbORAPass(String dbORAPass) {
-        this.dbORAPass = dbORAPass;
-    }
-
-    public String getDbORADbName() {
-        return dbORADbName;
-    }
-
-    public void setDbORADbName(String dbORADbName) {
-        this.dbORADbName = dbORADbName;
-    }
-
-    public String getDbSQLHost() {
-        return dbSQLHost;
-    }
-
-    public void setDbSQLHost(String dbSQLHost) {
-        this.dbSQLHost = dbSQLHost;
-    }
-
-    public String getDbSQLPort() {
-        return dbSQLPort;
-    }
-
-    public void setDbSQLPort(String dbSQLPort) {
-        this.dbSQLPort = dbSQLPort;
-    }
-
-    public String getDbSQLUser() {
-        return dbSQLUser;
-    }
-
-    public void setDbSQLUser(String dbSQLUser) {
-        this.dbSQLUser = dbSQLUser;
-    }
-
-    public String getDbSQLPass() {
-        return dbSQLPass;
-    }
-
-    public void setDbSQLPass(String dbSQLPass) {
-        this.dbSQLPass = dbSQLPass;
-    }
-
-    public String getDbSQLInstance() {
-        return dbSQLInstance;
-    }
-
-    public void setDbSQLInstance(String dbSQLInstance) {
-        this.dbSQLInstance = dbSQLInstance;
-    }
-
-    public String getDbSQLDbName() {
-        return dbSQLDbName;
-    }
-
-    public void setDbSQLDbName(String dbSQLDbName) {
-        this.dbSQLDbName = dbSQLDbName;
+    public void setLstServiceStatus(List<ServiceStatus> lstServiceStatus) {
+        this.lstServiceStatus = lstServiceStatus;
     }
     
+    public ServerInfo getServerInfo() {
+        return serverInfo;
+    }
+
+    public void setServerInfo(ServerInfo serverInfo) {
+        this.serverInfo = serverInfo;
+    }
+
+    public ServerStatus getServerStatus() {
+        return serverStatus;
+    }
+
+    public void setServerStatus(ServerStatus serverStatus) {
+        this.serverStatus = serverStatus;
+    }
     
-    //Procedimientos y/o metodos Utilizarios
-    //
+    public List<JSONObject> getLstShowAgendas() {
+        return lstShowAgendas;
+    }
+
+    public void setLstShowAgendas(List<JSONObject> lstShowAgendas) {
+        this.lstShowAgendas = lstShowAgendas;
+    }
+
+    public List<JSONObject> getLstActiveAgendas() {
+        return lstActiveAgendas;
+    }
+
+    public void setLstActiveAgendas(List<JSONObject> lstActiveAgendas) {
+        this.lstActiveAgendas = lstActiveAgendas;
+    }
     
-    
+    public void updateLstServiceStatus(ServiceStatus serviceStatus) {
+        int numItems = lstServiceStatus.size();
+        boolean itemFound = false;
+        ServiceStatus myServiceStatus;
+        
+        for (int i=0; i<numItems; i++) {
+            if (lstServiceStatus.get(i).getSrvID().equals(serviceStatus.getSrvID())) {
+               myServiceStatus = lstServiceStatus.get(i);
+               myServiceStatus.setSrvEnable(serviceStatus.getSrvEnable());
+               myServiceStatus.setLstAssignedTypeProc(serviceStatus.getLstAssignedTypeProc());
+               lstServiceStatus.set(i, myServiceStatus);
+               itemFound = true;
+            }
+        }
+        
+        if (!itemFound) {
+            lstServiceStatus.add(serviceStatus);
+        }
+    }
+
     public globalAreaData() {
         Properties fileConf = new Properties();
 
@@ -352,45 +117,36 @@ public class globalAreaData {
             //
             fileConf.load(new FileInputStream("/Users/andresbenitez/Documents/Apps/NetBeansProjects3/srvMonitor/src/utilities/srvMonitor.properties"));
 
-            srvName = fileConf.getProperty("srvName");
-            txpMain = fileConf.getProperty("txpMain");
-            srvPort = fileConf.getProperty("srvPort");
-            monPort = fileConf.getProperty("monPort");
-            numProcMax = Integer.valueOf(fileConf.getProperty("numProcMax"));
-            authKey = fileConf.getProperty("authKey");
-            Driver = fileConf.getProperty("Driver");
-            ConnString = fileConf.getProperty("ConnString");
-            
-            //Recupera Parametros de la Metadata
-            dbType = fileConf.getProperty("dbType");
-            
-            if (dbType.equals("ORA")) {
+            serverInfo.setSrvID(fileConf.getProperty("srvID"));
+            serverInfo.setTxpMain(Integer.valueOf(fileConf.getProperty("txpMain")));
+            serverInfo.setSrvPort(Integer.valueOf(fileConf.getProperty("srvPort")));
+            serverInfo.setAuthKey(fileConf.getProperty("authKey"));
+            serverInfo.setDriver(fileConf.getProperty("driver"));
+            serverInfo.setConnString(fileConf.getProperty("ConnString"));
+            serverInfo.setDbType(fileConf.getProperty("dbType"));
+                        
+            if (serverInfo.getDbType().equals("ORA")) {
                 //Recupera Paramteros ORA
-                dbORAHost = fileConf.getProperty("dbORAHost");
-                dbORAPort = fileConf.getProperty("dbORAPort");
-                dbORAUser = fileConf.getProperty("dbORAUser");
-                dbORAPass = fileConf.getProperty("dbORAPass");
-                dbORADbName = fileConf.getProperty("dbORADbName");
+                serverInfo.setDbOraHost(fileConf.getProperty("dbORAHost"));
+                serverInfo.setDbOraPort(Integer.valueOf(fileConf.getProperty("dbORAPort")));
+                serverInfo.setDbOraUser(fileConf.getProperty("dbORAUser"));
+                serverInfo.setDbOraPass(fileConf.getProperty("dbORAPass"));
+                serverInfo.setDbOraDBNAme(fileConf.getProperty("dbORADbName"));
             }
             
-            if (dbType.equals("SQL")) {
+            if (serverInfo.getDbType().equals("SQL")) {
                 //Recupera Paramteros ORA
-                dbSQLHost = fileConf.getProperty("dbSQLHost");
-                dbSQLPort = fileConf.getProperty("dbSQLPort");
-                dbSQLUser = fileConf.getProperty("dbSQLUser");
-                dbSQLPass = fileConf.getProperty("dbSQLPass");
-                dbSQLDbName = fileConf.getProperty("dbSQLDbName");
-                dbSQLInstance = fileConf.getProperty("dbSQLInstance");
+                serverInfo.setDbSqlHost(fileConf.getProperty("dbSQLHost"));
+                serverInfo.setDbSqlPort(Integer.valueOf(fileConf.getProperty("dbSQLPort")));
+                serverInfo.setDbSqlUser(fileConf.getProperty("dbSQLUser"));
+                serverInfo.setDbSqlPass(fileConf.getProperty("dbSQLPass"));
+                serverInfo.setDbSqlDBName(fileConf.getProperty("dbSQLDbName"));
+                serverInfo.setDbSqlDBInstance(fileConf.getProperty("dbSQLInstance"));
             }
 
-            //Setea Parametros iniciales
-            //
-            numProcExec = 0;
-            numTotalExec = 0;
-
-            srvGetParam = false;
-            srvActive = true;
-            isMetadataConnect = false;
+            serverStatus.setSrvActive(true);
+            serverStatus.setIsMetadataConnect(false);
+            serverStatus.setIsGetAgendaActive(false);
 
             //Extrae Fecha de Hoy
             //
@@ -399,11 +155,12 @@ public class globalAreaData {
             formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             System.out.println(formatter.getTimeZone());
             today = new Date();
-            srvStart = formatter.format(today);                
-            srvLoadParam = true;
+            
+            serverStatus.setSrvStartTime(formatter.format(today));
+            serverStatus.setSrvLoadParam(true);
             
         } catch (IOException | NumberFormatException e) {
-            srvLoadParam = false;
+            serverStatus.setSrvLoadParam(false);
             System.out.println("Error: "+e.getMessage());
         }
     }

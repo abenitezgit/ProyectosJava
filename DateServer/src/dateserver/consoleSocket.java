@@ -14,7 +14,6 @@ import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.json.JSONArray;
-import org.json.JSONObject;
 
 /**
  *
@@ -71,7 +70,7 @@ public class consoleSocket extends javax.swing.JFrame {
             }
         });
 
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "{\"request\":\"getStatus\",\"auth\":\"qwerty0987\"}", "{\"request\":\"keepAlive\",\"auth\":\"qwerty0987\",\"params\":[{\"srvPort\":\"9090\",\"numProcMax\":\"20\",\"numProcExec\":\"0\",\"srvName\":\"srv00001\",\"srvStart\":\"2016-06-15 00:22:33\",\"numTotalExec\":\"0\",\"isgetTypeProc\":false}]}", "{\"request\":\"updateAssignedProc\",\"auth\":\"qwerty0987\",\"params\":[{\"typeProc\":\"ETL\",\"priority\":\"1\",\"maxThread\":\"10\",\"usedThread\":0}]}", "{\"request\":\"executeProcess\",\"auth\":\"qwerty0987\",\"typeProc\":\"OSP\",\"procID\":\"OSP00001\",\"status\":\"enqued\",\"params\":{\"ospName\":\"sp_001\",\"ospUser\":\"process\",\"ospPass\":\"proc01\",\"ospOwner\":\"process\",\"ospServer\":\"localhost\",\"ospDBPort\":\"1521\",\"ospDBName\":\"oratest\",\"ospDBInstance\":\"default\",\"ospDBType\":\"ORA\",\"parametros\":[{\"value\":\"20160612\",\"type\":\"string\"},{\"value\":\"10\",\"type\":\"int\"}]}}", "{\"request\":\"getPoolProcess\",\"auth\":\"qwerty0987\"}", "{\"request\":\"getList\",\"auth\":\"qwerty0987\",\"params\":{\"lista\":\"pool\"}}", " " }));
+        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "{\"request\":\"getStatus\",\"auth\":\"qwerty0987\",\"data\":{}}", "{\"request\":\"keepAlive\",\"auth\":\"qwerty0987\",\"data\":[{\"srvPort\":\"9090\",\"numProcMax\":\"20\",\"numProcExec\":\"0\",\"srvName\":\"srv00001\",\"srvStart\":\"2016-06-15 00:22:33\",\"numTotalExec\":\"0\",\"isgetTypeProc\":false}]}", "{\"request\":\"updateAssignedProc\",\"auth\":\"qwerty0987\",\"data\":{\"cmd\":\"update\",\"ArrayTypeProc\":[{\"typeProc\":\"OSP\",\"priority\":\"1\",\"maxThread\":\"10\",\"usedThread\":0}]}}", "{\"request\":\"executeProcess\",\"auth\":\"qwerty0987\",\"data\":{\"typeProc\":\"OSP\",\"procID\":\"OSP00001\",\"status\":\"enqued\",\"sendDate\":\"2016-06-10 10:00:00\",\"params\":{\"ospName\":\"sp_001\",\"ospUser\":\"process\",\"ospPass\":\"proc01\",\"ospOwner\":\"process\",\"ospServer\":\"localhost\",\"ospDBPort\":\"1521\",\"ospDBName\":\"oratest\",\"ospDBInstance\":\"default\",\"ospDBType\":\"ORA\",\"parametros\":[{\"value\":\"20160612\",\"type\":\"string\"},{\"value\":\"10\",\"type\":\"int\"}]}}}", "{\"request\":\"getPoolProcess\",\"auth\":\"qwerty0987\",\"data\":{}}", "{\"request\":\"getList\",\"auth\":\"qwerty0987\",\"data\":{\"lista\":\"pool\"}}", "{\"request\":\"getList\",\"auth\":\"qwerty0987\",\"data\":{\"lista\":\"assignedProc\"}}", "{\"request\":\"updateVar\",\"auth\":\"qwerty0987\",\"data\":{\"arrayVar\":[{\"srvActive\":0}]}}", " " }));
         jComboBox1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jComboBox1ActionPerformed(evt);
@@ -151,12 +150,28 @@ public class consoleSocket extends javax.swing.JFrame {
             
             String response = dataInput.readUTF();
             
-            this.jTextArea1.setText(response);
+            try {
             
-            JSONObject ds = new JSONObject(response);
-            JSONArray lista = ds.getJSONArray("params");
+                JSONArray lista = new JSONArray(response);
             
-            int num = lista.length();
+                int items = lista.length();
+                this.jTextArea1.removeAll();
+            
+                if (items>0) {
+                    for (int i=0; i<items; i++) {
+                        this.jTextArea1.append(lista.get(i).toString()+"\n");
+                    }
+                } else {
+                    this.jTextArea1.setText("no hay datos");
+                }
+            } catch (Exception e) {
+                this.jTextArea1.setText(response);
+            }
+            
+            
+            
+            
+            
             
             
             

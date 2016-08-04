@@ -7,6 +7,7 @@ package srvmonitor;
 import utilities.globalAreaData;
 import java.io.* ; 
 import java.net.* ;
+import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import utilities.srvRutinas;
@@ -21,6 +22,7 @@ public class thMonitorSocket extends Thread {
     static boolean isSocketActive;
     static String errNum;
     static String errDesc;
+    Logger logger = Logger.getLogger("thServerSocket");
     
     //Carga constructor para inicializar los datos
     public thMonitorSocket(globalAreaData m) {
@@ -32,13 +34,15 @@ public class thMonitorSocket extends Thread {
     @Override
     public void run() {
         try {
-            gSub.sysOutln("Starting Listener Thread Monitor Server port: " + gDatos.getSrvPort());
-            ServerSocket skServidor = new ServerSocket(Integer.valueOf(gDatos.getSrvPort()));
+            logger.info("Starting Listener Thread Monitor Server port: " + gDatos.getServerInfo().getSrvPort());
+            ServerSocket skServidor = new ServerSocket(gDatos.getServerInfo().getSrvPort());
             String inputData;
             String outputData;
-            String request;
-            String auth;
-            JSONObject rs;
+            String dRequest;
+            String dAuth;
+            JSONObject jHeader;
+            JSONObject jData;
+            int result;
             
             while (isSocketActive) {
                 Socket skCliente = skServidor.accept();
@@ -49,27 +53,38 @@ public class thMonitorSocket extends Thread {
                 //
                 try {
                     inputData  = dataInput.readUTF();
-                    rs = new JSONObject(inputData);
-                    //gSub.sysOutln(inputData);
+                    logger.info("Recibiendo TX: "+inputData);
                     
-                    auth = rs.getString("auth");
+                    jHeader = new JSONObject(inputData);
+                    jData = jHeader.getJSONObject("data");
+                    
+                    dAuth = jHeader.getString("auth");
+                    dRequest = jHeader.getString("request");
 
-                    if (auth.equals(gDatos.getAuthKey())) {
-                        request = rs.getString("request");
+                    if (dAuth.equals(gDatos.getServerInfo().getAuthKey())) {
 
-                        switch (request) {
+                        switch (dRequest) {
                             case "keepAlive":
-                                outputData = gSub.updateStatusServices(rs.getJSONObject("params"));
+                                result = gSub.updateStatusService(jData.getJSONObject("ServiceStatus"));
+                                if (result==0) {
+                                    outputData = gSub.sendAssignedProc(jData.getJSONObject("ServiceStatus").getString("srvID"));
+                                } else {
+                                    outputData = gSub.sendError(10);
+                                }
                                 break;
                             case "getDate":
                                 outputData = gSub.sendDate();
                                 break;
                             case "getStatus":
-                                outputData = gSub.getStatusServices();
+                                logger.info("ejecutando ... getStatusServices");
+                                outputData = gSub.sendStatusServices();
                                 break;
                             case "putExecOSP":
                                 gSub.putExecOSP(inputData);
                                 outputData = gSub.sendOkTX();
+                                break;
+                            case "sendPing":
+                                outputData = "OK";
                                 break;
                             default:
                                 outputData = gSub.sendError(99, "Error Desconocido...");
@@ -77,7 +92,6 @@ public class thMonitorSocket extends Thread {
                     } else {
                         outputData = gSub.sendError(60);
                     }
-                    System.out.println(inputData);
                 } catch (IOException | JSONException e) {
                     outputData = gSub.sendError(90);
                 }
@@ -86,7 +100,7 @@ public class thMonitorSocket extends Thread {
                 //
                 OutputStream outStr = skCliente.getOutputStream();
                 DataOutputStream dataOutput = new DataOutputStream(outStr);
-                System.out.println(outputData);
+                logger.debug("Enviando respuesta: "+ outputData);
                 if (outputData==null) {
                     dataOutput.writeUTF("{}");
                 } else {
@@ -101,7 +115,7 @@ public class thMonitorSocket extends Thread {
             }
         
         } catch (NumberFormatException | IOException e) {
-            System.out.println("Error: "+e.getMessage());
+            logger.error(e.getMessage());
         }
     }
 }
