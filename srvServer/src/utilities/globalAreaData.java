@@ -103,6 +103,35 @@ public class globalAreaData {
             return 0;
         }
     }
+    
+    public void setStatusRunning(String typeProc) {
+        try {
+            ActiveTypeProc activeTypeProc;
+            
+            serviceStatus.setNumProcRunning(serviceStatus.getNumProcRunning()+1);
+            serviceStatus.setNumProcSleeping(serviceStatus.getNumProcSleeping()-1);
+
+            int index = getLstActiveTypeProc().indexOf(typeProc);
+            if (index!=0) {
+                int usedTypeActive = getLstActiveTypeProc().get(index).getUsedThread();
+                
+                activeTypeProc = new ActiveTypeProc();
+                activeTypeProc.setTypeProc(typeProc);
+                activeTypeProc.setUsedThread(usedTypeActive+1);
+
+                getLstActiveTypeProc().set(index, activeTypeProc);
+            } else {
+                activeTypeProc = new ActiveTypeProc();
+                activeTypeProc.setTypeProc(typeProc);
+                activeTypeProc.setUsedThread(1);
+
+                getLstActiveTypeProc().add(activeTypeProc);
+            }
+        } catch (Exception e) {
+            logger.error("Error en setStatusRunning: "+e.getMessage());
+        }
+    
+    }
 
     //Procimientos y/p Metodos uilitarios
     //

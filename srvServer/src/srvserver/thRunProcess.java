@@ -5,6 +5,7 @@
  */
 package srvserver;
 import dataClass.ActiveTypeProc;
+import dataClass.AssignedTypeProc;
 import dataClass.PoolProcess;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +13,7 @@ import utilities.globalAreaData;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.log4j.Logger;
 import utilities.srvRutinas;
 
@@ -22,7 +24,7 @@ import utilities.srvRutinas;
 public class thRunProcess extends Thread {
     static srvRutinas gSub;
     static globalAreaData gDatos;
-    Logger logger = Logger.getLogger("thRunProcess");
+    static Logger logger = Logger.getLogger("thRunProcess");
     
     //Carga constructor para inicializar los datos
     public thRunProcess(globalAreaData m) {
@@ -83,8 +85,12 @@ public class thRunProcess extends Thread {
                 for (int i=0; i<numTotalAssignedProc; i++) {
                     String typeProc = gDatos.getLstAssignedTypeProc().get(i).getTypeProc();
                     int priority = gDatos.getLstAssignedTypeProc().get(i).getPriority();
-                    float count = gDatos.getLstAssignedTypeProc().stream().filter(p -> p.getPriority()==priority).count();
-                    float peso = count/numTotalAssignedProc*100;
+                    //float count = gDatos.getLstAssignedTypeProc().stream().filter(p -> p.getPriority()==priority).count();
+                    
+                    Stream<AssignedTypeProc> countd = gDatos.getLstAssignedTypeProc().stream().filter(p -> p.getPriority()==priority).distinct();
+                    float count = countd.count();
+                    
+                    float peso = count/numTotalAssignedProc*100/priority;
                     pesoAssigned pesoAssigned = new pesoAssigned(typeProc, (int) peso);
                     lstPesoAssigned.add(pesoAssigned);
                 }
@@ -121,6 +127,9 @@ public class thRunProcess extends Thread {
                 }
             }
             
+            /*
+            Agrega datos de Prueba
+            */
             List<pesoActive> lstPesoActive = new ArrayList<>();
             
             ActiveTypeProc activeType = new ActiveTypeProc();
@@ -130,7 +139,7 @@ public class thRunProcess extends Thread {
             gDatos.getLstActiveTypeProc().add(activeType);
             activeType = new ActiveTypeProc();
             
-            activeType.setTypeProc("ETL");
+            activeType.setTypeProc("LOR");
             activeType.setUsedThread(2);
 
             gDatos.getLstActiveTypeProc().add(activeType);
@@ -140,6 +149,24 @@ public class thRunProcess extends Thread {
             activeType.setUsedThread(1);
             
             gDatos.getLstActiveTypeProc().add(activeType);
+            
+            /*
+            Agrega Datos de Prueba a PoolProcess
+            */
+            PoolProcess poolProcess = new PoolProcess();
+
+            poolProcess.setTypeProc("OSP");
+            poolProcess.setProcID("OSP00001");
+            poolProcess.setUpdateTime("2016-08-05 10:10:00");
+            poolProcess.setStatus("Running");
+            gDatos.getLstPoolProcess().add(poolProcess);
+            
+            poolProcess = new PoolProcess();
+            poolProcess.setTypeProc("LOR");
+            poolProcess.setProcID("LOR00001");
+            poolProcess.setUpdateTime("2016-08-05 10:10:00");
+            poolProcess.setStatus("Finished");
+            gDatos.getLstPoolProcess().add(poolProcess);
             
             long numTotalActiveProc = gDatos.getLstActiveTypeProc().size();
             if (numTotalActiveProc!=0) {
@@ -156,6 +183,75 @@ public class thRunProcess extends Thread {
             for (int i=0; i<lstPesoActive.size(); i++) {
                 System.out.println("typeProcAct: "+lstPesoActive.get(i).getTypeProc());
                 System.out.println("pesoAct: "+lstPesoActive.get(i).getPeso());
+            }
+            
+            /*
+            Ordena lista por peso de Mayor a menos
+            */
+            int numItems = lstPesoAssigned.size();
+            if (numItems>1) {
+                for (int i=0;i<numItems; i++ ) {
+                    for (int j=0; j<numItems-1; j++) {
+                        if (lstPesoAssigned.get(j).getPeso()<lstPesoAssigned.get(j+1).getPeso()) {
+                            pesoAssigned pesoAssignedAux = new pesoAssigned(lstPesoAssigned.get(j).getTypeProc(), (int) lstPesoAssigned.get(j).getPeso());
+                            lstPesoAssigned.set(j, lstPesoAssigned.get(j+1));
+                            lstPesoAssigned.set(j+1, pesoAssignedAux);
+                        }
+                    }
+                }
+            }
+            
+            for (int i=0; i<lstPesoAssigned.size(); i++) {
+                System.out.println("Order["+i+"]: typeProc: "+lstPesoAssigned.get(i).getTypeProc());
+                System.out.println("Order["+i+"]: peso: "+lstPesoAssigned.get(i).getPeso());
+            }
+            
+            /*
+            Ejcuta Procesos en Sleeping
+            */
+            List<PoolProcess> lstSleepingProc = gDatos.getLstPoolProcess().stream().filter(p -> p.getStatus().equals("Sleeping")).collect(Collectors.toList());
+            if (!lstSleepingProc.isEmpty()) {
+                if (gDatos.getFreeThreadServices()>0) {
+                    int numSleep = lstSleepingProc.size();
+                    for (int i=0; i<numSleep; i++) {
+                        if (gDatos.getFreeThreadProcess(lstSleepingProc.get(i).getTypeProc())>0) {
+                            switch (lstSleepingProc.get(i).getTypeProc()) {
+                                case "OSP":
+                                    Thread thOSP = new thExecOSP(gDatos, lstSleepingProc.get(i).getParams());
+                                    thOSP.setName("thExecOSP-"+lstSleepingProc.get(i).getProcID());
+                                    gDatos.setStatusRunning(lstSleepingProc.get(i).getTypeProc());
+                                    thOSP.start();
+                                    break;
+                                case "OTX":
+                                    Thread thOTX = new thExecOTX(gDatos, lstSleepingProc.get(i).getParams());
+                                    thOTX.setName("thExecOTX-"+lstSleepingProc.get(i).getProcID());
+                                    gDatos.setStatusRunning(lstSleepingProc.get(i).getTypeProc());
+                                    thOTX.start();
+                                    break;
+                                case "LOR":
+                                    Thread thLOR = new thExecLOR(gDatos, lstSleepingProc.get(i).getParams());
+                                    thLOR.setName("thExecLOR-"+lstSleepingProc.get(i).getProcID());
+                                    gDatos.setStatusRunning(lstSleepingProc.get(i).getTypeProc());
+                                    thLOR.start();
+                                    break;
+                                case "FTP":
+                                    Thread thFTP = new thExecFTP(gDatos, lstSleepingProc.get(i).getParams());
+                                    thFTP.setName("thExecFTP-"+lstSleepingProc.get(i).getProcID());
+                                    gDatos.setStatusRunning(lstSleepingProc.get(i).getTypeProc());
+                                    thFTP.start();
+                                    break;
+                                default:
+                                    break;
+                            }
+                        } else {
+                            logger.warn("No hay Threads libres del proceso: "+ lstSleepingProc.get(i).getTypeProc() + " para ejecutar");
+                        }
+                    }
+                } else {
+                    logger.warn("No hay Threads libres del Servicio para ejecutar");
+                }
+            } else {
+                logger.info("No hay procesos pendientes para ejecutar");
             }
             
             /*
