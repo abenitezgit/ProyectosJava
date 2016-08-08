@@ -28,8 +28,17 @@ public class ServiceStatus {
     int numTotalExec;
     int numProcMax;
     int srvEnable;
+    int numThreadActives;
     Socket skCliente;
 
+    public int getNumThreadActives() {
+        return numThreadActives;
+    }
+
+    public void setNumThreadActives(int numThreadActives) {
+        this.numThreadActives = numThreadActives;
+    }
+    
     public int getNumProcRunning() {
         return numProcRunning;
     }

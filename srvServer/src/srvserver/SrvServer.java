@@ -39,6 +39,7 @@ public class SrvServer {
             if (gDatos.getServiceStatus().isSrvLoadParam()) {
                 Timer mainTimer = new Timer("thMain");
                 mainTimer.schedule(new mainTimerTask(), 2000, gDatos.getServiceInfo().getTxpMain());
+                logger.info("Agendando mainTimerTask cada "+gDatos.getServiceInfo().getTxpMain()+ " segundos...");
             } else {
                 logger.error("Error leyendo archivo de parametros");
             }
@@ -54,13 +55,6 @@ public class SrvServer {
         Thread thRunProc = new thRunProcess(gDatos);
         Thread thSocket = new thServerSocket(gDatos);
         Thread thKeep; // = new thKeepAliveSocket(gDatos);
-        Thread thOSP;
-        Thread thLOR;
-        Thread thMOV;
-        Thread thOTX;
-        Thread thFTP;
-        Thread thETL;
-        
         
         //Constructor de la clase
         public mainTimerTask() {
@@ -68,7 +62,7 @@ public class SrvServer {
         
         @Override
         public void run() {
-            logger.info(" Iniciando mainTimerTask....");
+            logger.info("Iniciando mainTimerTask.: "+gSub.getDateNow("yyyy-MM-dd HH:mm:ss"));
             
             /*
             Buscando Thread Activos
@@ -76,8 +70,9 @@ public class SrvServer {
                 boolean thServerFound=false;
                 boolean thKeepFound= false;
                 boolean thSubRunFound = false;
-                Thread tr = Thread.currentThread();
+                //Thread tr = Thread.currentThread();
                 Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+                System.out.println("TOTAL de Threads del Servicio: "+threadSet.size());
                 for ( Thread t : threadSet){
                     System.out.println("Thread :"+t+":"+"state:"+t.getState());
                     if (t.getName().equals("thServerSocket")) {
@@ -117,140 +112,52 @@ public class SrvServer {
             //
             try {
                 if (!gDatos.getServiceStatus().isIsSocketServerActive()) {
-                //if (!thSocket.isAlive()) {
-                    
                     thSocket.setName("thServerSocket");
                     gDatos.getServiceStatus().setIsSocketServerActive(true);
                     thSocket.start();
-                    logger.info(" Iniciando thSocket Server....normal...");
+                    logger.info(" Levantando thSocket Server....normal...");
                 } 
             } catch (Exception e) {
                 gDatos.getServiceStatus().setIsSocketServerActive(false);
                 System.out.println("Error. "+e.getMessage());
-                logger.error("no se ha podido levantar socket server "+ thSocket.getName());
+                logger.error("no se ha podido Levantar socket server "+ thSocket.getName());
             }
             
             //Levanta KeepAlive
             //
             try {
                 if (!gDatos.getServiceStatus().isIsKeepAliveActive()) {
-                //if (!thSocket.isAlive()) {
                     thKeep = new thKeepAliveSocket(gDatos);
                     thKeep.setName("thKeepAlive");
                     gDatos.getServiceStatus().setIsKeepAliveActive(true);
-                    logger.info(" Iniciando thread KeepAlive....normal...");
+                    logger.info(" Levantando thread KeepAlive....normal...");
                     thKeep.start();
                 } 
             } catch (Exception e) {
                 gDatos.getServiceStatus().setIsKeepAliveActive(false);
                 System.out.println("Error. "+e.getMessage());
-                logger.error("no se ha podido levantar thread: "+ thKeep.getName());
+                logger.error("no se ha podido Levantar thread: "+ thKeep.getName());
             }
 
             //Levanta thRunProcess Monitorearo por los Subprocesos del TimerTask
-            //
+            //TimerTask: thSubRunProcess
+            //Al Agendar el Thread principal Muere y queda solo el Hijo.
             try {
                 if (!gDatos.getServiceStatus().isIsSubRunProcActive()) {
                     thRunProc.setName("thRunProcess");
                     gDatos.getServiceStatus().setIsSubRunProcActive(true);
-                    logger.info(" Iniciando thread RunProcess....normal...");
+                    logger.info(" Agendando thread RunProcess....normal...");
                     thRunProc.start();
                 } 
             } catch (Exception e) {
                 gDatos.getServiceStatus().setIsSubRunProcActive(false);
                 System.out.println("Error. "+e.getMessage());
-                logger.error("no se ha podido levantar thread: "+ thRunProc.getName());
+                logger.error("no se ha podido Agendar thread: "+ thRunProc.getName());
             }
-
             
-            /*
-        private void ejecutaProcesos() {
-            String typeProc;
-            String procID;
-            String status;
-            JSONObject rowList;
-            JSONObject params;
-
-            //
-            //    Revisa la Lista poolProcess para ver si existen registros con estado enqued
-            //
-            int numProc = gDatos.getPoolProcess().size();
-            if (numProc>0) {
-                for (int i=0;i<numProc;i++) {
-                    //Lista de Procesos en pool de ejecucion
-                    //
-                    //Por cada proceso en pool validar si corresponde una ejecucion
-                    //
-                    try {
-                        rowList     = gDatos.getPoolProcess().get(i);   //Lee registro del pool de procesos ingresados como un JSONObject
-                        typeProc    = rowList.getString("typeProc");
-                        procID      = rowList.getString("procID");
-                        status      = rowList.getString("status");
-                        params      = rowList.getJSONObject("params");
-
-
-                        //
-                        //    Solo se tomaran acciones si el estado es queued (encolado)
-                        //
-                        if (status.equals("queued")) {
-                            //Valida si existen thread libres nivel de servicio
-                            //
-                            if (gDatos.isExistFreeThreadServices()) {
-                                //Valida si existen thread libres del type de proceso a ejecutar
-                                //
-                                if (gDatos.isExistFreeThreadProcess(typeProc)) {
-                                    //Actualiza Estadisticas del Proceso a ejecutar
-                                    //
-                                    //Actualiza status a estado Running
-                                    //
-                                    gDatos.getPoolProcess().get(i).put("status","Running");
-
-                                    //Atualiza Fecha de Inicio de Ejecución 
-                                    gDatos.getPoolProcess().get(i).put("startDate",gSub.getDateNow("yyyy-MM-dd HH:mm:ss"));
-
-                                    //Actualiza Lista assignedProcess
-                                    for (int j=0; j < gDatos.getAssignedTypeProc().size(); j++) {
-                                        if (gDatos.getAssignedTypeProc().get(j).getString("typeProc").equals(typeProc)) {
-                                            int usedThread = gDatos.getAssignedTypeProc().get(j).getInt("usedThread");
-                                            usedThread++;
-                                            gDatos.getAssignedTypeProc().get(j).put("usedThread", usedThread);
-                                        }
-                                    }
-
-                                    //Actualiza Datos Globales
-                                    gDatos.setNumProcExec(gDatos.getNumProcExec()+1);
-                                    gDatos.setNumTotalExec(gDatos.getNumTotalExec()+1);
-
-                                    switch (typeProc) {
-                                        case "OSP":
-                                            thOSP = new thExecOSP(gDatos, rowList);
-                                            thOSP.start();
-                                            break;
-                                        case "OTX":
-                                            thOTX = new thExecOTX(gDatos, rowList);
-                                            thOTX.start();
-                                            break;
-                                        default:
-                                            break;
-                                    }
-                                } else {
-                                    logger.info(" esperando Thread libres de Procesos...");
-                                }
-                            } else {
-                                logger.info(" esperando Thread libres de Srvicio...");
-                            }
-                        } else {
-                            logger.info(" no hay procesos status queued...");
-                        }
-                    } catch (Exception e) {
-                        logger.error(" Error desconocido..."+e.getMessage());
-                    }
-                    //gRutinas.sysOutln("in pool: "+gDatos.getPoolProcess().get(i).toString());
-                }
-            } else {
-                logger.info(" no hay procesos en pool de ejecucion...");
-            }
-*/
+            logger.info("Finalizando mainTimerTask.: "+gSub.getDateNow("yyyy-MM-dd HH:mm:ss"));
+            System.out.println(gDatos.getLstPoolProcess());
         }
+        
     }
 }

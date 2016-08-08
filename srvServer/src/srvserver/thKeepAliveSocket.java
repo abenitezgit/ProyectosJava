@@ -4,11 +4,18 @@
  * and open the template in the editor.
  */
 package srvserver;
+import dataClass.AssignedTypeProc;
 import utilities.globalAreaData;
 import java.io.* ; 
 import java.net.* ;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.htrace.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
+import static srvserver.SrvServer.gDatos;
 import utilities.srvRutinas;
 
 /**
@@ -28,7 +35,19 @@ public class thKeepAliveSocket extends Thread {
     
     @Override
     public void run() {
+                        System.out.println("paso");
+        
+                        ObjectMapper mapper2 = new ObjectMapper();
+                        AssignedTypeProc assignedTypeProc2 = new AssignedTypeProc();
 
+                        assignedTypeProc2.setTypeProc("OSP");
+                        assignedTypeProc2.setPriority(1);
+                        assignedTypeProc2.setMaxThread(2);
+                        
+                        //gDatos.getLstAssignedTypeProc().add(assignedTypeProc2);
+
+        
+        
         if (gDatos.getServiceStatus().isIsActivePrimaryMonHost()) {
             try {
                 Socket skCliente = new Socket(gDatos.getServiceInfo().getSrvMonHost(), gDatos.getServiceInfo().getMonPort());
@@ -54,14 +73,28 @@ public class thKeepAliveSocket extends Thread {
                         JSONObject jData = jHeader.getJSONObject("data");
                         //Como es una repsuesta no se espera retorno de error del SP
                         //el mismo lo resporta internamente si hay alguno.
-                        gSub.updateAssignedProcess(jData);
+                        //gSub.updateAssignedProcess(jData);
+
+                        ObjectMapper mapper = new ObjectMapper();
+                        AssignedTypeProc assignedTypeProc;
+
+                        JSONArray jArray = jData.getJSONArray("AssignedTypeProc");
+                        int numItems = jArray.length();
+
+                        gDatos.getLstAssignedTypeProc().clear();
+
+                        for (int i=0; i<numItems; i++) {
+                            assignedTypeProc = mapper.readValue(jArray.get(i).toString(), AssignedTypeProc.class);
+                            gDatos.getLstAssignedTypeProc().add(assignedTypeProc);
+                        }
+                        
                     } else {
                         if (jHeader.getString("result").equals("error")) {
                             JSONObject jData = jHeader.getJSONObject("data");
                             System.out.println("Error result: "+jData.getInt("errCode")+ " " +jData.getString("errMesg"));
                         }
                     }
-                } catch (Exception e) {
+                } catch (JSONException | IOException e) {
                     logger.error("Error en formato de respuesta");
                 }
             } catch (NumberFormatException | IOException e) {

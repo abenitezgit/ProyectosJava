@@ -5,6 +5,7 @@
  */
 package srvserver;
 
+import dataClass.PoolProcess;
 import java.util.Timer;
 import java.util.TimerTask;
 import org.apache.log4j.Logger;
@@ -17,27 +18,34 @@ import utilities.srvRutinas;
  * @author andresbenitez
  */
 public class thExecOSP extends Thread{
+    PoolProcess poolProcess = new PoolProcess();
     static srvRutinas gSub;
     static globalAreaData gDatos;
-    private JSONObject params = new JSONObject();
+    JSONObject params = new JSONObject();
     private String procID = null;
     Logger logger = Logger.getLogger("thExecOSP");
     
-    public thExecOSP(globalAreaData m, JSONObject rs) {
+    public thExecOSP(globalAreaData m, PoolProcess poolProcess) {
         gDatos = m;
         gSub = new srvRutinas(gDatos);
-        this.params = rs;
+        this.poolProcess = poolProcess;
+        this.params = poolProcess.getParams();
+        this.procID = poolProcess.getProcID();
     }
     
     @Override
     public void run() {
-        logger.info("Ejecutando OSP");
+        logger.info("Ejecutando OSP: "+procID);
+        
+        /*
+        Actualiza Proceso en Estado Running
+        */
         
         //Recuperando los parametros de entrada
         String hostName;
         String ospName;
 
-        Timer t1 = new Timer();
+        Timer t1 = new Timer("thSubOSP");
         t1.schedule(new task(), 40000);
        
     
@@ -52,8 +60,7 @@ public class thExecOSP extends Thread{
             
             //Actualiza estado de termino del proceso
             //
-            
-            
+            gDatos.setStatusFinished(poolProcess);
 
         }
     }

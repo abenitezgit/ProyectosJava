@@ -172,7 +172,7 @@ public class srvRutinas {
         }
     }
     
-    public void updateAssignedProcess(JSONObject jData) {
+    public synchronized void updateAssignedProcess(JSONObject jData) {
         try {
             ObjectMapper mapper = new ObjectMapper();
             List<AssignedTypeProc> lstAssignedTypeProc = new ArrayList<>();
@@ -181,12 +181,14 @@ public class srvRutinas {
             JSONArray jArray = jData.getJSONArray("AssignedTypeProc");
             int numItems = jArray.length();
             
+            gDatos.getLstAssignedTypeProc().clear();
+            
             for (int i=0; i<numItems; i++) {
                 assignedTypeProc = mapper.readValue(jArray.get(i).toString(), AssignedTypeProc.class);
-                lstAssignedTypeProc.add(assignedTypeProc);
+                gDatos.getLstAssignedTypeProc().add(assignedTypeProc);
             }
-                        
-            gDatos.setLstAssignedTypeProc(lstAssignedTypeProc);
+              
+            //gDatos.setLstAssignedTypeProc(lstAssignedTypeProc);
             
         } catch (JSONException | IOException e) {
             sysOutln("Error: " + e.getMessage());
