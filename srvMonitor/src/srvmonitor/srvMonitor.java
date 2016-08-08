@@ -15,6 +15,7 @@ import java.util.TimerTask;
 import java.util.logging.Level;
 import utilities.srvRutinas;
 import org.apache.log4j.Logger;
+import utilities.oracleDB;
 
 /**
  *
@@ -55,6 +56,7 @@ public class srvMonitor {
     }
     
     static class mainTimerTask extends TimerTask {
+        oracleDB oraConn = new oracleDB("oradb01", "oratest", "1521", "process", "proc01");
         
         //Declare los Thread de cada proceso
         //
@@ -70,6 +72,7 @@ public class srvMonitor {
         public void run() { 
             logger.info("Ejecutando MainTimerTask...");
             
+            
             /*
             Buscando Thread Activos
             */
@@ -77,9 +80,9 @@ public class srvMonitor {
                 boolean thKeepFound= false;
                 boolean thAgendaFound = false;
                 boolean thSubKeepFound = false;
-                Thread tr = Thread.currentThread();
+                //Thread tr = Thread.currentThread();
                 Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
-                System.out.println("Current Thread: "+tr.getName()+" ID: "+tr.getId());
+                //System.out.println("Current Thread: "+tr.getName()+" ID: "+tr.getId());
                 for ( Thread t : threadSet){
                     System.out.println("Thread :"+t+":"+"state:"+t.getState()+" ID: "+t.getId());
                     if (t.getName().equals("thMonitorSocket")) {
@@ -146,7 +149,6 @@ public class srvMonitor {
             //
             try {
                 if (!gDatos.getServerStatus().isIsKeepAliveActive()) {
-                //if (!thSocket.isAlive()) {
                     thKeep = new thKeepAliveServices(gDatos);
                     thKeep.setName("thKeepAlive");
                     System.out.println(thKeep.getId());
@@ -163,22 +165,16 @@ public class srvMonitor {
             //Establece Conexión a Metadata
             if (!gDatos.getServerStatus().isIsMetadataConnect()) {
                 if (gDatos.getServerInfo().getDbType().equals("ORA")) {
-                    try {
-                        Class.forName(gDatos.getServerInfo().getDriver());
-                        //isMetadataConnect = true;
-                    } catch (ClassNotFoundException ex) {
-                        logger.error(ex.getMessage());
-                    }
-                    try {
-                        DriverManager.setLoginTimeout(5);
-                        gDatos.getServerStatus().setMetadataConnection(DriverManager.getConnection(gDatos.getServerInfo().getConnString(), gDatos.getServerInfo().getDbOraUser(), gDatos.getServerInfo().getDbOraPass()));
+                    
+                    oraConn.conectar();
+
+                    if (oraConn.getConnStatus()) {
                         gDatos.getServerStatus().setIsMetadataConnect(true);
                         logger.info("conectado a metadata ORA...");
-                    } catch (SQLException ex) {
-                        logger.error("no es posible conectarse a metadata..."+ ex.getMessage());
+                    } else {
+                        logger.error("no es posible conectarse a metadata...");
                         gDatos.getServerStatus().setIsMetadataConnect(false);
                     }
-                
                 }
                 if (gDatos.getServerInfo().getDbType().equals("SQL")) {
                     try {

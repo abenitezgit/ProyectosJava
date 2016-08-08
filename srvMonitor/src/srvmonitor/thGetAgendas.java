@@ -5,6 +5,7 @@
  */
 package srvmonitor;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -12,11 +13,13 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
+import java.util.logging.Level;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import utilities.globalAreaData;
+import utilities.oracleDB;
 
 /**
  *
@@ -24,12 +27,20 @@ import utilities.globalAreaData;
  */
 public class thGetAgendas extends Thread{
     static globalAreaData gDatos;
+    oracleDB oraConn = new oracleDB();
     
 //Carga Clase log4
     static Logger logger = Logger.getLogger("thGetAgendas");   
     
     public thGetAgendas(globalAreaData m) {
         gDatos = m;
+        oraConn.setDbName("oratest");
+        oraConn.setHostIp("oradb01");
+        oraConn.setDbUser("process");
+        oraConn.setDbPass("proc01");
+        oraConn.setDbPort("1521");
+        
+        oraConn.conectar();
     }
     
     @Override
@@ -85,6 +96,7 @@ public class thGetAgendas extends Thread{
         String iteratorHour;
         String iteratorMinute;
         Statement stm;
+        Connection conn;
         JSONObject jData;
         JSONObject jDataMinute;
         JSONArray jArray = new JSONArray();
@@ -92,11 +104,14 @@ public class thGetAgendas extends Thread{
         String posIteratorHour;
         String posIteratorMinute;
         
+        
         /*
         Inicializa Lista de Agendas
         */
         gDatos.getLstShowAgendas().clear();
         gDatos.getLstActiveAgendas().clear();
+        
+        
         
         for (int i=-findHour; i<=findHour; i++) {
             iteratorCalendar = new GregorianCalendar(tz);
@@ -114,24 +129,24 @@ public class thGetAgendas extends Thread{
                     + "     and substr(hourOfDay,"+posIteratorHour +",1) = '1'";
             logger.debug("i: "+i+" vSQL: "+vSQL);
             try {
-                stm = gDatos.getServerStatus().getMetadataConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+                //stm = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
                 jData = new JSONObject();
 
-                ResultSet rs = stm.executeQuery(vSQL);
-                if (rs!=null) {
-                    while (rs.next()) {
-                        jData = new JSONObject();
-                        jData.put("horaAgenda", rs.getString("horaAgenda"));
-                        jData.put("ageID", rs.getString("ageID"));
-                        jData.put("month", rs.getString("month"));
-                        jData.put("dayOfMonth", rs.getString("dayOfMonth"));
-                        jData.put("weekOfYear", rs.getString("weekOfYear"));
-                        jData.put("weekOfMonth", rs.getString("weekOfMonth"));
-                        jData.put("hourOfDay", rs.getString("hourOfDay"));
-                        jArray.put(jData);
-                        gDatos.getLstShowAgendas().add(jData);
-                    }
-                } else {
+                try (ResultSet rs = oraConn.consultar(vSQL)) {
+                    if (rs!=null) {
+                        while (rs.next()) {
+                            jData = new JSONObject();
+                            jData.put("horaAgenda", rs.getString("horaAgenda"));
+                            jData.put("ageID", rs.getString("ageID"));
+                            jData.put("month", rs.getString("month"));
+                            jData.put("dayOfMonth", rs.getString("dayOfMonth"));
+                            jData.put("weekOfYear", rs.getString("weekOfYear"));
+                            jData.put("weekOfMonth", rs.getString("weekOfMonth"));
+                            jData.put("hourOfDay", rs.getString("hourOfDay"));
+                            jArray.put(jData);
+                            gDatos.getLstShowAgendas().add(jData);
+                        }
+                    } else {
                         jData.put("horaAgenda", iteratorHour);
                         jData.put("ageID", "");
                         jData.put("month", "");
@@ -141,9 +156,10 @@ public class thGetAgendas extends Thread{
                         jData.put("hourOfDay", "");
                         jArray.put(jData);
                         gDatos.getLstShowAgendas().add(jData);
-                    System.out.println("No hay registros");
+                        System.out.println("No hay registros");
+                    }
+                    rs.close();
                 }
-                stm.close();
             } catch (SQLException | JSONException e) {
                 logger.error(e.getMessage());
             }
@@ -171,24 +187,23 @@ public class thGetAgendas extends Thread{
                     + "     and substr(minute,"+posIteratorMinute +",1) = '1'";
             logger.debug("i: "+i+" vSQL: "+vSQL);
             try {
-                stm = gDatos.getServerStatus().getMetadataConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-
-                ResultSet rs = stm.executeQuery(vSQL);
-                if (rs!=null) {
-                    while (rs.next()) {
-                        jDataMinute = new JSONObject();
-                        jDataMinute.put("horaAgenda", rs.getString("horaAgenda"));
-                        jDataMinute.put("ageID", rs.getString("ageID"));
-                        jDataMinute.put("month", rs.getString("month"));
-                        jDataMinute.put("dayOfMonth", rs.getString("dayOfMonth"));
-                        jDataMinute.put("weekOfYear", rs.getString("weekOfYear"));
-                        jDataMinute.put("weekOfMonth", rs.getString("weekOfMonth"));
-                        jDataMinute.put("hourOfDay", rs.getString("hourOfDay"));
-                        jArrayMinute.put(jDataMinute);
-                        gDatos.getLstActiveAgendas().add(jDataMinute);
+                try (ResultSet rs = oraConn.consultar(vSQL)) {
+                    if (rs!=null) {
+                        while (rs.next()) {
+                            jDataMinute = new JSONObject();
+                            jDataMinute.put("horaAgenda", rs.getString("horaAgenda"));
+                            jDataMinute.put("ageID", rs.getString("ageID"));
+                            jDataMinute.put("month", rs.getString("month"));
+                            jDataMinute.put("dayOfMonth", rs.getString("dayOfMonth"));
+                            jDataMinute.put("weekOfYear", rs.getString("weekOfYear"));
+                            jDataMinute.put("weekOfMonth", rs.getString("weekOfMonth"));
+                            jDataMinute.put("hourOfDay", rs.getString("hourOfDay"));
+                            jArrayMinute.put(jDataMinute);
+                            gDatos.getLstActiveAgendas().add(jDataMinute);
+                        }
                     }
+                    rs.close();
                 }
-                stm.close();
             } catch (SQLException | JSONException e) {
                 logger.error(e.getMessage());
             }
@@ -205,5 +220,11 @@ public class thGetAgendas extends Thread{
 
 
         logger.info("Finaliza busquenda agendas activas...");
+        
+        try {
+            oraConn.closeConexion();
+        } catch (SQLException ex) {
+            java.util.logging.Logger.getLogger(thGetAgendas.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 }

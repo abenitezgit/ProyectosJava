@@ -25,17 +25,28 @@ public class oracleDB {
     static int FilasAfectadas;
     static int FilasConsultadas;
     
-    static String v_dbName;
-    static String v_hostIP;
-    static String v_dbPort;
-    static String v_dbUser;
-    static String v_dbPass;
+    String v_dbName;
+    String v_hostIP;
+    String v_dbPort;
+    String v_dbUser;
+    String v_dbPass;
     static boolean connStatus;
     static String connErrMesg;
     static int vLoginTimeout=2;
     static String vSQLError;
 
-
+    public oracleDB() {
+    
+    }
+    
+    public oracleDB(String vHost, String dbName, String dbPort, String dbUser, String dbPass) {
+        this.v_hostIP = vHost;
+        this.v_dbName = dbName;
+        this.v_dbPort = dbPort;
+        this.v_dbUser = dbUser;
+        this.v_dbPass = dbPass;
+    }
+    
     
     /*
     Para organizar el código crearemos el get y set de conexion además del método 

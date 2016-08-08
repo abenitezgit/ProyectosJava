@@ -10,7 +10,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -225,34 +224,39 @@ public class srvRutinas {
     }
                   
     public int getMDprocAssigned() throws SQLException, IOException {
+        oracleDB oraConn = new oracleDB("oradb01", "oratest", "1521", "process", "proc01");
         JSONArray ja;
         JSONObject jo = new JSONObject();
         ObjectMapper mapper = new ObjectMapper();
         ServiceStatus serviceStatus;
         
         try {
+            oraConn.conectar();
+            
             String vSQL = "select srvID, srvDesc, srvEnable, srvTypeProc "
                     + "     from process.tb_services"
                     + "     order by srvID";
-            Statement stm;
-            stm = gDatos.getServerStatus().getMetadataConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-            ResultSet rs = stm.executeQuery(vSQL);
-            if (rs!=null) {
-                while (rs.next()) {
-                          
-                    ja = new JSONArray(rs.getString("srvTypeProc"));
-                    jo.put("lstAssignedTypeProc", ja);
-                    jo.put("srvID", rs.getString("srvID"));
-                    jo.put("srvEnable", rs.getInt("srvEnable"));
-                    
-                    serviceStatus = mapper.readValue(jo.toString(), ServiceStatus.class);
-                    
-                    gDatos.updateLstServiceStatus(serviceStatus);
-                    //gDatos.getLstServiceStatus().add(serviceStatus);
+            try (ResultSet rs = oraConn.consultar(vSQL)) {
+                if (rs!=null) {
+                    while (rs.next()) {
+                        
+                        ja = new JSONArray(rs.getString("srvTypeProc"));
+                        jo.put("lstAssignedTypeProc", ja);
+                        jo.put("srvID", rs.getString("srvID"));
+                        jo.put("srvEnable", rs.getInt("srvEnable"));
+                        
+                        serviceStatus = mapper.readValue(jo.toString(), ServiceStatus.class);
+                        
+                        gDatos.updateLstServiceStatus(serviceStatus);
+                        //gDatos.getLstServiceStatus().add(serviceStatus);
+                    }
                 }
+                mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
+                sysOutln(mapper.writeValueAsString(gDatos.getLstServiceStatus()));
+                rs.close();
             }
-            mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
-            sysOutln(mapper.writeValueAsString(gDatos.getLstServiceStatus()));
+            
+            oraConn.closeConexion();
         
             return 0;
         } catch (SQLException | JSONException e) {

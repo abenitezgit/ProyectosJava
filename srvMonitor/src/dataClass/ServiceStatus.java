@@ -30,11 +30,20 @@ public class ServiceStatus {
     int numTotalExec;
     int numProcMax;
     int srvEnable;
+    int numThreadActives;
     Socket skCliente;
     
     List<AssignedTypeProc> lstAssignedTypeProc = new ArrayList<>();
     List<ActiveTypeProc> lstActiveTypeProc = new ArrayList<>();
 
+    public int getNumThreadActives() {
+        return numThreadActives;
+    }
+
+    public void setNumThreadActives(int numThreadActives) {
+        this.numThreadActives = numThreadActives;
+    }
+    
     public boolean isIsSubRunProcActive() {
         return isSubRunProcActive;
     }
