@@ -6,8 +6,6 @@
 package srvserver;
 
 import dataClass.PoolProcess;
-import java.util.Timer;
-import java.util.TimerTask;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import utilities.globalAreaData;
@@ -36,38 +34,11 @@ public class thExecOSP extends Thread{
     @Override
     public void run() {
         logger.info("Ejecutando OSP: "+procID);
+                
         
-        /*
-        Actualiza Proceso en Estado Running
-        */
-        
-        //Recuperando los parametros de entrada
-        String hostName;
-        String ospName;
-
-        Timer t1 = new Timer("thSubOSP");
-        t1.schedule(new task(), 40000);
-       
+        gDatos.setStatusFinished(poolProcess);
     
     }
-    
-    class task extends TimerTask {
-    
-        
-        @Override
-        public void run() {
-            logger.info("task executed...");
-            
-            //Actualiza estado de termino del proceso
-            //
-            gDatos.setStatusFinished(poolProcess);
-
-        }
-    }
-    
-    //Rutinas internas de Control
-    //
-    
     
     
 }

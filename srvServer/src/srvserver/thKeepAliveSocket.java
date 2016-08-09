@@ -8,14 +8,11 @@ import dataClass.AssignedTypeProc;
 import utilities.globalAreaData;
 import java.io.* ; 
 import java.net.* ;
-import java.util.ArrayList;
-import java.util.List;
-import org.apache.htrace.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.log4j.Logger;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import static srvserver.SrvServer.gDatos;
 import utilities.srvRutinas;
 
 /**

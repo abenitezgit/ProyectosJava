@@ -19,6 +19,7 @@ import javax.management.ObjectName;
 import org.apache.htrace.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.htrace.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.log4j.Logger;
+import org.codehaus.jackson.map.SerializationConfig;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -278,4 +279,18 @@ public class srvRutinas {
             return sendError(99, e.getMessage());
         }
     }
+    
+    public String serializeObjectToJSon (Object object, boolean formated) throws IOException {
+        org.codehaus.jackson.map.ObjectMapper mapper = new org.codehaus.jackson.map.ObjectMapper();
+        
+        mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, formated);
+        
+        return mapper.writeValueAsString(object);
+    }
+    
+    public Object serializeJSonString (String parseJson, Class className) throws IOException {
+        org.codehaus.jackson.map.ObjectMapper mapper = new org.codehaus.jackson.map.ObjectMapper();
+        
+        return mapper.readValue(parseJson, className);
+    }    
 }

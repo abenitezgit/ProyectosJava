@@ -10,7 +10,11 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Level;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.apache.log4j.Logger;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.map.SerializationConfig;
 import utilities.srvRutinas;
 
 /**
@@ -156,7 +160,15 @@ public class SrvServer {
             }
             
             logger.info("Finalizando mainTimerTask.: "+gSub.getDateNow("yyyy-MM-dd HH:mm:ss"));
-            System.out.println(gDatos.getLstPoolProcess());
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
+            try {
+                System.out.println(mapper.writeValueAsString(gDatos.getLstPoolProcess()));
+            } catch (JsonProcessingException ex) {
+                java.util.logging.Logger.getLogger(SrvServer.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                java.util.logging.Logger.getLogger(SrvServer.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         
     }
