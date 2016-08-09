@@ -20,8 +20,6 @@ public class thMonitorSocket extends Thread {
     static srvRutinas gSub;
     static globalAreaData gDatos;
     static boolean isSocketActive;
-    static String errNum;
-    static String errDesc;
     Logger logger = Logger.getLogger("thServerSocket");
     
     //Carga constructor para inicializar los datos

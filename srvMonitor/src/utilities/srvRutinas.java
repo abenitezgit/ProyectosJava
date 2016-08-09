@@ -8,7 +8,6 @@ import dataClass.ServiceStatus;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -34,6 +33,7 @@ public class srvRutinas {
     public void sysOutln(Object obj) {
         System.out.println(obj);
     }
+    
     
     public String getDateNow(String xformat) {
         try {
@@ -263,5 +263,19 @@ public class srvRutinas {
             sysOutln(e.getMessage());
             return 1;
         }
+    }
+    
+    public String serializeObjectToJSon (Object object, boolean formated) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        
+        mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, formated);
+        
+        return mapper.writeValueAsString(object);
+    }
+    
+    public Object serializeJSonString (String parseJson, Class className) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        
+        return mapper.readValue(parseJson, className);
     }
 }
