@@ -6,20 +6,13 @@
 package srvmonitor;
 
 import dataClass.Agenda;
-import java.io.IOException;
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
-import java.util.logging.Level;
 import org.apache.log4j.Logger;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import utilities.globalAreaData;
 import utilities.srvRutinas;
 
@@ -187,7 +180,7 @@ public class thGetAgendas extends Thread{
                     }
                     rs.close();
                 }
-            } catch (SQLException | JSONException e) {
+            } catch (SQLException e) {
                 logger.error(e.getMessage());
             }
         }

@@ -7,15 +7,11 @@ package srvmonitor;
 
 import utilities.globalAreaData;
 import java.io.IOException;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.logging.Level;
 import utilities.srvRutinas;
 import org.apache.log4j.Logger;
-import utilities.oracleDB;
 
 /**
  *
