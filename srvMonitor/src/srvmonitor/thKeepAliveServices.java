@@ -8,6 +8,7 @@ import utilities.globalAreaData;
 import java.net.* ;
 import java.util.Timer;
 import java.util.TimerTask;
+import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import utilities.srvRutinas;
 
@@ -18,7 +19,7 @@ import utilities.srvRutinas;
 public class thKeepAliveServices extends Thread {
     static srvRutinas gSub;
     static globalAreaData gDatos;
-    static String CLASS_NAME = "thKeepAliveSocket";
+    static Logger logger = Logger.getLogger("thKeepAliveServices");
     
     //Carga constructor para inicializar los datos
     public thKeepAliveServices(globalAreaData m) {
@@ -29,12 +30,9 @@ public class thKeepAliveServices extends Thread {
         
     @Override
     public void run() {
-        Thread tr = Thread.currentThread();
-        System.out.println("Current Thread KeepAlive: "+tr.getName()+ " ID: "+tr.getId());
-        
-        
         Timer timerMain = new Timer("thSubKeep");
         timerMain.schedule(new mainKeepTask(), 1000, 10000);
+        logger.info("Se ha agendado thKeepAlive cada 10 segundos");
     }
     
     
@@ -45,13 +43,23 @@ public class thKeepAliveServices extends Thread {
 
         @Override
         public void run() {
+            /**
+             * Valida Conexion a MetaData
+             */
+            try {
+                MetaData metadata = new MetaData(gDatos);
+            } catch (Exception e) {
+                logger.error("No se ha podido validar conexion a MetaData.."+e.getMessage());
+            }
+            
+            
             /*
                 Recupera los servicios registrados en lista "serviceStatus"
             */
             
             JSONObject jData;
             int numServices = gDatos.getLstServiceStatus().size();
-            System.out.println("Inicia thKeepAlive");
+            logger.info("Inicia thKeepAlive...");
             
             if (numServices>0) {
                 /*
@@ -65,12 +73,13 @@ public class thKeepAliveServices extends Thread {
                 
                 }
             } else {
-                System.out.println("Warning: No hay servicios por monitorear...");
+                logger.warn("Aun no hay servicios registrados para monitorear...");
             }
             
             Socket skCliente;
             String response;
             String dataSend;
+            logger.info("Finaliza thKeepAlive...");
         }
     }
 }

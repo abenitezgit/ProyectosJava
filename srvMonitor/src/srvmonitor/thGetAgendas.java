@@ -6,12 +6,14 @@
 package srvmonitor;
 
 import dataClass.Agenda;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
+import java.util.logging.Level;
 import org.apache.log4j.Logger;
 import utilities.globalAreaData;
 import utilities.srvRutinas;
@@ -119,6 +121,7 @@ public class thGetAgendas extends Thread{
                             agenda.setHourOfDay(rs.getString("hourOfDay"));
                             gDatos.getLstShowAgendas().add(agenda);
                         }
+                        rs.close();
                     } else {
                         agenda = new Agenda();
                         agenda.setHoraAgenda(iteratorHour);
@@ -130,7 +133,6 @@ public class thGetAgendas extends Thread{
                         agenda.setHourOfDay("");
                         gDatos.getLstShowAgendas().add(agenda);
                     }
-                    rs.close();
                 }            
             } catch (SQLException e) {
                 logger.error(e.getMessage());
@@ -177,15 +179,20 @@ public class thGetAgendas extends Thread{
                             agenda.setHourOfDay(rs.getString("hourOfDay"));
                             gDatos.getLstActiveAgendas().add(agenda);
                         }
+                        rs.close();
                     }
-                    rs.close();
                 }
             } catch (SQLException e) {
                 logger.error(e.getMessage());
             }
         }
         
-        logger.info("Se encontraron: "+gDatos.getLstActiveAgendas()+" Aegndas para Activar...");
+        logger.info("Se encontraron: "+gDatos.getLstActiveAgendas().size()+" Agendas para Activar...");
+        try {
+            logger.info("Agendas activas: "+gSub.serializeObjectToJSon(gDatos.getLstActiveAgendas(), true));
+        } catch (IOException ex) {
+            java.util.logging.Logger.getLogger(thGetAgendas.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
         logger.info("Finaliza busquenda agendas activas...");
         

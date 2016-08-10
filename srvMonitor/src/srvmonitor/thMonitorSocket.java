@@ -7,6 +7,8 @@ package srvmonitor;
 import utilities.globalAreaData;
 import java.io.* ; 
 import java.net.* ;
+import java.sql.SQLException;
+import java.util.logging.Level;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -35,7 +37,7 @@ public class thMonitorSocket extends Thread {
             logger.info("Starting Listener Thread Monitor Server port: " + gDatos.getServerInfo().getSrvPort());
             ServerSocket skServidor = new ServerSocket(gDatos.getServerInfo().getSrvPort());
             String inputData;
-            String outputData;
+            String outputData = null;
             String dRequest;
             String dAuth;
             JSONObject jHeader;
@@ -92,6 +94,8 @@ public class thMonitorSocket extends Thread {
                     }
                 } catch (IOException | JSONException e) {
                     outputData = gSub.sendError(90);
+                } catch (SQLException ex) {
+                    java.util.logging.Logger.getLogger(thMonitorSocket.class.getName()).log(Level.SEVERE, null, ex);
                 }
                      
                 //Envia Respuesta

@@ -11,11 +11,13 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import srvmonitor.MetaData;
 
 /**
  *
@@ -23,6 +25,7 @@ import org.json.JSONObject;
  */
 public class srvRutinas {
     globalAreaData gDatos;
+    Logger logger = Logger.getLogger("srvRutinas");
     
     //Constructor de la clase
     //
@@ -151,11 +154,14 @@ public class srvRutinas {
         
     public int updateStatusService(JSONObject jData) {
         try {
-            ObjectMapper mapper = new ObjectMapper();
+            //ObjectMapper mapper = new ObjectMapper();
             ServiceStatus serviceStatus;
             List<AssignedTypeProc> lstAssignedTypeProc;
             
-            serviceStatus = mapper.readValue(jData.toString(), ServiceStatus.class);
+            //serviceStatus = mapper.readValue(jData.toString(), ServiceStatus.class);
+            
+            serviceStatus = (ServiceStatus) serializeJSonString(jData.toString(), ServiceStatus.class);
+            
             int numItems = gDatos.getLstServiceStatus().size();
             boolean itemFound = false;
             
@@ -172,35 +178,40 @@ public class srvRutinas {
                 gDatos.getLstServiceStatus().add(serviceStatus);
             }
             
+            logger.info("Se genera lista serviceStatus: "+ serializeObjectToJSon(gDatos.getLstServiceStatus(), true));
+            
             return 0;
         } catch (JSONException | IOException e) {
             return 1;
         }
     }
     
-    public String sendAssignedProc(String srvID) {
+    public String sendAssignedProc(String srvID) throws SQLException {
         try {
             List<AssignedTypeProc> lstAssignedTypeProc = null;
-            
             JSONObject jData = new JSONObject();
             JSONObject jHeader = new JSONObject();
+
+            int exitCode = getMDprocAssigned();
             
-            ObjectMapper mapper = new ObjectMapper();
+            if (exitCode!=0) {
+                logger.warn("No es posible conectarse a la Metdata para extraer los Procesos Asignados..se utilizará lista actual.");
+            } 
             
             int numItems = gDatos.getLstServiceStatus().size();
-            
+
             for (int i=0; i<numItems; i++) {
                 if (gDatos.getLstServiceStatus().get(i).getSrvID().equals(srvID)) {
                     lstAssignedTypeProc = gDatos.getLstServiceStatus().get(i).getLstAssignedTypeProc();
                 }
-            
             }
             
-            JSONArray assignedTypeProc = new JSONArray(mapper.writeValueAsString(lstAssignedTypeProc));
+            JSONArray assignedTypeProc = new JSONArray(serializeObjectToJSon(lstAssignedTypeProc, false));
 
             jData.put("AssignedTypeProc", assignedTypeProc);
             jHeader.put("data",jData);
             jHeader.put("result", "OK");
+            
             return jHeader.toString();
         } catch (IOException | JSONException e) {
             return sendError(1,e.getMessage());
@@ -224,19 +235,16 @@ public class srvRutinas {
     }
                   
     public int getMDprocAssigned() throws SQLException, IOException {
-        oracleDB oraConn = new oracleDB("oradb01", "oratest", "1521", "process", "proc01");
-        JSONArray ja;
-        JSONObject jo = new JSONObject();
-        ObjectMapper mapper = new ObjectMapper();
-        ServiceStatus serviceStatus;
-        
         try {
-            oraConn.conectar();
-            
+            MetaData metadata = new MetaData(gDatos);
+            JSONArray ja;
+            JSONObject jo = new JSONObject();
+            ServiceStatus serviceStatus;
+        
             String vSQL = "select srvID, srvDesc, srvEnable, srvTypeProc "
                     + "     from process.tb_services"
                     + "     order by srvID";
-            try (ResultSet rs = oraConn.consultar(vSQL)) {
+            try (ResultSet rs = (ResultSet) metadata.getQuery(vSQL)) {
                 if (rs!=null) {
                     while (rs.next()) {
                         
@@ -245,22 +253,18 @@ public class srvRutinas {
                         jo.put("srvID", rs.getString("srvID"));
                         jo.put("srvEnable", rs.getInt("srvEnable"));
                         
-                        serviceStatus = mapper.readValue(jo.toString(), ServiceStatus.class);
+                        serviceStatus = (ServiceStatus) serializeJSonString(jo.toString(), ServiceStatus.class);
                         
                         gDatos.updateLstServiceStatus(serviceStatus);
-                        //gDatos.getLstServiceStatus().add(serviceStatus);
                     }
                 }
-                mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
-                sysOutln(mapper.writeValueAsString(gDatos.getLstServiceStatus()));
                 rs.close();
             }
-            
-            oraConn.closeConexion();
+            metadata.closeConnection();
         
             return 0;
         } catch (SQLException | JSONException e) {
-            sysOutln(e.getMessage());
+            logger.error("Error recuperando Procesos Asignados. "+ e.getMessage());
             return 1;
         }
     }

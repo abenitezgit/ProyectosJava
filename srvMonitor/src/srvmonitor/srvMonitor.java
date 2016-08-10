@@ -52,12 +52,9 @@ public class srvMonitor {
     }
     
     static class mainTimerTask extends TimerTask {
-        //MetaData metadata = new MetaData(gDatos);
-        //oracleDB oraConn = new oracleDB("oradb01", "oratest", "1521", "process", "proc01");
-        
         //Declare los Thread de cada proceso
         //
-        Thread thSocket = new thMonitorSocket(gDatos);
+        Thread thSocket;
         Thread thKeep;
         Thread thAgendas;
         
@@ -128,7 +125,7 @@ public class srvMonitor {
             try {
                 if (!gDatos.getServerStatus().isIsSocketServerActive()) {
                 //if (!thSocket.isAlive()) {
-                    
+                    thSocket = new thMonitorSocket(gDatos);
                     thSocket.setName("thMonitorSocket");
                     gDatos.getServerStatus().setIsSocketServerActive(true);
                     thSocket.start();
@@ -136,8 +133,7 @@ public class srvMonitor {
                 } 
             } catch (Exception e) {
                 gDatos.getServerStatus().setIsSocketServerActive(false);
-                //System.out.println("Error. "+e.getMessage());
-                logger.error("Error al Iniciar socket monitor server "+ thSocket.getName());
+                logger.error("Error al Iniciar socket monitor server "+ thSocket.getName() + " : "+e.getMessage());
             }
             
             //Levanta KeepAlive
@@ -157,20 +153,24 @@ public class srvMonitor {
                 logger.error("Error al Iniciar thread: "+ thKeep.getName());
             }
             
-            //Levanta Thread Busca Agendas Activas
-            //
-            try {
-                if (!gDatos.getServerStatus().isIsGetAgendaActive()) {
-                    thAgendas = new thGetAgendas(gDatos);  
-                    thAgendas.setName("thGetAgendas");
-                    gDatos.getServerStatus().setIsGetAgendaActive(true);
-                    thAgendas.start();
-                    logger.info(" Iniciando thGetAgendas....normal...");
-                } 
-            } catch (Exception e) {
-                gDatos.getServerStatus().setIsGetAgendaActive(false);
-                //System.out.println("Error. "+e.getMessage());
-                logger.error("Error al Iniciar Thread Agendas "+ thAgendas.getName());
+            if (gDatos.getServerStatus().isIsMetadataConnect()) {
+                //Levanta Thread Busca Agendas Activas
+                //
+                try {
+                    if (!gDatos.getServerStatus().isIsGetAgendaActive()) {
+                        thAgendas = new thGetAgendas(gDatos);  
+                        thAgendas.setName("thGetAgendas");
+                        gDatos.getServerStatus().setIsGetAgendaActive(true);
+                        thAgendas.start();
+                        logger.info(" Iniciando thGetAgendas....normal...");
+                    } 
+                } catch (Exception e) {
+                    gDatos.getServerStatus().setIsGetAgendaActive(false);
+                    //System.out.println("Error. "+e.getMessage());
+                    logger.error("Error al Iniciar Thread Agendas "+ thAgendas.getName());
+                }
+            } else {
+                logger.warn("Aun no es posble conectarse a MetaData...");
             }
         }
     }

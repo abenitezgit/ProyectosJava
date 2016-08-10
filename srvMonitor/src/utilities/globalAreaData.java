@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
-import org.json.JSONObject;
 
 /**
  *
@@ -156,7 +155,7 @@ public class globalAreaData {
             Date today;
             SimpleDateFormat formatter;
             formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            System.out.println(formatter.getTimeZone());
+            //System.out.println(formatter.getTimeZone());
             today = new Date();
             
             serverStatus.setSrvStartTime(formatter.format(today));
