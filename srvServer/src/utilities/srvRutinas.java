@@ -55,7 +55,7 @@ public class srvRutinas {
             Date today;
             SimpleDateFormat formatter;
             formatter = new SimpleDateFormat(xformat);
-            System.out.println(formatter.getTimeZone());
+            //System.out.println(formatter.getTimeZone());
             today = new Date();
             return formatter.format(today);  
         } catch (Exception e) {
@@ -175,8 +175,6 @@ public class srvRutinas {
     
     public synchronized void updateAssignedProcess(JSONObject jData) {
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            List<AssignedTypeProc> lstAssignedTypeProc = new ArrayList<>();
             AssignedTypeProc assignedTypeProc;
             
             JSONArray jArray = jData.getJSONArray("AssignedTypeProc");
@@ -185,14 +183,19 @@ public class srvRutinas {
             gDatos.getLstAssignedTypeProc().clear();
             
             for (int i=0; i<numItems; i++) {
-                assignedTypeProc = mapper.readValue(jArray.get(i).toString(), AssignedTypeProc.class);
+                assignedTypeProc = (AssignedTypeProc) serializeJSonString(jArray.get(i).toString(), AssignedTypeProc.class);
                 gDatos.getLstAssignedTypeProc().add(assignedTypeProc);
             }
               
-            //gDatos.setLstAssignedTypeProc(lstAssignedTypeProc);
+            int numItemsList = gDatos.getLstAssignedTypeProc().size();
+            if (numItemsList>0) {
+                gDatos.getServiceStatus().setIsAssignedTypeProc(true);
+            } else {
+                gDatos.getServiceStatus().setIsAssignedTypeProc(false);
+            }
             
         } catch (JSONException | IOException e) {
-            sysOutln("Error: " + e.getMessage());
+            logger.error("Error actualizando Asignacion de Procesos: " + e.getMessage());
         }
     }
     

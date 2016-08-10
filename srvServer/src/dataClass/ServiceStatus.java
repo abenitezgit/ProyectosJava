@@ -18,7 +18,7 @@ public class ServiceStatus {
     boolean isActivePrimaryMonHost;
     boolean isSocketServerActive;
     boolean isConnectMonHost;
-    boolean isRegisterService;
+    boolean isAssignedTypeProc;
     boolean isKeepAliveActive;
     boolean isSubRunProcActive;
     boolean srvLoadParam;
@@ -31,6 +31,14 @@ public class ServiceStatus {
     int numThreadActives;
     Socket skCliente;
 
+    public boolean isIsAssignedTypeProc() {
+        return isAssignedTypeProc;
+    }
+
+    public void setIsAssignedTypeProc(boolean isAssignedTypeProc) {
+        this.isAssignedTypeProc = isAssignedTypeProc;
+    }
+    
     public int getNumThreadActives() {
         return numThreadActives;
     }
@@ -125,14 +133,6 @@ public class ServiceStatus {
 
     public void setIsConnectMonHost(boolean isConnectMonHost) {
         this.isConnectMonHost = isConnectMonHost;
-    }
-
-    public boolean isIsRegisterService() {
-        return isRegisterService;
-    }
-
-    public void setIsRegisterService(boolean isRegisterService) {
-        this.isRegisterService = isRegisterService;
     }
 
     public int getNumTotalExec() {

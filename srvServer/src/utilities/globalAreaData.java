@@ -274,7 +274,7 @@ public class globalAreaData {
             Properties fileConf = new Properties();
             
             try {
-                logger.info(" Iniciando globalAreaData...");
+                logger.info("Iniciando globalAreaData...");
 
                 //Parametros del File Properties
                 //
@@ -298,7 +298,7 @@ public class globalAreaData {
                 serviceStatus.setIsActivePrimaryMonHost(true);
                 serviceStatus.setIsSocketServerActive(false);
                 serviceStatus.setIsConnectMonHost(false);
-                serviceStatus.setIsRegisterService(false);
+                serviceStatus.setIsAssignedTypeProc(false);
                 serviceStatus.setNumProcRunning(0);
                 serviceStatus.setNumProcSleeping(0);
                 serviceStatus.setNumProcFinished(0);
@@ -314,7 +314,7 @@ public class globalAreaData {
                 serviceStatus.setSrvStartTime(formatter.format(today));
                 serviceStatus.setSrvLoadParam(true);
                 
-                logger.info(" Se ha iniciado correctamente la globalAreaData...");
+                logger.info("Se ha iniciado correctamente la globalAreaData...");
                 
             } catch (IOException | NumberFormatException e) {
                 serviceStatus.setSrvLoadParam(false);

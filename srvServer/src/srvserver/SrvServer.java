@@ -10,11 +10,7 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.logging.Level;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.apache.log4j.Logger;
-import org.codehaus.jackson.JsonProcessingException;
-import org.codehaus.jackson.map.SerializationConfig;
 import utilities.srvRutinas;
 
 /**
@@ -76,9 +72,9 @@ public class SrvServer {
                 boolean thSubRunFound = false;
                 //Thread tr = Thread.currentThread();
                 Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
-                System.out.println("TOTAL de Threads del Servicio: "+threadSet.size());
+                //System.out.println("TOTAL de Threads del Servicio: "+threadSet.size());
                 for ( Thread t : threadSet){
-                    System.out.println("Thread :"+t+":"+"state:"+t.getState());
+                    //System.out.println("Thread :"+t+":"+"state:"+t.getState());
                     if (t.getName().equals("thServerSocket")) {
                         thServerFound=true;
                     }
@@ -123,8 +119,8 @@ public class SrvServer {
                 } 
             } catch (Exception e) {
                 gDatos.getServiceStatus().setIsSocketServerActive(false);
-                System.out.println("Error. "+e.getMessage());
-                logger.error("no se ha podido Levantar socket server "+ thSocket.getName());
+                //System.out.println("Error. "+e.getMessage());
+                logger.error("no se ha podido Levantar socket server "+ thSocket.getName()+" "+e.getMessage());
             }
             
             //Levanta KeepAlive
@@ -139,37 +135,34 @@ public class SrvServer {
                 } 
             } catch (Exception e) {
                 gDatos.getServiceStatus().setIsKeepAliveActive(false);
-                System.out.println("Error. "+e.getMessage());
-                logger.error("no se ha podido Levantar thread: "+ thKeep.getName());
+                //System.out.println("Error. "+e.getMessage());
+                logger.error("no se ha podido Levantar thread: "+ thKeep.getName()+ " "+e.getMessage());
             }
 
-            //Levanta thRunProcess Monitorearo por los Subprocesos del TimerTask
-            //TimerTask: thSubRunProcess
-            //Al Agendar el Thread principal Muere y queda solo el Hijo.
-            try {
-                if (!gDatos.getServiceStatus().isIsSubRunProcActive()) {
-                    thRunProc.setName("thRunProcess");
-                    gDatos.getServiceStatus().setIsSubRunProcActive(true);
-                    logger.info(" Agendando thread RunProcess....normal...");
-                    thRunProc.start();
-                } 
-            } catch (Exception e) {
-                gDatos.getServiceStatus().setIsSubRunProcActive(false);
-                System.out.println("Error. "+e.getMessage());
-                logger.error("no se ha podido Agendar thread: "+ thRunProc.getName());
+            /**
+             * Solo ejecuta Thread de runProcess y de ETL si hay asignados procesos al servicio
+             */
+            if (gDatos.getServiceStatus().isIsAssignedTypeProc()) {
+                //Levanta thRunProcess Monitorearo por los Subprocesos del TimerTask
+                //TimerTask: thSubRunProcess
+                //Al Agendar el Thread principal Muere y queda solo el Hijo.
+                try {
+                    if (!gDatos.getServiceStatus().isIsSubRunProcActive()) {
+                        thRunProc.setName("thRunProcess");
+                        gDatos.getServiceStatus().setIsSubRunProcActive(true);
+                        logger.info(" Agendando thread RunProcess....normal...");
+                        thRunProc.start();
+                    } 
+                } catch (Exception e) {
+                    gDatos.getServiceStatus().setIsSubRunProcActive(false);
+                    //System.out.println("Error. "+e.getMessage());
+                    logger.error("no se ha podido Agendar thread: "+ thRunProc.getName()+ " "+e.getMessage());
+                }
+            } else {
+                logger.warn("Aun no hay procesos asignados al servicio.");
             }
             
             logger.info("Finalizando mainTimerTask.: "+gSub.getDateNow("yyyy-MM-dd HH:mm:ss"));
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
-            try {
-                System.out.println(mapper.writeValueAsString(gDatos.getLstPoolProcess()));
-            } catch (JsonProcessingException ex) {
-                java.util.logging.Logger.getLogger(SrvServer.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
-                java.util.logging.Logger.getLogger(SrvServer.class.getName()).log(Level.SEVERE, null, ex);
-            }
         }
-        
     }
 }
