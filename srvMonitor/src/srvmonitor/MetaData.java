@@ -32,11 +32,15 @@ public class MetaData {
                 try {
                     oraConn = new oracleDB(gDatos.getServerInfo().getDbOraHost(), gDatos.getServerInfo().getDbOraDBNAme(), String.valueOf(gDatos.getServerInfo().getDbOraPort()), gDatos.getServerInfo().getDbOraUser(), gDatos.getServerInfo().getDbOraPass());
                     oraConn.conectar();
-                    gDatos.getServerStatus().setIsMetadataConnect(true);
-                    logger.info("Conexion MetaData Exitosa.");
+                    if (oraConn.getConnStatus()) {
+                        gDatos.getServerStatus().setIsValMetadataConnect(true);
+                    }
+                    else {
+                        gDatos.getServerStatus().setIsValMetadataConnect(false);
+                    }
                 } catch (Exception e) {
                     logger.error("Error de conexion a MetaData: "+e.getMessage());
-                    gDatos.getServerStatus().setIsMetadataConnect(false);
+                    gDatos.getServerStatus().setIsValMetadataConnect(false);
                 }
                 break;
             case "SQL":
@@ -73,9 +77,9 @@ public class MetaData {
             case "ORA":
                 try {
                     oraConn.closeConexion();
-                    logger.info("Cierre MetaData Exitoso.");
                 } catch (Exception e) {
                     logger.error("Error Cerrando Conexion: "+e.getMessage());
+                    gDatos.getServerStatus().setIsValMetadataConnect(false);
                 }
                 break;
             case "SQL":

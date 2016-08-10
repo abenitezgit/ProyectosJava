@@ -3,6 +3,7 @@
  */
 package utilities;
 
+import dataClass.ActiveTypeProc;
 import dataClass.AssignedTypeProc;
 import dataClass.ServiceStatus;
 import java.io.IOException;
@@ -154,11 +155,8 @@ public class srvRutinas {
         
     public int updateStatusService(JSONObject jData) {
         try {
-            //ObjectMapper mapper = new ObjectMapper();
             ServiceStatus serviceStatus;
             List<AssignedTypeProc> lstAssignedTypeProc;
-            
-            //serviceStatus = mapper.readValue(jData.toString(), ServiceStatus.class);
             
             serviceStatus = (ServiceStatus) serializeJSonString(jData.toString(), ServiceStatus.class);
             
@@ -237,31 +235,32 @@ public class srvRutinas {
     public int getMDprocAssigned() throws SQLException, IOException {
         try {
             MetaData metadata = new MetaData(gDatos);
-            JSONArray ja;
-            JSONObject jo = new JSONObject();
-            ServiceStatus serviceStatus;
-        
-            String vSQL = "select srvID, srvDesc, srvEnable, srvTypeProc "
-                    + "     from process.tb_services"
-                    + "     order by srvID";
-            try (ResultSet rs = (ResultSet) metadata.getQuery(vSQL)) {
-                if (rs!=null) {
-                    while (rs.next()) {
-                        
-                        ja = new JSONArray(rs.getString("srvTypeProc"));
-                        jo.put("lstAssignedTypeProc", ja);
-                        jo.put("srvID", rs.getString("srvID"));
-                        jo.put("srvEnable", rs.getInt("srvEnable"));
-                        
-                        serviceStatus = (ServiceStatus) serializeJSonString(jo.toString(), ServiceStatus.class);
-                        
-                        gDatos.updateLstServiceStatus(serviceStatus);
+            if (gDatos.getServerStatus().isIsValMetadataConnect()) {
+                JSONArray ja;
+                JSONObject jo = new JSONObject();
+                ServiceStatus serviceStatus;
+
+                String vSQL = "select srvID, srvDesc, srvEnable, srvTypeProc "
+                        + "     from process.tb_services"
+                        + "     order by srvID";
+                try (ResultSet rs = (ResultSet) metadata.getQuery(vSQL)) {
+                    if (rs!=null) {
+                        while (rs.next()) {
+
+                            ja = new JSONArray(rs.getString("srvTypeProc"));
+                            jo.put("lstAssignedTypeProc", ja);
+                            jo.put("srvID", rs.getString("srvID"));
+                            jo.put("srvEnable", rs.getInt("srvEnable"));
+
+                            serviceStatus = (ServiceStatus) serializeJSonString(jo.toString(), ServiceStatus.class);
+
+                            gDatos.updateLstServiceStatus(serviceStatus);
+                        }
                     }
+                    rs.close();
                 }
-                rs.close();
+                metadata.closeConnection();
             }
-            metadata.closeConnection();
-        
             return 0;
         } catch (SQLException | JSONException e) {
             logger.error("Error recuperando Procesos Asignados. "+ e.getMessage());

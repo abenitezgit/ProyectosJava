@@ -48,6 +48,9 @@ public class thKeepAliveServices extends Thread {
              */
             try {
                 MetaData metadata = new MetaData(gDatos);
+                if (gDatos.getServerStatus().isIsValMetadataConnect()) {
+                    metadata.closeConnection();
+                }
             } catch (Exception e) {
                 logger.error("No se ha podido validar conexion a MetaData.."+e.getMessage());
             }

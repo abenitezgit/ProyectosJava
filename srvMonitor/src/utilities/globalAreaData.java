@@ -147,7 +147,7 @@ public class globalAreaData {
             }
 
             serverStatus.setSrvActive(true);
-            serverStatus.setIsMetadataConnect(false);
+            serverStatus.setIsValMetadataConnect(false);
             serverStatus.setIsGetAgendaActive(false);
 
             //Extrae Fecha de Hoy

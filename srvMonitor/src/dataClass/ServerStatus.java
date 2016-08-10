@@ -15,7 +15,7 @@ public class ServerStatus {
     boolean isSocketServerActive;
     boolean isKeepAliveActive;
     boolean isGetAgendaActive;
-    boolean isMetadataConnect;
+    boolean isValMetadataConnect;
     boolean srvLoadParam;
     boolean srvActive;
     Connection metadataConnection;
@@ -69,18 +69,14 @@ public class ServerStatus {
     public void setMetadataConnection(Connection metadataConnection) {
         this.metadataConnection = metadataConnection;
     }
-    
-    
 
-    public boolean isIsMetadataConnect() {
-        return isMetadataConnect;
+    public boolean isIsValMetadataConnect() {
+        return isValMetadataConnect;
     }
 
-    public void setIsMetadataConnect(boolean isMetadataConnect) {
-        this.isMetadataConnect = isMetadataConnect;
+    public void setIsValMetadataConnect(boolean isValMetadataConnect) {
+        this.isValMetadataConnect = isValMetadataConnect;
     }
-    
-    
 
     public boolean isIsSocketServerActive() {
         return isSocketServerActive;

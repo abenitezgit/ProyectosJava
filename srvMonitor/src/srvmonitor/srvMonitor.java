@@ -153,7 +153,7 @@ public class srvMonitor {
                 logger.error("Error al Iniciar thread: "+ thKeep.getName());
             }
             
-            if (gDatos.getServerStatus().isIsMetadataConnect()) {
+            if (gDatos.getServerStatus().isIsValMetadataConnect()) {
                 //Levanta Thread Busca Agendas Activas
                 //
                 try {
@@ -170,7 +170,7 @@ public class srvMonitor {
                     logger.error("Error al Iniciar Thread Agendas "+ thAgendas.getName());
                 }
             } else {
-                logger.warn("Aun no es posble conectarse a MetaData...");
+                logger.warn("No es posble conectarse a MetaData...");
             }
         }
     }
