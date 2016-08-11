@@ -159,7 +159,7 @@ public class thRunProcess extends Thread {
             }
             
             /*
-            Actualiza Estadisticas de Procesos
+            Actualiza Estadisticas de Procesos AA
             */
             gDatos.getLstActiveTypeProc().clear();
             
