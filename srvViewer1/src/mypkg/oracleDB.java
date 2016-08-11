@@ -119,7 +119,7 @@ public class oracleDB {
         connStatus = false;
         
         try {
-            Class.forName("oracle.jdbc.OracleDriver");
+                Class.forName("oracle.jdbc.OracleDriver");
         } catch (Exception e) {
             connErrMesg = e.getMessage();
             connStatus = false;
