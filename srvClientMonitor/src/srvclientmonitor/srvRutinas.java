@@ -5,6 +5,9 @@
  */
 package srvclientmonitor;
 
+import java.io.IOException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializationConfig;
 import org.json.JSONObject;
 
 /**
@@ -33,4 +36,19 @@ public class srvRutinas {
             return null;
         }
     }
+    
+    
+    public String serializeObjectToJSon (Object object, boolean formated) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        
+        mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, formated);
+        
+        return mapper.writeValueAsString(object);
+    }
+    
+    public Object serializeJSonString (String parseJson, Class className) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        
+        return mapper.readValue(parseJson, className);
+    }    
 }

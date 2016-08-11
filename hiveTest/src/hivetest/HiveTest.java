@@ -50,12 +50,18 @@ public class HiveTest {
         }        
         */
         
-        sql = "select * from hgrab where key >= 'C0000220150915' and key<='C0000220150917'  ";
+        sql = "select * from hgrab where key >= 'C0000120150101' and key<='C0000220160110'  ";
+        //sql = "select * from hgrab where dia=10 and mes=01";
         System.out.println("Running: " + sql);
         res = stmt.executeQuery(sql);
+        System.out.println(stmt.getFetchSize());
+        int i=0;
         while (res.next()) {
+            i++;
           System.out.println(res.getString(1) );
-        }   
+        }
+        System.out.println(i);
+        
 
     }
     

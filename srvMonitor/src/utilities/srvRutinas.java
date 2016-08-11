@@ -280,5 +280,6 @@ public class srvRutinas {
         ObjectMapper mapper = new ObjectMapper();
         
         return mapper.readValue(parseJson, className);
-    }
+    }        
+
 }

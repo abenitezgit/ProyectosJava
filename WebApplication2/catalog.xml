@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="system">
+    <system systemId="http://172.16.83.163:8000/Servicios/Servicio?Wsdl" uri="src/conf/xml-resources/web-services/NewWebServiceFromWSDL/wsdl/172.16.83.163_8000/Servicios/Servicio.wsdl"/>
+    <system systemId="http://172.16.83.163:8000/Servicios/Servicio?wsdl=wsdl0" uri="src/conf/xml-resources/web-services/NewWebServiceFromWSDL/wsdl/172.16.83.163_8000/Servicios/Servicio.wsdl_wsdl0.wsdl"/>
+    <system systemId="http://172.16.83.163:8000/Servicios/Servicio?xsd=xsd0" uri="src/conf/xml-resources/web-services/NewWebServiceFromWSDL/wsdl/172.16.83.163_8000/Servicios/Servicio.xsd_xsd0.xsd"/>
+    <system systemId="http://172.16.83.163:8000/Servicios/Servicio?xsd=xsd1" uri="src/conf/xml-resources/web-services/NewWebServiceFromWSDL/wsdl/172.16.83.163_8000/Servicios/Servicio.xsd_xsd1.xsd"/>
+    <system systemId="http://172.16.83.163:8000/Servicios/Servicio?xsd=xsd2" uri="src/conf/xml-resources/web-services/NewWebServiceFromWSDL/wsdl/172.16.83.163_8000/Servicios/Servicio.xsd_xsd2.xsd"/>
+</catalog>

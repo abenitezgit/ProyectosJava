@@ -188,11 +188,6 @@ public class thGetAgendas extends Thread{
         }
         
         logger.info("Se encontraron: "+gDatos.getLstActiveAgendas().size()+" Agendas para Activar...");
-        try {
-            logger.info("Agendas activas: "+gSub.serializeObjectToJSon(gDatos.getLstActiveAgendas(), true));
-        } catch (IOException ex) {
-            java.util.logging.Logger.getLogger(thGetAgendas.class.getName()).log(Level.SEVERE, null, ex);
-        }
 
         logger.info("Finaliza busquenda agendas activas...");
         
