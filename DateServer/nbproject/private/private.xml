@@ -2,6 +2,32 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
+        <group>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/DateServer/src/dateserver/mainClient.java</file>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/DateServer/src/iosamples/ftpcli.java</file>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/DateServer/src/samples/newproperties.properties</file>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/DateServer/src/dateserver/frmLogin.java</file>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/DateServer/src/samples/strucData.java</file>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/DateServer/src/dateserver/consoleSocket.java</file>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/DateServer/src/dateserver/prueba.java</file>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/DateServer/src/samples/poolDB.java</file>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/DateServer/src/dateserver/DateServer.java</file>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/DateServer/src/iosamples/httpConnect.java</file>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/DateServer/src/dateserver/NewClass.java</file>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/DateServer/src/dateserver/thMonitor.java</file>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/DateServer/src/samples/findInList.java</file>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/DateServer/src/samples/jsonformat6.java</file>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/DateServer/src/dbsamples/db001.java</file>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/DateServer/src/samples/dataServicio.java</file>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/DateServer/src/samples/findList2.java</file>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/DateServer/src/samples/NewInterface.java</file>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/DateServer/src/samples/jsonformat.java</file>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/DateServer/src/samples/random.java</file>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/DateServer/src/samples/adminUser.java</file>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/DateServer/src/dateserver/server.java</file>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/DateServer/src/dateserver/cliente.java</file>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/DateServer/src/samples/dataAssignedProc.java</file>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/DateServer/src/dateserver/DateClient.java</file>
+        </group>
     </open-files>
 </project-private>

@@ -5,31 +5,39 @@
  */
 package srvmonitor;
 
+import dataClass.Agenda;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
+import java.util.logging.Level;
 import org.apache.log4j.Logger;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import utilities.globalAreaData;
+import utilities.srvRutinas;
 
 /**
  *
  * @author andresbenitez
  */
 public class thGetAgendas extends Thread{
+    static srvRutinas gSub;
     static globalAreaData gDatos;
+    static MetaData metadata;
     
 //Carga Clase log4
     static Logger logger = Logger.getLogger("thGetAgendas");   
     
     public thGetAgendas(globalAreaData m) {
-        gDatos = m;
+        try {
+            gDatos = m;
+            gSub = new srvRutinas(gDatos);
+            metadata = new MetaData(gDatos);
+        } catch (Exception e) {
+            logger.error("Error en Constructor: "+e.getMessage());
+        }
     }
     
     @Override
@@ -43,7 +51,7 @@ public class thGetAgendas extends Thread{
         String clt = ids[0];
         SimpleTimeZone tz = new SimpleTimeZone(-4 * 60 * 60 * 1000, clt);
         tz.setStartRule(Calendar.APRIL, 1, Calendar.SUNDAY, 2 * 60 * 60 * 1000);
-        tz.setEndRule(Calendar.OCTOBER, -1, Calendar.SUNDAY, 2 * 60 * 60 * 1000);
+        tz.setEndRule(Calendar.AUGUST, -1, Calendar.SUNDAY, 2 * 60 * 60 * 1000);
         Calendar calendar = new GregorianCalendar(tz);
 
         int year       = calendar.get(Calendar.YEAR);
@@ -53,50 +61,37 @@ public class thGetAgendas extends Thread{
         int weekOfYear = calendar.get(Calendar.WEEK_OF_YEAR);
         int weekOfMonth= calendar.get(Calendar.WEEK_OF_MONTH);
 
-        int hour       = calendar.get(Calendar.HOUR);        // 12 hour clock
-        int hourOfDay  = calendar.get(Calendar.HOUR_OF_DAY); // 24 hour clock
-        int minute     = calendar.get(Calendar.MINUTE);
-        int second     = calendar.get(Calendar.SECOND);
-        int millisecond= calendar.get(Calendar.MILLISECOND);
-        
         int findHour=12;
         int findMinutes=5;
 
-        /*
-        calendar.add(Calendar.HOUR_OF_DAY, -1);
-        int hourBefore = calendar.get(Calendar.HOUR_OF_DAY);
-
-        calendar.add(Calendar.HOUR_OF_DAY, 2);
-        int hourAfter = calendar.get(Calendar.HOUR_OF_DAY);
-        */
-        
         String posmonth = String.valueOf(month+1);
         String posdayOfMonth = String.valueOf(dayOfMonth);
         String posdayOfWeek = String.valueOf(dayOfWeek);
         String posweekOfYear = String.valueOf(weekOfYear);
         String posweekOfMonth = String.valueOf(weekOfMonth);
-        String poshourOfDay = String.valueOf(hourOfDay);
-        String posminute = String.valueOf(minute);
-        String possecond = String.valueOf(second);
-        String posmillisecond = String.valueOf(millisecond);
         
         Calendar iteratorCalendar;
         String vSQL;
         String iteratorHour;
         String iteratorMinute;
-        Statement stm;
-        JSONObject jData;
-        JSONObject jDataMinute;
-        JSONArray jArray = new JSONArray();
-        JSONArray jArrayMinute = new JSONArray();
         String posIteratorHour;
         String posIteratorMinute;
+        
         
         /*
         Inicializa Lista de Agendas
         */
         gDatos.getLstShowAgendas().clear();
         gDatos.getLstActiveAgendas().clear();
+        
+        //Data Class
+        Agenda agenda;
+        
+        
+        /**
+         * Busca Todas las agenda en un rango de findHour (12) horas antes y después de la hora actual
+         */
+        logger.info("Buscando Agendas para Monitoreo...");
         
         for (int i=-findHour; i<=findHour; i++) {
             iteratorCalendar = new GregorianCalendar(tz);
@@ -112,47 +107,48 @@ public class thGetAgendas extends Thread{
                     + "     and substr(weekOfYear,"+posweekOfYear+",1) = '1'"
                     + "     and substr(weekOfMonth,"+posweekOfMonth+",1) = '1'"
                     + "     and substr(hourOfDay,"+posIteratorHour +",1) = '1'";
-            logger.debug("i: "+i+" vSQL: "+vSQL);
             try {
-                stm = gDatos.getServerStatus().getMetadataConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-                jData = new JSONObject();
-
-                ResultSet rs = stm.executeQuery(vSQL);
-                if (rs!=null) {
-                    while (rs.next()) {
-                        jData = new JSONObject();
-                        jData.put("horaAgenda", rs.getString("horaAgenda"));
-                        jData.put("ageID", rs.getString("ageID"));
-                        jData.put("month", rs.getString("month"));
-                        jData.put("dayOfMonth", rs.getString("dayOfMonth"));
-                        jData.put("weekOfYear", rs.getString("weekOfYear"));
-                        jData.put("weekOfMonth", rs.getString("weekOfMonth"));
-                        jData.put("hourOfDay", rs.getString("hourOfDay"));
-                        jArray.put(jData);
-                        gDatos.getLstShowAgendas().add(jData);
+                try (ResultSet rs = (ResultSet) metadata.getQuery(vSQL)) {
+                    if (rs!=null) {
+                        while (rs.next()) {
+                            agenda = new Agenda();
+                            agenda.setHoraAgenda(rs.getString("horaAgenda"));
+                            agenda.setAgeID(rs.getString("ageID"));
+                            agenda.setMonth(rs.getString("month"));
+                            agenda.setDayOfMonth(rs.getString("dayOfMonth"));
+                            agenda.setWeekOfYear(rs.getString("weekOfYear"));
+                            agenda.setWeekOfMonth(rs.getString("weekOfMonth"));
+                            agenda.setHourOfDay(rs.getString("hourOfDay"));
+                            gDatos.getLstShowAgendas().add(agenda);
+                        }
+                        rs.close();
+                    } else {
+                        agenda = new Agenda();
+                        agenda.setHoraAgenda(iteratorHour);
+                        agenda.setAgeID("");
+                        agenda.setMonth("");
+                        agenda.setDayOfMonth("");
+                        agenda.setWeekOfYear("");
+                        agenda.setWeekOfMonth("");
+                        agenda.setHourOfDay("");
+                        gDatos.getLstShowAgendas().add(agenda);
                     }
-                } else {
-                        jData.put("horaAgenda", iteratorHour);
-                        jData.put("ageID", "");
-                        jData.put("month", "");
-                        jData.put("dayOfMonth", "");
-                        jData.put("weekOfYear", "");
-                        jData.put("weekOfMonth","");
-                        jData.put("hourOfDay", "");
-                        jArray.put(jData);
-                        gDatos.getLstShowAgendas().add(jData);
-                    System.out.println("No hay registros");
-                }
-                stm.close();
-            } catch (SQLException | JSONException e) {
+                }            
+            } catch (SQLException e) {
                 logger.error(e.getMessage());
             }
         }
+        
+        logger.info("Se encontraron: "+gDatos.getLstShowAgendas().size()+ " Agendas para Monitoreo..");
         
         iteratorCalendar = new GregorianCalendar(tz);
         iteratorHour = String.valueOf(iteratorCalendar.get(Calendar.HOUR_OF_DAY));
         posIteratorHour = String.valueOf(Integer.valueOf(iteratorHour)+1);
         
+        /**
+         * Busca Todas las agendas que deberían ser activadas en el periodo de findMinutes (5) minutos de holgura
+         */
+        logger.info("Buscando Agendas Activas...");
 
         for (int i=-findMinutes; i<=0; i++) {
             iteratorCalendar = new GregorianCalendar(tz);
@@ -169,41 +165,37 @@ public class thGetAgendas extends Thread{
                     + "     and substr(weekOfMonth,"+posweekOfMonth+",1) = '1'"
                     + "     and substr(hourOfDay,"+posIteratorHour +",1) = '1'"
                     + "     and substr(minute,"+posIteratorMinute +",1) = '1'";
-            logger.debug("i: "+i+" vSQL: "+vSQL);
             try {
-                stm = gDatos.getServerStatus().getMetadataConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-
-                ResultSet rs = stm.executeQuery(vSQL);
-                if (rs!=null) {
-                    while (rs.next()) {
-                        jDataMinute = new JSONObject();
-                        jDataMinute.put("horaAgenda", rs.getString("horaAgenda"));
-                        jDataMinute.put("ageID", rs.getString("ageID"));
-                        jDataMinute.put("month", rs.getString("month"));
-                        jDataMinute.put("dayOfMonth", rs.getString("dayOfMonth"));
-                        jDataMinute.put("weekOfYear", rs.getString("weekOfYear"));
-                        jDataMinute.put("weekOfMonth", rs.getString("weekOfMonth"));
-                        jDataMinute.put("hourOfDay", rs.getString("hourOfDay"));
-                        jArrayMinute.put(jDataMinute);
-                        gDatos.getLstActiveAgendas().add(jDataMinute);
+                try (ResultSet rs = (ResultSet) metadata.getQuery(vSQL)) {
+                    if (rs!=null) {
+                        while (rs.next()) {
+                            agenda = new Agenda();
+                            agenda.setHoraAgenda(rs.getString("horaAgenda"));
+                            agenda.setAgeID(rs.getString("ageID"));
+                            agenda.setMonth(rs.getString("month"));
+                            agenda.setDayOfMonth(rs.getString("dayOfMonth"));
+                            agenda.setWeekOfYear(rs.getString("weekOfYear"));
+                            agenda.setWeekOfMonth(rs.getString("weekOfMonth"));
+                            agenda.setHourOfDay(rs.getString("hourOfDay"));
+                            gDatos.getLstActiveAgendas().add(agenda);
+                        }
+                        rs.close();
                     }
                 }
-                stm.close();
-            } catch (SQLException | JSONException e) {
+            } catch (SQLException e) {
                 logger.error(e.getMessage());
             }
         }
-
-        for (int i=0; i<gDatos.getLstShowAgendas().size(); i++) {
-            logger.debug(gDatos.getLstShowAgendas().get(i).toString());
-        }
         
-        
-        for (int i=0; i<gDatos.getLstActiveAgendas().size(); i++) {
-            logger.debug(gDatos.getLstActiveAgendas().get(i).toString());
+        logger.info("Se encontraron: "+gDatos.getLstActiveAgendas().size()+" Agendas para Activar...");
+        try {
+            logger.info("Agendas activas: "+gSub.serializeObjectToJSon(gDatos.getLstActiveAgendas(), true));
+        } catch (IOException ex) {
+            java.util.logging.Logger.getLogger(thGetAgendas.class.getName()).log(Level.SEVERE, null, ex);
         }
-
 
         logger.info("Finaliza busquenda agendas activas...");
+        
+        metadata.closeConnection();
     }
 }

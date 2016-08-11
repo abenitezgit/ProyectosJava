@@ -47,7 +47,7 @@ public class globalAreaData {
         return lstPoolProcess;
     }
 
-    public void setLstPoolProcess(List<PoolProcess> lstPoolProcess) {
+    public synchronized void setLstPoolProcess(List<PoolProcess> lstPoolProcess) {
         this.lstPoolProcess = lstPoolProcess;
     }
     
@@ -55,7 +55,7 @@ public class globalAreaData {
         return lstAssignedTypeProc;
     }
 
-    public void setLstAssignedTypeProc(List<AssignedTypeProc> lstAssignedTypeProc) {
+    public synchronized void setLstAssignedTypeProc(List<AssignedTypeProc> lstAssignedTypeProc) {
         this.lstAssignedTypeProc = lstAssignedTypeProc;
     }
 
@@ -63,7 +63,7 @@ public class globalAreaData {
         return lstActiveTypeProc;
     }
 
-    public void setLstActiveTypeProc(List<ActiveTypeProc> lstActiveTypeProc) {
+    public synchronized void setLstActiveTypeProc(List<ActiveTypeProc> lstActiveTypeProc) {
         this.lstActiveTypeProc = lstActiveTypeProc;
     }
 
@@ -71,7 +71,7 @@ public class globalAreaData {
         return serviceInfo;
     }
 
-    public void setServiceInfo(ServiceInfo serviceInfo) {
+    public synchronized void setServiceInfo(ServiceInfo serviceInfo) {
         this.serviceInfo = serviceInfo;
     }
 
@@ -79,7 +79,7 @@ public class globalAreaData {
         return serviceStatus;
     }
 
-    public void setServiceStatus(ServiceStatus serviceStatus) {
+    public synchronized void setServiceStatus(ServiceStatus serviceStatus) {
         this.serviceStatus = serviceStatus;
     }
     
@@ -102,6 +102,81 @@ public class globalAreaData {
         } else {
             return 0;
         }
+    }
+
+    public synchronized void setStatusFinished(PoolProcess poolProcess) {
+        try {
+            PoolProcess newPoolProcess = poolProcess;
+            String typeProc = poolProcess.getTypeProc();
+            String procID = poolProcess.getProcID();
+            
+            ActiveTypeProc activeTypeProc;
+            
+            serviceStatus.setNumProcRunning(serviceStatus.getNumProcRunning()-1);
+            serviceStatus.setNumProcFinished(serviceStatus.getNumProcFinished()+1);
+
+            int index = getLstActiveTypeProc().indexOf(typeProc);
+            if (index!=-1) {
+                int usedTypeActive = getLstActiveTypeProc().get(index).getUsedThread();
+                
+                activeTypeProc = new ActiveTypeProc();
+                activeTypeProc.setTypeProc(typeProc);
+                activeTypeProc.setUsedThread(usedTypeActive-1);
+
+                getLstActiveTypeProc().set(index, activeTypeProc);
+            }
+            
+            index = getLstPoolProcess().indexOf(procID);
+            if (index!=-1) {
+                newPoolProcess.setStatus("Finished");
+                getLstPoolProcess().set(index, newPoolProcess);
+            } else {
+                logger.error("El proceso: "+procID+" ya no está disponible...");
+            }
+        } catch (Exception e) {
+            logger.error("Error en setStatusFinished: "+e.getMessage());
+        }
+    }
+    
+    public synchronized void setStatusRunning(PoolProcess poolProcess) {
+        try {
+            PoolProcess newPoolProcess = poolProcess;
+            String typeProc = poolProcess.getTypeProc();
+            String procID = poolProcess.getProcID();
+            
+            ActiveTypeProc activeTypeProc;
+            
+            serviceStatus.setNumProcRunning(serviceStatus.getNumProcRunning()+1);
+            serviceStatus.setNumProcSleeping(serviceStatus.getNumProcSleeping()-1);
+
+            int index = getLstActiveTypeProc().indexOf(typeProc);
+            if (index!=-1) {
+                int usedTypeActive = getLstActiveTypeProc().get(index).getUsedThread();
+                
+                activeTypeProc = new ActiveTypeProc();
+                activeTypeProc.setTypeProc(typeProc);
+                activeTypeProc.setUsedThread(usedTypeActive+1);
+
+                getLstActiveTypeProc().set(index, activeTypeProc);
+            } else {
+                activeTypeProc = new ActiveTypeProc();
+                activeTypeProc.setTypeProc(typeProc);
+                activeTypeProc.setUsedThread(1);
+
+                getLstActiveTypeProc().add(activeTypeProc);
+            }
+            
+            index = getLstPoolProcess().indexOf(procID);
+            if (index!=-1) {
+                newPoolProcess.setStatus("Running");
+                getLstPoolProcess().set(index, newPoolProcess);
+            } else {
+                logger.error("El proceso: "+procID+" ya no está disponible...");
+            }
+        } catch (Exception e) {
+            logger.error("Error en setStatusRunning: "+e.getMessage());
+        }
+    
     }
 
     //Procimientos y/p Metodos uilitarios
@@ -199,7 +274,7 @@ public class globalAreaData {
             Properties fileConf = new Properties();
             
             try {
-                logger.info(" Iniciando globalAreaData...");
+                logger.info("Iniciando globalAreaData...");
 
                 //Parametros del File Properties
                 //
@@ -223,7 +298,7 @@ public class globalAreaData {
                 serviceStatus.setIsActivePrimaryMonHost(true);
                 serviceStatus.setIsSocketServerActive(false);
                 serviceStatus.setIsConnectMonHost(false);
-                serviceStatus.setIsRegisterService(false);
+                serviceStatus.setIsAssignedTypeProc(false);
                 serviceStatus.setNumProcRunning(0);
                 serviceStatus.setNumProcSleeping(0);
                 serviceStatus.setNumProcFinished(0);
@@ -239,7 +314,7 @@ public class globalAreaData {
                 serviceStatus.setSrvStartTime(formatter.format(today));
                 serviceStatus.setSrvLoadParam(true);
                 
-                logger.info(" Se ha iniciado correctamente la globalAreaData...");
+                logger.info("Se ha iniciado correctamente la globalAreaData...");
                 
             } catch (IOException | NumberFormatException e) {
                 serviceStatus.setSrvLoadParam(false);

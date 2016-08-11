@@ -5,14 +5,20 @@
  */
 package srvserver;
 import dataClass.ActiveTypeProc;
+import dataClass.AssignedTypeProc;
 import dataClass.PoolProcess;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import utilities.globalAreaData;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.log4j.Logger;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializationConfig;
 import utilities.srvRutinas;
 
 /**
@@ -22,7 +28,7 @@ import utilities.srvRutinas;
 public class thRunProcess extends Thread {
     static srvRutinas gSub;
     static globalAreaData gDatos;
-    Logger logger = Logger.getLogger("thRunProcess");
+    static Logger logger = Logger.getLogger("thRunProcess");
     
     //Carga constructor para inicializar los datos
     public thRunProcess(globalAreaData m) {
@@ -34,113 +40,138 @@ public class thRunProcess extends Thread {
     @Override
     public void run() {
         Timer timerMain = new Timer("thSubRunProcess");
-        timerMain.schedule(new mainKeepTask(), 1000, 5000);
+        timerMain.schedule(new mainKeepTask(), 5000, 7000);
     }
     
     
     static class mainKeepTask extends TimerTask {
+        /*
+        Crea las listas para asignaciones de Pesos especificos
+        */
+        List<pesoAssigned> lstPesoAssigned = new ArrayList<>();
+        List<pesoActive> lstPesoActive = new ArrayList<>();
+
     
         public mainKeepTask() {
         }
 
         @Override
         public void run() {
-            System.out.println("Inicia thSubRunProcess");
+            logger.info("Inicia thSubRunProcess");
+
             
-            /*
-            Valida Ejecucion de Procesos Sleeping (Encolados)
-            */
-            class pesoAssigned {
-                String typeProc;
-                int peso;
-
-                public pesoAssigned(String typeProc, int peso) {
-                    this.typeProc = typeProc;
-                    this.peso = peso;
+            int numItemsPool = gDatos.getLstPoolProcess().size();
+            
+            if (numItemsPool>0) {
+                updatePoolStatistics();
+                
+                int itemsAssigned = gDatos.getLstAssignedTypeProc().size();
+                if (itemsAssigned>0) {
+                    
+                    /*
+                    Calcula los pesos especificos de las listas asignadas y activas
+                    Las lista a generarse son:
+                    lstPesoAssigned
+                    lstPesoActive
+                    */
+                    setPesoEspecifico();
+                    
+                    
+                
+                } else {
+                    logger.info("No hay tipos de procesos Asignados");
                 }
-
-                public String getTypeProc() {
-                    return typeProc;
-                }
-
-                public void setTypeProc(String typeProc) {
-                    this.typeProc = typeProc;
-                }
-
-                public float getPeso() {
-                    return peso;
-                }
-
-                public void setPeso(int peso) {
-                    this.peso = peso;
-                }
+            } else {
+                logger.info("No hay procesos en Pool de Ejecucion");
             }
             
-            List<pesoAssigned> lstPesoAssigned = new ArrayList<>();
-
+            
+            /*
+            Ejcuta Procesos en Sleeping
+            */
+            List<PoolProcess> lstSleepingProc = gDatos.getLstPoolProcess().stream().filter(p -> p.getStatus().equals("Sleeping")).collect(Collectors.toList());
+            
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
+            
+            try {
+                System.out.println("Mapper lstSleep: "+mapper.writeValueAsString(lstSleepingProc));
+            } catch (IOException ex) {
+                java.util.logging.Logger.getLogger(thRunProcess.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            
+            if (!lstSleepingProc.isEmpty()) {
+                if (gDatos.getFreeThreadServices()>0) {
+                    int numSleep = lstSleepingProc.size();
+                    System.out.println("Procesos Sleeping: "+numSleep);
+                    for (int i=0; i<numSleep; i++) {
+                        if (gDatos.getFreeThreadProcess(lstSleepingProc.get(i).getTypeProc())>0) {
+                            switch (lstSleepingProc.get(i).getTypeProc()) {
+                                case "OSP":
+                                    Thread thOSP = new thExecOSP(gDatos, lstSleepingProc.get(i));
+                                    //thOSP.setName("thExecOSP-"+lstSleepingProc.get(i).getProcID());
+                                    thOSP.setName("OSPThread");
+                                    gDatos.setStatusRunning(lstSleepingProc.get(i));
+                                    thOSP.start();
+                                    break;
+                                case "OTX":
+                                    Thread thOTX = new thExecOTX(gDatos, lstSleepingProc.get(i).getParams());
+                                    thOTX.setName("thExecOTX-"+lstSleepingProc.get(i).getProcID());
+                                    gDatos.setStatusRunning(lstSleepingProc.get(i));
+                                    thOTX.start();
+                                    break;
+                                case "LOR":
+                                    Thread thLOR = new thExecLOR(gDatos, lstSleepingProc.get(i).getParams());
+                                    thLOR.setName("thExecLOR-"+lstSleepingProc.get(i).getProcID());
+                                    gDatos.setStatusRunning(lstSleepingProc.get(i));
+                                    thLOR.start();
+                                    break;
+                                case "FTP":
+                                    Thread thFTP = new thExecFTP(gDatos, lstSleepingProc.get(i).getParams());
+                                    thFTP.setName("thExecFTP-"+lstSleepingProc.get(i).getProcID());
+                                    gDatos.setStatusRunning(lstSleepingProc.get(i));
+                                    thFTP.start();
+                                    break;
+                                default:
+                                    break;
+                            }
+                        } else {
+                            logger.warn("No hay Threads libres del proceso: "+ lstSleepingProc.get(i).getTypeProc() + " para ejecutar");
+                        }
+                    }
+                } else {
+                    logger.warn("No hay Threads libres del Servicio para ejecutar");
+                }
+            } else {
+                logger.info("No hay procesos pendientes para ejecutar");
+            }
+            
+        }
+        
+        private void setPesoEspecifico() {
+            /*
+            Calcula peso especifico de lista de typeProc asignados
+            */
             long numTotalAssignedProc = gDatos.getLstAssignedTypeProc().size();
             if (numTotalAssignedProc!=0) {
                 for (int i=0; i<numTotalAssignedProc; i++) {
                     String typeProc = gDatos.getLstAssignedTypeProc().get(i).getTypeProc();
                     int priority = gDatos.getLstAssignedTypeProc().get(i).getPriority();
-                    float count = gDatos.getLstAssignedTypeProc().stream().filter(p -> p.getPriority()==priority).count();
-                    float peso = count/numTotalAssignedProc*100;
+                    //float count = gDatos.getLstAssignedTypeProc().stream().filter(p -> p.getPriority()==priority).count();
+                    
+                    Stream<AssignedTypeProc> countd = gDatos.getLstAssignedTypeProc().stream().filter(p -> p.getPriority()==priority).distinct();
+                    float count = countd.count();
+                    
+                    float peso = count/numTotalAssignedProc*100/priority;
                     pesoAssigned pesoAssigned = new pesoAssigned(typeProc, (int) peso);
                     lstPesoAssigned.add(pesoAssigned);
                 }
             }
             
-            for (int i=0; i<lstPesoAssigned.size(); i++) {
-                System.out.println("typeProc: "+lstPesoAssigned.get(i).getTypeProc());
-                System.out.println("perso: "+lstPesoAssigned.get(i).getPeso());
-            }
-
-            class pesoActive {
-                String typeProc;
-                int peso;
-
-                public pesoActive(String typeProc, int peso) {
-                    this.typeProc = typeProc;
-                    this.peso = peso;
-                }
-
-                public String getTypeProc() {
-                    return typeProc;
-                }
-
-                public void setTypeProc(String typeProc) {
-                    this.typeProc = typeProc;
-                }
-
-                public float getPeso() {
-                    return peso;
-                }
-
-                public void setPeso(int peso) {
-                    this.peso = peso;
-                }
-            }
-            
-            List<pesoActive> lstPesoActive = new ArrayList<>();
-            
-            ActiveTypeProc activeType = new ActiveTypeProc();
-            activeType.setTypeProc("OSP");
-            activeType.setUsedThread(1);
-            
-            gDatos.getLstActiveTypeProc().add(activeType);
-            activeType = new ActiveTypeProc();
-            
-            activeType.setTypeProc("ETL");
-            activeType.setUsedThread(2);
-
-            gDatos.getLstActiveTypeProc().add(activeType);
-            activeType = new ActiveTypeProc();
-
-            activeType.setTypeProc("FTP");
-            activeType.setUsedThread(1);
-            
-            gDatos.getLstActiveTypeProc().add(activeType);
-            
+            /*
+            Calcula perso especifico de lista de ActiveProc 
+            */
             long numTotalActiveProc = gDatos.getLstActiveTypeProc().size();
             if (numTotalActiveProc!=0) {
                 for (int i=0; i<numTotalActiveProc; i++) {
@@ -153,31 +184,58 @@ public class thRunProcess extends Thread {
                 }
             }
             
-            for (int i=0; i<lstPesoActive.size(); i++) {
-                System.out.println("typeProcAct: "+lstPesoActive.get(i).getTypeProc());
-                System.out.println("pesoAct: "+lstPesoActive.get(i).getPeso());
+            /*
+            Ordena lista por peso de Mayor a menos
+            */
+            int numItems = lstPesoAssigned.size();
+            if (numItems>1) {
+                for (int i=0;i<numItems; i++ ) {
+                    for (int j=0; j<numItems-1; j++) {
+                        if (lstPesoAssigned.get(j).getPeso()<lstPesoAssigned.get(j+1).getPeso()) {
+                            pesoAssigned pesoAssignedAux = new pesoAssigned(lstPesoAssigned.get(j).getTypeProc(), (int) lstPesoAssigned.get(j).getPeso());
+                            lstPesoAssigned.set(j, lstPesoAssigned.get(j+1));
+                            lstPesoAssigned.set(j+1, pesoAssignedAux);
+                        }
+                    }
+                }
             }
-            
+        }
+        
+        private void updatePoolStatistics() {
             /*
             Actualiza Estadisticas de Procesos AA
             */
-            gDatos.getLstActiveTypeProc().clear();
             
             ActiveTypeProc activeTypeProc;
-            List<ActiveTypeProc> lstActiveTypeProc;
+            List<ActiveTypeProc> lstActiveTypeProc = new ArrayList<>();
+            List<PoolProcess> lstRunning = new ArrayList<>();
+            List<PoolProcess> lstSleeping = new ArrayList<>();
+            List<PoolProcess> lstFinished = new ArrayList<>();
+
+            gDatos.getLstActiveTypeProc().clear();
+            lstActiveTypeProc.clear();
+            lstRunning.clear();
+            lstSleeping.clear();
+            lstFinished.clear();
             
-            List<PoolProcess> lstRunning = gDatos.getLstPoolProcess().stream().filter(p -> p.getStatus().equals("Running")).collect(Collectors.toList());
-            List<PoolProcess> lstSleeping = gDatos.getLstPoolProcess().stream().filter(p -> p.getStatus().equals("Sleeping")).collect(Collectors.toList());
-            List<PoolProcess> lstFinished = gDatos.getLstPoolProcess().stream().filter(p -> p.getStatus().equals("Finished")).collect(Collectors.toList());
+            lstRunning = gDatos.getLstPoolProcess().stream().filter(p -> p.getStatus().equals("Running")).collect(Collectors.toList());
+            lstSleeping = gDatos.getLstPoolProcess().stream().filter(p -> p.getStatus().equals("Sleeping")).collect(Collectors.toList());
+            lstFinished = gDatos.getLstPoolProcess().stream().filter(p -> p.getStatus().equals("Finished")).collect(Collectors.toList());
             
             gDatos.getServiceStatus().setNumProcRunning(lstRunning.size());
             gDatos.getServiceStatus().setNumProcSleeping(lstSleeping.size());
             gDatos.getServiceStatus().setNumProcFinished(lstFinished.size());
             
+            
+            /*
+            Recorre la lista de Running recuperando por cada registro encontrado el typeProc
+            y lo consulta en la lista de procesos activos para ir adicionando el contador
+            */
+            
             int numItemsRunning = lstRunning.size();
             for (int i=0; i<numItemsRunning; i++) {
                 int index = gDatos.getLstActiveTypeProc().indexOf(lstRunning.get(i).getTypeProc());
-                if (index!=0) {
+                if (index!=-1) {
                     int usedTypeActive = gDatos.getLstActiveTypeProc().get(index).getUsedThread();
                     String typeProc = gDatos.getLstActiveTypeProc().get(index).getTypeProc();
                     
@@ -192,8 +250,63 @@ public class thRunProcess extends Thread {
                     activeTypeProc.setUsedThread(1);
                     
                     gDatos.getLstActiveTypeProc().add(activeTypeProc);
-                
                 }
+            }
+        }
+        
+        /**
+         * Data Class Internas
+         */
+        
+        class pesoAssigned {
+            String typeProc;
+            int peso;
+
+            public pesoAssigned(String typeProc, int peso) {
+                this.typeProc = typeProc;
+                this.peso = peso;
+            }
+
+            public String getTypeProc() {
+                return typeProc;
+            }
+
+            public void setTypeProc(String typeProc) {
+                this.typeProc = typeProc;
+            }
+
+            public float getPeso() {
+                return peso;
+            }
+
+            public void setPeso(int peso) {
+                this.peso = peso;
+            }
+        }
+        
+        class pesoActive {
+            String typeProc;
+            int peso;
+
+            public pesoActive(String typeProc, int peso) {
+                this.typeProc = typeProc;
+                this.peso = peso;
+            }
+
+            public String getTypeProc() {
+                return typeProc;
+            }
+
+            public void setTypeProc(String typeProc) {
+                this.typeProc = typeProc;
+            }
+
+            public float getPeso() {
+                return peso;
+            }
+
+            public void setPeso(int peso) {
+                this.peso = peso;
             }
         }
     }

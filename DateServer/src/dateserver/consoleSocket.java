@@ -22,7 +22,7 @@ import org.json.JSONArray;
 public class consoleSocket extends javax.swing.JFrame {
 
     /**
-     * Creates new form consoleSocket
+     * Creates new form consoleSocket ABT
      */
     public consoleSocket() {
         initComponents();

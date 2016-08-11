@@ -19,6 +19,7 @@ import javax.management.ObjectName;
 import org.apache.htrace.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.htrace.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.log4j.Logger;
+import org.codehaus.jackson.map.SerializationConfig;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -54,7 +55,7 @@ public class srvRutinas {
             Date today;
             SimpleDateFormat formatter;
             formatter = new SimpleDateFormat(xformat);
-            System.out.println(formatter.getTimeZone());
+            //System.out.println(formatter.getTimeZone());
             today = new Date();
             return formatter.format(today);  
         } catch (Exception e) {
@@ -172,24 +173,29 @@ public class srvRutinas {
         }
     }
     
-    public void updateAssignedProcess(JSONObject jData) {
+    public synchronized void updateAssignedProcess(JSONObject jData) {
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            List<AssignedTypeProc> lstAssignedTypeProc = new ArrayList<>();
             AssignedTypeProc assignedTypeProc;
             
             JSONArray jArray = jData.getJSONArray("AssignedTypeProc");
             int numItems = jArray.length();
             
+            gDatos.getLstAssignedTypeProc().clear();
+            
             for (int i=0; i<numItems; i++) {
-                assignedTypeProc = mapper.readValue(jArray.get(i).toString(), AssignedTypeProc.class);
-                lstAssignedTypeProc.add(assignedTypeProc);
+                assignedTypeProc = (AssignedTypeProc) serializeJSonString(jArray.get(i).toString(), AssignedTypeProc.class);
+                gDatos.getLstAssignedTypeProc().add(assignedTypeProc);
             }
-                        
-            gDatos.setLstAssignedTypeProc(lstAssignedTypeProc);
+              
+            int numItemsList = gDatos.getLstAssignedTypeProc().size();
+            if (numItemsList>0) {
+                gDatos.getServiceStatus().setIsAssignedTypeProc(true);
+            } else {
+                gDatos.getServiceStatus().setIsAssignedTypeProc(false);
+            }
             
         } catch (JSONException | IOException e) {
-            sysOutln("Error: " + e.getMessage());
+            logger.error("Error actualizando Asignacion de Procesos: " + e.getMessage());
         }
     }
     
@@ -276,4 +282,18 @@ public class srvRutinas {
             return sendError(99, e.getMessage());
         }
     }
+    
+    public String serializeObjectToJSon (Object object, boolean formated) throws IOException {
+        org.codehaus.jackson.map.ObjectMapper mapper = new org.codehaus.jackson.map.ObjectMapper();
+        
+        mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, formated);
+        
+        return mapper.writeValueAsString(object);
+    }
+    
+    public Object serializeJSonString (String parseJson, Class className) throws IOException {
+        org.codehaus.jackson.map.ObjectMapper mapper = new org.codehaus.jackson.map.ObjectMapper();
+        
+        return mapper.readValue(parseJson, className);
+    }    
 }

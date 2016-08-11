@@ -8,6 +8,7 @@ import utilities.globalAreaData;
 import java.io.* ; 
 import java.net.* ;
 import org.apache.log4j.Logger;
+import org.json.JSONException;
 import org.json.JSONObject;
 import utilities.srvRutinas;
 
@@ -28,7 +29,6 @@ public class thKeepAliveSocket extends Thread {
     
     @Override
     public void run() {
-
         if (gDatos.getServiceStatus().isIsActivePrimaryMonHost()) {
             try {
                 Socket skCliente = new Socket(gDatos.getServiceInfo().getSrvMonHost(), gDatos.getServiceInfo().getMonPort());
@@ -54,6 +54,7 @@ public class thKeepAliveSocket extends Thread {
                         JSONObject jData = jHeader.getJSONObject("data");
                         //Como es una repsuesta no se espera retorno de error del SP
                         //el mismo lo resporta internamente si hay alguno.
+                        //gSub.updateAssignedProcess(jData);
                         gSub.updateAssignedProcess(jData);
                     } else {
                         if (jHeader.getString("result").equals("error")) {
@@ -61,7 +62,8 @@ public class thKeepAliveSocket extends Thread {
                             System.out.println("Error result: "+jData.getInt("errCode")+ " " +jData.getString("errMesg"));
                         }
                     }
-                } catch (Exception e) {
+                    gDatos.getServiceStatus().setIsConnectMonHost(true);
+                } catch (JSONException e) {
                     logger.error("Error en formato de respuesta");
                 }
             } catch (NumberFormatException | IOException e) {

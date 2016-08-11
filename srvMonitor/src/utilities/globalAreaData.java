@@ -5,6 +5,7 @@
  */
 package utilities;
 
+import dataClass.Agenda;
 import dataClass.ServerStatus;
 import dataClass.ServerInfo;
 import dataClass.ServiceStatus;
@@ -15,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
-import org.json.JSONObject;
 
 /**
  *
@@ -24,21 +24,39 @@ import org.json.JSONObject;
 public class globalAreaData {
         
     //Referencia Data Class
+    private Agenda agenda = new Agenda();
     private ServerInfo serverInfo = new ServerInfo();
     private ServerStatus serverStatus = new ServerStatus();
     private ServiceStatus serviceStatus = new ServiceStatus();
     private List<ServiceStatus> lstServiceStatus = new ArrayList<>();
-
-       
-    /*
-    Listas para Agendas24HH y AgendasPendientes
-    */
-    private List<JSONObject> lstShowAgendas = new ArrayList<>();
-    
-    private List<JSONObject> lstActiveAgendas = new ArrayList<>();
-    
+    private List<Agenda> lstShowAgendas = new ArrayList<>();
+    private List<Agenda> lstActiveAgendas = new ArrayList<>();    
 
     //Declarion de Metodos de GET / SET
+
+    public Agenda getAgenda() {
+        return agenda;
+    }
+
+    public void setAgenda(Agenda agenda) {
+        this.agenda = agenda;
+    }
+
+    public List<Agenda> getLstShowAgendas() {
+        return lstShowAgendas;
+    }
+
+    public void setLstShowAgendas(List<Agenda> lstShowAgendas) {
+        this.lstShowAgendas = lstShowAgendas;
+    }
+
+    public List<Agenda> getLstActiveAgendas() {
+        return lstActiveAgendas;
+    }
+
+    public void setLstActiveAgendas(List<Agenda> lstActiveAgendas) {
+        this.lstActiveAgendas = lstActiveAgendas;
+    }
 
     public ServiceStatus getServiceStatus() {
         return serviceStatus;
@@ -70,22 +88,6 @@ public class globalAreaData {
 
     public void setServerStatus(ServerStatus serverStatus) {
         this.serverStatus = serverStatus;
-    }
-    
-    public List<JSONObject> getLstShowAgendas() {
-        return lstShowAgendas;
-    }
-
-    public void setLstShowAgendas(List<JSONObject> lstShowAgendas) {
-        this.lstShowAgendas = lstShowAgendas;
-    }
-
-    public List<JSONObject> getLstActiveAgendas() {
-        return lstActiveAgendas;
-    }
-
-    public void setLstActiveAgendas(List<JSONObject> lstActiveAgendas) {
-        this.lstActiveAgendas = lstActiveAgendas;
     }
     
     public void updateLstServiceStatus(ServiceStatus serviceStatus) {
@@ -145,7 +147,7 @@ public class globalAreaData {
             }
 
             serverStatus.setSrvActive(true);
-            serverStatus.setIsMetadataConnect(false);
+            serverStatus.setIsValMetadataConnect(false);
             serverStatus.setIsGetAgendaActive(false);
 
             //Extrae Fecha de Hoy
@@ -153,7 +155,7 @@ public class globalAreaData {
             Date today;
             SimpleDateFormat formatter;
             formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            System.out.println(formatter.getTimeZone());
+            //System.out.println(formatter.getTimeZone());
             today = new Date();
             
             serverStatus.setSrvStartTime(formatter.format(today));
