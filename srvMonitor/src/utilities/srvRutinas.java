@@ -70,6 +70,17 @@ public class srvRutinas {
         }
     }
     
+    public String sendPing() {
+        JSONObject jData = new JSONObject();
+        JSONObject jHeader = new JSONObject();
+            
+        jHeader.put("data",jData);
+        jHeader.put("auth",gDatos.getServerInfo().getAuthKey());
+        jHeader.put("request", "ping");
+            
+        return jHeader.toString();
+    }
+
     public String sendError(int errCode, String errMesg) {
         JSONObject jData = new JSONObject();
         JSONObject jHeader = new JSONObject();
@@ -167,6 +178,7 @@ public class srvRutinas {
                 if (gDatos.getLstServiceStatus().get(i).getSrvID().equals(serviceStatus.getSrvID())) {
                     lstAssignedTypeProc = gDatos.getLstServiceStatus().get(i).getLstAssignedTypeProc();
                     serviceStatus.setLstAssignedTypeProc(lstAssignedTypeProc);
+                    serviceStatus.setIsPortActive(gDatos.getLstServiceStatus().get(i).isIsPortActive());
                     gDatos.getLstServiceStatus().set(i, serviceStatus);
                     itemFound = true;
                 }

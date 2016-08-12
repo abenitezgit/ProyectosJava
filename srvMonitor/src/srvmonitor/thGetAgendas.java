@@ -6,10 +6,13 @@
 package srvmonitor;
 
 import dataClass.Agenda;
+import dataClass.Grupo;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
@@ -62,7 +65,7 @@ public class thGetAgendas extends Thread{
         int weekOfMonth= calendar.get(Calendar.WEEK_OF_MONTH);
 
         int findHour=12;
-        int findMinutes=5;
+        int findMinutes=5;  //GAP de error
 
         String posmonth = String.valueOf(month+1);
         String posdayOfMonth = String.valueOf(dayOfMonth);
@@ -187,7 +190,58 @@ public class thGetAgendas extends Thread{
             }
         }
         
+        /**
+         * Busca paraa todas las agendas activas los grupos y procesos asignados
+         */
+        
+        int numAgeActives = gDatos.getLstActiveAgendas().size();
+        Grupo grupo;
+        gDatos.getLstActiveGrupos().clear();
+        
+        for (int i=0; i<numAgeActives; i++) {
+        
+            vSQL =  "select gr.GRPID, gr.GRPDESC, to_char(gr.UFECHAEXEC,'rrrr-mm-dd hh24:mi:ss') UFECHAEXEC, gr.CLIID, ha.HORID \n" +
+                    "from \n" +
+                    "  process.tb_HORAAGENDA ha,\n" +
+                    "  process.tb_grupos gr\n" +
+                    "where\n" +
+                    "  ha.AGEID='"+gDatos.getLstActiveAgendas().get(i).getAgeID()+"'\n" +
+                    "  AND ha.HORINCLUSIVE=1\n" +
+                    "  AND gr.HORID = ha.HORID\n" +
+                    "  AND gr.ENABLE=1";
+            try (ResultSet rs = (ResultSet) metadata.getQuery(vSQL)) {
+                if (rs!=null) {
+                    while (rs.next()) {
+                        grupo = new Grupo();
+                        grupo.setGrpID(rs.getString("GRPID"));
+                        grupo.setGrpDESC(rs.getString("GRPDESC"));
+                        grupo.setGrpCLIID(rs.getString("CLIID"));
+                        grupo.setGrpHORID(rs.getString("HORID"));
+                        grupo.setGrpUFechaExec(rs.getString("UFECHAEXEC"));
+                        grupo.setStatus("Pending");
+                        gDatos.getLstActiveGrupos().add(grupo);
+                    }
+                }
+            } catch (Exception e) {
+                logger.error("Error ejecutando query busca Grupos Activos..."+e.getMessage());
+            }
+        }
+        
         logger.info("Se encontraron: "+gDatos.getLstActiveAgendas().size()+" Agendas para Activar...");
+        
+        try {
+            for (int i=0; i<gDatos.getLstActiveGrupos().size(); i++) {
+                logger.info("Grupos para activar: "+ gSub.serializeObjectToJSon(gDatos.getLstActiveGrupos().get(i), true));
+            }
+
+            SimpleDateFormat formatter;
+            formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+            //Date fecha = gDatos.getLstActiveGrupos().get(0).getGrpUFechaExec();
+            //logger.info("UfechaExec: "+formatter.format(fecha));
+        } catch (IOException ex) {
+            java.util.logging.Logger.getLogger(thGetAgendas.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
         logger.info("Finaliza busquenda agendas activas...");
         

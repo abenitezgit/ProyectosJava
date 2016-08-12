@@ -6,6 +6,7 @@
 package utilities;
 
 import dataClass.Agenda;
+import dataClass.Grupo;
 import dataClass.ServerStatus;
 import dataClass.ServerInfo;
 import dataClass.ServiceStatus;
@@ -30,10 +31,19 @@ public class globalAreaData {
     private ServiceStatus serviceStatus = new ServiceStatus();
     private List<ServiceStatus> lstServiceStatus = new ArrayList<>();
     private List<Agenda> lstShowAgendas = new ArrayList<>();
-    private List<Agenda> lstActiveAgendas = new ArrayList<>();    
+    private List<Agenda> lstActiveAgendas = new ArrayList<>();
+    private List<Grupo> lstActiveGrupos = new ArrayList<>();
 
     //Declarion de Metodos de GET / SET
 
+    public List<Grupo> getLstActiveGrupos() {
+        return lstActiveGrupos;
+    }
+
+    public void setLstActiveGrupos(List<Grupo> lstActiveGrupos) {
+        this.lstActiveGrupos = lstActiveGrupos;
+    }
+    
     public Agenda getAgenda() {
         return agenda;
     }
