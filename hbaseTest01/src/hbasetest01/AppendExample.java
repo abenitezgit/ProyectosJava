@@ -15,7 +15,6 @@ import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
-import hbasetest01.HBaseHelper;
 
 import java.io.IOException;
 import org.apache.hadoop.fs.Path;
@@ -25,9 +24,9 @@ public class AppendExample {
   public static void main(String[] args) throws IOException {
     Configuration conf = HBaseConfiguration.create();
     
-    conf.addResource(new Path("/Users/andresbenitez/Documents/Apps/HBase-Cluster-conf/hbase-site.xml"));
-    conf.addResource(new Path("/Users/andresbenitez/Documents/Apps/HBase-Cluster-conf/core-site.xml"));
-    conf.addResource(new Path("/Users/andresbenitez/Documents/Apps/HBase-Cluster-conf/hdfs-site.xml"));
+    conf.addResource(new Path("/Users/andresbenitez/Documents/apps/Cluster-hwkcluster00/conf/hbase-site.xml"));
+    conf.addResource(new Path("/Users/andresbenitez/Documents/apps/Cluster-hwkcluster00/conf/core-site.xml"));
+    conf.addResource(new Path("/Users/andresbenitez/Documents/apps/Cluster-hwkcluster00/conf/hdfs-site.xml"));
 
     HBaseHelper helper = HBaseHelper.getHelper(conf);
     helper.dropTable("testtable");
