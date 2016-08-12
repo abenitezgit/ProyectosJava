@@ -15,6 +15,7 @@ import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -100,13 +101,19 @@ public class frmMuestra extends javax.swing.JFrame {
             
             String response = dataInput.readUTF();
             
+            System.out.println("Data: "+response);
+            
             try {
                 ServiceStatus serviceStatus = new ServiceStatus();
                 JSONObject result = new JSONObject(response);
-                serviceStatus = (ServiceStatus) gSub.serializeJSonString(result.getJSONObject("data").getJSONObject("ServiceStatus").toString(), ServiceStatus.class);
+                JSONObject jData2 = result.getJSONObject("data");
+                JSONArray jArray = jData2.getJSONArray("servicios");
+                System.out.println(jData2.toString());
+                System.out.println();
+                serviceStatus = (ServiceStatus) gSub.serializeJSonString(result.getJSONObject("data").getJSONArray("servicios").get(0).toString(), ServiceStatus.class);
                 
                 DefaultListModel model = new DefaultListModel();
-                model.addElement(result.getJSONObject("data").getJSONObject("ServiceStatus").toString());
+                model.addElement(result.getJSONObject("data").getJSONArray("servicios").toString());
                 
                 this.jList1.setModel(model);
             

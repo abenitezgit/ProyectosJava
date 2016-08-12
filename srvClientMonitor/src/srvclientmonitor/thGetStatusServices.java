@@ -63,7 +63,7 @@ public class thGetStatusServices extends Thread{
             }
             
             //Enable Status Monitor
-                gDatos.getLblMonDesc().setIcon(new ImageIcon(gDatos.getDIR_ICON_BASE()+gDatos.getICO_START_01()));
+            gDatos.getLblMonDesc().setIcon(new ImageIcon(gDatos.getDIR_ICON_BASE()+gDatos.getICO_START_01()));
                 
                 
             dataInput.close();
