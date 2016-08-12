@@ -144,6 +144,9 @@ public class srvRutinas {
         ObjectMapper mapper = new ObjectMapper();
         
         try {
+            //Actualiza Fecha de UpdateTime
+            gDatos.getServiceStatus().setSrvUpdateTime(new Date());
+            
             // Se genera la salida de la lista 
             JSONObject jHeader = new JSONObject();
             JSONObject jData = new JSONObject();

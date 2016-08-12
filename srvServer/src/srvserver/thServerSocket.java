@@ -99,6 +99,9 @@ public class thServerSocket extends Thread {
                             case "updateVar":
                                 outputData = ""; //gSub.updateVar(jData);
                                 break;
+                            case "ping":
+                                outputData = gSub.sendOkTX();
+                                break;
                             default:
                                 outputData = gSub.sendError(99,"Error desconocido..");
                         }

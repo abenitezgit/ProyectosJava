@@ -303,6 +303,8 @@ public class globalAreaData {
                 serviceStatus.setNumProcSleeping(0);
                 serviceStatus.setNumProcFinished(0);
                 serviceStatus.setNumTotalExec(0);
+                serviceStatus.setSrvHost(serviceInfo.getSrvHost());
+                serviceStatus.setSrvPort(serviceInfo.getSrvPort());
                 
                 //Extrae Fecha de Hoy
                 //
@@ -311,7 +313,7 @@ public class globalAreaData {
                     formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                     today = new Date();
 
-                serviceStatus.setSrvStartTime(formatter.format(today));
+                serviceStatus.setSrvStartTime(today);
                 serviceStatus.setSrvLoadParam(true);
                 
                 logger.info("Se ha iniciado correctamente la globalAreaData...");
