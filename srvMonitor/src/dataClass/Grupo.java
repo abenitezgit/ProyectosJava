@@ -5,7 +5,8 @@
  */
 package dataClass;
 
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -17,7 +18,47 @@ public class Grupo {
     String grpCLIID;
     String grpHORID;
     String grpUFechaExec;
+    String uStatus;
     String status;
+    long numSecExec;
+    long lastNumSecExec;
+    
+    
+    List<Process> lstProcess = new ArrayList<>();
+
+    //Getter and Setter
+
+    public String getuStatus() {
+        return uStatus;
+    }
+
+    public void setuStatus(String uStatus) {
+        this.uStatus = uStatus;
+    }
+
+    public long getLastNumSecExec() {
+        return lastNumSecExec;
+    }
+
+    public void setLastNumSecExec(long lastNumSecExec) {
+        this.lastNumSecExec = lastNumSecExec;
+    }
+
+    public long getNumSecExec() {
+        return numSecExec;
+    }
+
+    public void setNumSecExec(long numSecExec) {
+        this.numSecExec = numSecExec;
+    }
+    
+    public List<Process> getLstProcess() {
+        return lstProcess;
+    }
+
+    public void setLstProcess(List<Process> lstProcess) {
+        this.lstProcess = lstProcess;
+    }
 
     public String getGrpUFechaExec() {
         return grpUFechaExec;

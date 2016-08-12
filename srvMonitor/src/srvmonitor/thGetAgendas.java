@@ -7,12 +7,12 @@ package srvmonitor;
 
 import dataClass.Agenda;
 import dataClass.Grupo;
+import dataClass.Process;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
@@ -79,6 +79,7 @@ public class thGetAgendas extends Thread{
         String iteratorMinute;
         String posIteratorHour;
         String posIteratorMinute;
+        String numSecExec = "0";
         
         
         /*
@@ -158,6 +159,8 @@ public class thGetAgendas extends Thread{
             iteratorCalendar.add(Calendar.MINUTE, i);
             iteratorMinute = String.valueOf(iteratorCalendar.get(Calendar.MINUTE));
             posIteratorMinute = String.valueOf(Integer.valueOf(iteratorMinute)+1);
+            numSecExec = String.format("%04d", year)+String.format("%02d", month+1)+String.format("%02d", dayOfMonth)+String.format("%02d", Integer.valueOf(iteratorHour))+String.format("%02d", Integer.valueOf(iteratorMinute));
+            System.out.println("numSecExe: "+numSecExec);
             
             vSQL = "select "+iteratorMinute+" horaAgenda,ageID, month, dayOfMonth, dayOfWeek, weekOfYear, weekOfMonth, hourOfDay from process.tb_agenda where "
                     + "     ageEnable=1 "
@@ -180,7 +183,8 @@ public class thGetAgendas extends Thread{
                             agenda.setWeekOfYear(rs.getString("weekOfYear"));
                             agenda.setWeekOfMonth(rs.getString("weekOfMonth"));
                             agenda.setHourOfDay(rs.getString("hourOfDay"));
-                            gDatos.getLstActiveAgendas().add(agenda);
+                            agenda.setNumSecExec(Long.valueOf(numSecExec));
+                            gDatos.updateLstActiveAgendas(agenda);
                         }
                         rs.close();
                     }
@@ -196,11 +200,12 @@ public class thGetAgendas extends Thread{
         
         int numAgeActives = gDatos.getLstActiveAgendas().size();
         Grupo grupo;
-        gDatos.getLstActiveGrupos().clear();
+        Process process;
+        //gDatos.getLstActiveGrupos().clear();
         
         for (int i=0; i<numAgeActives; i++) {
         
-            vSQL =  "select gr.GRPID, gr.GRPDESC, to_char(gr.UFECHAEXEC,'rrrr-mm-dd hh24:mi:ss') UFECHAEXEC, gr.CLIID, ha.HORID \n" +
+            vSQL =  "select gr.GRPID, gr.GRPDESC, to_char(gr.UFECHAEXEC,'rrrr-mm-dd hh24:mi:ss') UFECHAEXEC, gr.USTATUS, gr.STATUS, gr.LASTNUMSECEXEC,  gr.CLIID, ha.HORID \n" +
                     "from \n" +
                     "  process.tb_HORAAGENDA ha,\n" +
                     "  process.tb_grupos gr\n" +
@@ -218,8 +223,34 @@ public class thGetAgendas extends Thread{
                         grupo.setGrpCLIID(rs.getString("CLIID"));
                         grupo.setGrpHORID(rs.getString("HORID"));
                         grupo.setGrpUFechaExec(rs.getString("UFECHAEXEC"));
-                        grupo.setStatus("Pending");
-                        gDatos.getLstActiveGrupos().add(grupo);
+                        grupo.setuStatus(rs.getString("USTATUS"));
+                        grupo.setStatus(rs.getString("STATUS"));
+                        grupo.setNumSecExec(gDatos.getLstActiveAgendas().get(i).getNumSecExec());
+                        grupo.setLastNumSecExec(Long.valueOf(rs.getString("LASTNUMSECEXEC")));
+                        
+                        vSQL =  "  select PROCID, NORDER \n" +
+                                "  from \n" +
+                                "    PROCESS.TB_PROCGRUPO\n" +
+                                "  where\n" +
+                                "    ENABLE = 1\n" +
+                                "    AND GRPID = '"+rs.getString("GRPID")+"'\n" +
+                                "  order by\n" +
+                                "    norder";
+                        
+                        try (ResultSet rs2 = (ResultSet) metadata.getQuery(vSQL)) {
+                            if (rs2!=null) {
+                                while (rs2.next()) {
+                                    process = new Process();
+                                    process.setProcID(rs2.getString("PROCID"));
+                                    process.setnOrder(rs2.getInt("NORDER"));
+                                    grupo.getLstProcess().add(process);
+                                }
+                            }
+                        } catch (Exception e) {
+                            logger.error("Error ejecutando query busca Procesos del Grupo..."+e.getMessage());
+                        }
+                        
+                        gDatos.updateLstActiveGrupos(grupo);
                     }
                 }
             } catch (Exception e) {
@@ -230,6 +261,10 @@ public class thGetAgendas extends Thread{
         logger.info("Se encontraron: "+gDatos.getLstActiveAgendas().size()+" Agendas para Activar...");
         
         try {
+            for (int i=0; i<gDatos.getLstActiveAgendas().size(); i++) {
+                logger.info("Agenda para activar: "+ gSub.serializeObjectToJSon(gDatos.getLstActiveAgendas().get(i), true));
+            }
+
             for (int i=0; i<gDatos.getLstActiveGrupos().size(); i++) {
                 logger.info("Grupos para activar: "+ gSub.serializeObjectToJSon(gDatos.getLstActiveGrupos().get(i), true));
             }

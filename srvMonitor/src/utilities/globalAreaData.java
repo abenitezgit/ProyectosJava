@@ -17,13 +17,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 /**
  *
  * @author andresbenitez
  */
-public class globalAreaData {
-        
+public class globalAreaData {    
+    
     //Referencia Data Class
     private Agenda agenda = new Agenda();
     private ServerInfo serverInfo = new ServerInfo();
@@ -35,6 +36,42 @@ public class globalAreaData {
     private List<Grupo> lstActiveGrupos = new ArrayList<>();
 
     //Declarion de Metodos de GET / SET
+    
+    public void updateLstActiveAgendas(Agenda agenda) {
+        
+        List<Agenda> lstTempAgendas = this.lstActiveAgendas.stream().filter(p -> p.getAgeID().equals(agenda.getAgeID())).collect(Collectors.toList());
+        
+        int numTempAgendas = lstTempAgendas.size();
+        boolean isSecFound = false;
+        
+        for (int i=0; i<numTempAgendas; i++) {
+            if (lstTempAgendas.get(i).getNumSecExec()==agenda.getNumSecExec()) {
+                isSecFound=true;
+            }
+        }
+        
+        if (!isSecFound) {
+            this.lstActiveAgendas.add(agenda);
+        }
+    }
+
+    public void updateLstActiveGrupos(Grupo grupo) {
+        
+        List<Grupo> lstTempGrupos = this.lstActiveGrupos.stream().filter(p -> p.getGrpID().equals(grupo.getGrpID())).collect(Collectors.toList());
+        
+        int numTempGrupos = lstTempGrupos.size();
+        boolean isSecFound = false;
+        
+        for (int i=0; i<numTempGrupos; i++) {
+            if (lstTempGrupos.get(i).getNumSecExec()==grupo.getNumSecExec()) {
+                isSecFound = true;
+            }
+        }
+        
+        if (!isSecFound) {
+            this.lstActiveGrupos.add(grupo);
+        }
+    }
 
     public List<Grupo> getLstActiveGrupos() {
         return lstActiveGrupos;
@@ -170,6 +207,7 @@ public class globalAreaData {
             
             serverStatus.setSrvStartTime(formatter.format(today));
             serverStatus.setSrvLoadParam(true);
+            
             
         } catch (IOException | NumberFormatException e) {
             serverStatus.setSrvLoadParam(false);

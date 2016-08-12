@@ -17,6 +17,15 @@ public class Agenda {
     String weekOfMonth;
     String hourOfDay;
     String horaAgenda;
+    long numSecExec;
+
+    public long getNumSecExec() {
+        return numSecExec;
+    }
+
+    public void setNumSecExec(long numSecExec) {
+        this.numSecExec = numSecExec;
+    }
 
     public String getAgeID() {
         return ageID;
