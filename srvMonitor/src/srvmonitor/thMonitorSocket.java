@@ -65,7 +65,9 @@ public class thMonitorSocket extends Thread {
 
                         switch (dRequest) {
                             case "keepAlive":
+                                logger.debug("Enviando a ejecutar: gSub.updateStatusService param: "+jData.getJSONObject("ServiceStatus"));
                                 result = gSub.updateStatusService(jData.getJSONObject("ServiceStatus"));
+                                logger.debug("resultado ejecucion: "+result);
                                 if (result==0) {
                                     outputData = gSub.sendAssignedProc(jData.getJSONObject("ServiceStatus").getString("srvID"));
                                 } else {
