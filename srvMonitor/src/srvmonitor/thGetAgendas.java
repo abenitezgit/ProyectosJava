@@ -262,11 +262,11 @@ public class thGetAgendas extends Thread{
         
         try {
             for (int i=0; i<gDatos.getLstActiveAgendas().size(); i++) {
-                logger.info("Agenda para activar: "+ gSub.serializeObjectToJSon(gDatos.getLstActiveAgendas().get(i), true));
+                logger.debug("Agenda para activar: "+ gSub.serializeObjectToJSon(gDatos.getLstActiveAgendas().get(i), true));
             }
 
             for (int i=0; i<gDatos.getLstActiveGrupos().size(); i++) {
-                logger.info("Grupos para activar: "+ gSub.serializeObjectToJSon(gDatos.getLstActiveGrupos().get(i), true));
+                logger.debug("Grupos para activar: "+ gSub.serializeObjectToJSon(gDatos.getLstActiveGrupos().get(i), true));
             }
 
             SimpleDateFormat formatter;
