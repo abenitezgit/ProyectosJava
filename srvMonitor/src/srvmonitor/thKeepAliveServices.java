@@ -111,8 +111,8 @@ public class thKeepAliveServices extends Thread {
                             }
                         }
                         
-                        logger.info("srvOnline: "+numServiceOnline);
-                        logger.info("srvOffline: "+numServiceOffline);
+                        logger.debug("srvOnline: "+numServiceOnline);
+                        logger.debug("srvOffline: "+numServiceOffline);
                         
                         flujo.close();
                         aux.close();
@@ -124,7 +124,7 @@ public class thKeepAliveServices extends Thread {
                         logger.error("Error conectando a socket servicio cliente..."+ e.getMessage());
                     };
                     
-                    System.out.println("Servicio: "+jData.getString("srvID")+ " "+srvHost+" "+srvPort);
+                    logger.debug("Servicio: "+jData.getString("srvID")+ " "+srvHost+" "+srvPort);
                 
                 }
             } else {
