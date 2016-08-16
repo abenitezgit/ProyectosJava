@@ -57,6 +57,7 @@ public class srvMonitor {
         Thread thSocket;
         Thread thKeep;
         Thread thAgendas;
+        Thread thETL;
         
         //Constructor de la clase
         public mainTimerTask() {
@@ -72,6 +73,7 @@ public class srvMonitor {
             boolean thKeepFound= false;
             boolean thAgendaFound = false;
             boolean thSubKeepFound = false;
+            boolean thETLFound = false;
             //Thread tr = Thread.currentThread();
             Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
             //System.out.println("Current Thread: "+tr.getName()+" ID: "+tr.getId());
@@ -88,6 +90,9 @@ public class srvMonitor {
                 }
                 if (t.getName().equals("thSubKeep")) {
                     thSubKeepFound=true;
+                }
+                if (t.getName().equals("thETL")) {
+                    thETLFound=true;
                 }
             }
             
@@ -116,6 +121,12 @@ public class srvMonitor {
                 gDatos.getServerStatus().setIsGetAgendaActive(true);
             }
             
+            if (!thETLFound) {
+                gDatos.getServerStatus().setIsThreadETLActive(false);
+            } else {
+                gDatos.getServerStatus().setIsThreadETLActive(true);
+            }
+
             /*
             Se aplicara validacion modular de procesos, ya que se encuentran en un bucle infinito.
             */
@@ -153,6 +164,9 @@ public class srvMonitor {
                 logger.error("Error al Iniciar thread: "+ thKeep.getName());
             }
             
+            //Levanta Thread para revision de Agendas y Procesos que deberan ejecutarse
+            //
+            /*
             if (gDatos.getServerStatus().isIsValMetadataConnect()) {
                 //Levanta Thread Busca Agendas Activas
                 //
@@ -168,6 +182,27 @@ public class srvMonitor {
                     gDatos.getServerStatus().setIsGetAgendaActive(false);
                     //System.out.println("Error. "+e.getMessage());
                     logger.error("Error al Iniciar Thread Agendas "+ thAgendas.getName());
+                }
+            } else {
+                logger.warn("No es posble conectarse a MetaData...");
+            }
+*/
+            //Levanta Thread para revision de Procesos de ETL que deberán ejecutarse
+            //
+            
+            if (gDatos.getServerStatus().isIsValMetadataConnect()) {
+                try {
+                    if (!gDatos.getServerStatus().isIsThreadETLActive()) {
+                        thETL = new thGetETL(gDatos);  
+                        thETL.setName("thGetETL");
+                        gDatos.getServerStatus().setIsThreadETLActive(true);
+                        thETL.start();
+                        logger.info(" Iniciando thGetETL....normal...");
+                    } 
+                } catch (Exception e) {
+                    gDatos.getServerStatus().setIsThreadETLActive(false);
+                    //System.out.println("Error. "+e.getMessage());
+                    logger.error("Error al Iniciar Thread ETL "+ thETL.getName());
                 }
             } else {
                 logger.warn("No es posble conectarse a MetaData...");

@@ -6,7 +6,9 @@
 package utilities;
 
 import dataClass.Agenda;
+import dataClass.ETL;
 import dataClass.Grupo;
+import dataClass.Interval;
 import dataClass.ServerStatus;
 import dataClass.ServerInfo;
 import dataClass.ServiceStatus;
@@ -26,6 +28,7 @@ import java.util.stream.Collectors;
 public class globalAreaData {    
     
     //Referencia Data Class
+    private ETL etl = new ETL();
     private Agenda agenda = new Agenda();
     private ServerInfo serverInfo = new ServerInfo();
     private ServerStatus serverStatus = new ServerStatus();
@@ -34,8 +37,57 @@ public class globalAreaData {
     private List<Agenda> lstShowAgendas = new ArrayList<>();
     private List<Agenda> lstActiveAgendas = new ArrayList<>();
     private List<Grupo> lstActiveGrupos = new ArrayList<>();
+    private List<ETL> lstETLConf = new ArrayList<>();
+    private List<Interval> lstInterval = new ArrayList<>();
 
     //Declarion de Metodos de GET / SET
+
+    public ETL getEtl() {
+        return etl;
+    }
+
+    public void setEtl(ETL etl) {
+        this.etl = etl;
+    }
+
+    public List<Interval> getLstInterval() {
+        return lstInterval;
+    }
+
+    public void setLstInterval(List<Interval> lstInterval) {
+        this.lstInterval = lstInterval;
+    }
+
+    public List<ETL> getLstETLConf() {
+        return lstETLConf;
+    }
+
+    public void setLstETLConf(List<ETL> lstETLConf) {
+        this.lstETLConf = lstETLConf;
+    }
+    
+    public void updateLstInterval(Interval interval) {
+    
+        List<Interval> lstTemp1 = this.lstInterval.stream().filter(p -> p.getETLID().equals(interval.getETLID())).collect(Collectors.toList());
+        List<Interval> lstTemp2 = lstTemp1.stream().filter(p -> p.getIntervalID().equals(interval.getIntervalID())).collect(Collectors.toList());
+        
+        int numIntervals = lstTemp2.size();
+        
+        if (numIntervals==0) {
+            lstInterval.add(interval);
+        }
+    }
+    
+    public void updateLstEtlConf(ETL etl) {
+        
+        List<ETL> lstTempEtl = this.lstETLConf.stream().filter(p -> p.getETLID().equals(etl.getETLID())).collect(Collectors.toList());
+        
+        int numTempEtl = lstTempEtl.size();
+        
+        if (numTempEtl==0) {
+            lstETLConf.add(etl);
+        }
+    }
     
     public void updateLstActiveAgendas(Agenda agenda) {
         
@@ -196,6 +248,7 @@ public class globalAreaData {
             serverStatus.setSrvActive(true);
             serverStatus.setIsValMetadataConnect(false);
             serverStatus.setIsGetAgendaActive(false);
+            serverStatus.setIsThreadETLActive(false);
 
             //Extrae Fecha de Hoy
             //

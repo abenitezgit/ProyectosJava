@@ -28,7 +28,7 @@ import utilities.srvRutinas;
 public class thGetAgendas extends Thread{
     static srvRutinas gSub;
     static globalAreaData gDatos;
-    static MetaData metadata;
+    MetaData metadata;
     
 //Carga Clase log4
     static Logger logger = Logger.getLogger("thGetAgendas");   

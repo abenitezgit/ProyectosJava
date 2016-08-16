@@ -20,9 +20,9 @@ public class MetaData {
     static Logger logger = Logger.getLogger("MetaData");
     globalAreaData gDatos;
     
-    static oracleDB oraConn;
-    static sqlDB sqlConn;
-    static hbaseDB hbConn;
+    private oracleDB oraConn;
+    private sqlDB sqlConn;
+    private hbaseDB hbConn;
     
     public MetaData (globalAreaData m) {
         gDatos = m;
@@ -52,6 +52,10 @@ public class MetaData {
         }
     }
     
+    public boolean isConnected() {
+        return oraConn.getConnStatus();
+    }
+    
     public Object getQuery(String vSQL) {
         switch (gDatos.getServerInfo().getDbType()) {
             case "ORA":
@@ -59,7 +63,7 @@ public class MetaData {
                     ResultSet rs = oraConn.consultar(vSQL);
                     return rs;
                 } catch (Exception e) {
-                    logger.error("Error de Ejecucion SQL: "+e.getMessage());
+                    logger.error("Error de Ejecucion SQL: "+ vSQL+ " details: "+ e.getMessage());
                 }
                 break;
             case "SQL":

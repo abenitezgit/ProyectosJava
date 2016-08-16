@@ -16,12 +16,24 @@ public class ServerStatus {
     boolean isKeepAliveActive;
     boolean isGetAgendaActive;
     boolean isValMetadataConnect;
+    boolean isThreadETLActive;
     boolean srvLoadParam;
     boolean srvActive;
     Connection metadataConnection;
     int numProcMax;
     String srvStartTime;
 
+    
+    //Getter ans Setter
+
+    public boolean isIsThreadETLActive() {
+        return isThreadETLActive;
+    }
+
+    public void setIsThreadETLActive(boolean isThreadETLActive) {
+        this.isThreadETLActive = isThreadETLActive;
+    }
+    
     public boolean isIsGetAgendaActive() {
         return isGetAgendaActive;
     }

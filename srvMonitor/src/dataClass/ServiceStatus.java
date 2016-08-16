@@ -40,15 +40,15 @@ public class ServiceStatus {
     //Información Propia
     List<AssignedTypeProc> lstAssignedTypeProc = new ArrayList<>();
     List<ActiveTypeProc> lstActiveTypeProc = new ArrayList<>();
-    boolean isPortActive;
+    //boolean isPortActive;
 
-    public boolean isIsPortActive() {
-        return isPortActive;
-    }
-
-    public void setIsPortActive(boolean isPortActive) {
-        this.isPortActive = isPortActive;
-    }
+//    public boolean isIsPortActive() {
+//        return isPortActive;
+//    }
+//
+//    public void setIsPortActive(boolean isPortActive) {
+//        this.isPortActive = isPortActive;
+//    }
 
     public Date getSrvStartTime() {
         return srvStartTime;

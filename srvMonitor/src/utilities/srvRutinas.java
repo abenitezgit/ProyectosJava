@@ -178,7 +178,7 @@ public class srvRutinas {
                 if (gDatos.getLstServiceStatus().get(i).getSrvID().equals(serviceStatus.getSrvID())) {
                     lstAssignedTypeProc = gDatos.getLstServiceStatus().get(i).getLstAssignedTypeProc();
                     serviceStatus.setLstAssignedTypeProc(lstAssignedTypeProc);
-                    serviceStatus.setIsPortActive(gDatos.getLstServiceStatus().get(i).isIsPortActive());
+                    //serviceStatus.setIsPortActive(gDatos.getLstServiceStatus().get(i).isIsPortActive());
                     gDatos.getLstServiceStatus().set(i, serviceStatus);
                     itemFound = true;
                 }
