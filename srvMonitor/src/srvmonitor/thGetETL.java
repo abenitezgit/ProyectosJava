@@ -274,7 +274,7 @@ public class thGetETL extends Thread{
                 "from\n" +
                 "  process.tb_etlinterval\n" +
                 "where\n" +
-                "  status='Sleeping'\n" +
+                "  status<>'Finished'\n" +
                 "order by\n" +
                 "  ETLID,\n" +
                 "  INTERVALID";
@@ -318,6 +318,11 @@ public class thGetETL extends Thread{
             java.util.logging.Logger.getLogger(thGetETL.class.getName()).log(Level.SEVERE, null, ex);
         }
         
+
+
+        //INICIO ETAPA 3
+        //Actualliza los Intervalos Faltantes para cada configuracion de ETL recuperada
+        //
         
         
         //Extre Fecha Actual
@@ -342,133 +347,164 @@ public class thGetETL extends Thread{
         //Setea Fecha Actual
         //
         today = new Date();
-
-
-        //Setea Fecha GAP - Desface de tiempo en extraccion
-        //
-        Calendar c = Calendar.getInstance();
-        c.add(Calendar.MINUTE, -(gDatos.getLstETLConf().get(0).getTIMEGAP()+gDatos.getLstETLConf().get(0).getTIMEPERIOD()));
-        fecGap = c.getTime();
-
-        //Setea Fecha Inicio Inscripcion/Revision de Intervalos
-
-        c.setTime(today);
-        c.add(Calendar.MINUTE, -gDatos.getLstETLConf().get(0).getTIMEGEN());
-        fecIni = c.getTime();
-
-        logger.debug("Fecha Actual: "+ today);
-        logger.debug("Fecha GAP   : "+ fecGap);
-        logger.debug("Fecha IniIns: "+ fecIni);
-
-
-        fecItera = fecIni;
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
-        SimpleDateFormat sdfToday = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String IntervalIni;
-        String IntervalFin;
-        List<String> qualifier = new ArrayList<>();
-
-        while (fecItera.compareTo(fecGap) < 0) {
-            //Extrae Intervalo para Fecha fecItera
+        
+        int numEtlConf = gDatos.getLstETLConf().size();
+        for (int it=0; it<numEtlConf; it++) {
+            //Variables del Objeto ETL
             //
-            c.setTime(fecItera);
-            AnoItera = c.get(Calendar.YEAR);
-            MesItera = c.get(Calendar.MONTH);
-            DiaItera = c.get(Calendar.DAY_OF_MONTH);
-            HoraItera = c.get(Calendar.HOUR_OF_DAY);
-            MinItera = c.get(Calendar.MINUTE);
+            int vTimeGap = gDatos.getLstETLConf().get(it).getTIMEGAP();
+            int vTimePeriod = gDatos.getLstETLConf().get(it).getTIMEPERIOD();
+            int vTimeGen = gDatos.getLstETLConf().get(it).getTIMEGEN();
+            String vUnitMeasure = gDatos.getLstETLConf().get(it).getUNITMEASURE();
+            String vETLID = gDatos.getLstETLConf().get(it).getETLID();
+            
+            //Setea Fecha GAP - Desface de tiempo en extraccion
+            //
+            Calendar c = Calendar.getInstance();
+            c.add(Calendar.MINUTE, -(vTimeGap+vTimePeriod));
+            fecGap = c.getTime();
 
-            //Valida si el intervalo de extraccion (cETL_INTERVALUNIDAD) es por:
-            //  Minutos     : 0
-            //  Horas       : 1
-            //  Dias        : 2
-            //  Semanas     : 3
-            //  Mensuales   : 4
-            //  Anuales     : 5
+            //Setea Fecha Inicio Inscripcion/Revision de Intervalos
+            //
 
-            switch (gDatos.getLstETLConf().get(0).getUNITMEASURE()) {
-                case "MINUTE":
-                    fecIntervalIni = null;
-                    fecIntervalFin = null;
-                    numInterval = 60/gDatos.getLstETLConf().get(0).getTIMEPERIOD();
-                    for (int i=1;i<=numInterval;i++) {
-                        c.set(AnoItera, MesItera, DiaItera, HoraItera, (i)*gDatos.getLstETLConf().get(0).getTIMEPERIOD(),0);
-                        fecIntervalFin = c.getTime();
-                        if (fecIntervalFin.compareTo(fecItera) >0 ) {
-                            c.set(AnoItera, MesItera, DiaItera, HoraItera, (i-1)*gDatos.getLstETLConf().get(0).getTIMEPERIOD(),0);
-                            fecIntervalIni = c.getTime();
-                            break;
+            c.setTime(today);
+            c.add(Calendar.MINUTE, -vTimeGen);
+            fecIni = c.getTime();
+
+            logger.debug("Fecha Actual: "+ today);
+            logger.debug("Fecha GAP   : "+ fecGap);
+            logger.debug("Fecha IniIns: "+ fecIni);
+        
+            fecItera = fecIni;
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
+            SimpleDateFormat sdfToday = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String IntervalIni;
+            String IntervalFin;
+            List<String> qualifier = new ArrayList<>();
+        
+            while (fecItera.compareTo(fecGap) < 0) {
+                //Crea Objecto Interval
+                //
+                interval = new Interval();
+
+
+                //Extrae Intervalo para Fecha fecItera
+                //
+                c.setTime(fecItera);
+                AnoItera = c.get(Calendar.YEAR);
+                MesItera = c.get(Calendar.MONTH);
+                DiaItera = c.get(Calendar.DAY_OF_MONTH);
+                HoraItera = c.get(Calendar.HOUR_OF_DAY);
+                MinItera = c.get(Calendar.MINUTE);
+
+                //Valida si el intervalo de extraccion (cETL_INTERVALUNIDAD) es por:
+                //  Minutos     : 0
+                //  Horas       : 1
+                //  Dias        : 2
+                //  Semanas     : 3
+                //  Mensuales   : 4
+                //  Anuales     : 5
+
+                switch (vUnitMeasure) {
+                    case "MINUTE":
+                        fecIntervalIni = null;
+                        fecIntervalFin = null;
+                        numInterval = 60/vTimePeriod;
+                        for (int i=1;i<=numInterval;i++) {
+                            c.set(AnoItera, MesItera, DiaItera, HoraItera, (i)*vTimePeriod,0);
+                            fecIntervalFin = c.getTime();
+                            if (fecIntervalFin.compareTo(fecItera) >0 ) {
+                                c.set(AnoItera, MesItera, DiaItera, HoraItera, (i-1)*vTimePeriod,0);
+                                fecIntervalIni = c.getTime();
+                                break;
+                            }
                         }
-                    }
-                    c.setTime(fecItera);
-                    c.add(Calendar.MINUTE, gDatos.getLstETLConf().get(0).getTIMEPERIOD());
-                    fecItera = c.getTime();
+                        c.setTime(fecItera);
+                        c.add(Calendar.MINUTE, vTimePeriod);
+                        fecItera = c.getTime();
 
 
-                    IntervalIni = sdf.format(fecIntervalIni);
-                    IntervalFin = sdf.format(fecIntervalFin);
-                    localIntervalID = IntervalIni+'-'+IntervalFin;
-                        
-                    logger.debug(fecIntervalIni);
-                    logger.debug(fecIntervalFin);                        
+                        IntervalIni = sdf.format(fecIntervalIni);
+                        IntervalFin = sdf.format(fecIntervalFin);
+                        localIntervalID = IntervalIni+'-'+IntervalFin;
+
+                        logger.debug(fecIntervalIni);
+                        logger.debug(fecIntervalFin);                        
 
 
-                    logger.debug("Inscribiendo Intervalos: "+localIntervalID);
-                    
-//                        if (connHB.isKeyValueExist("tb_etlInterval", vProc+"|"+localIntervalID)) {
-//                            gDatos.writeLog(0, cCLASS_NAME, cMETHOD_NAME, "rowKey: "+ vProc+"|"+localIntervalID +" Existe!!");
-//                            
-//                        } else {
-//                            gDatos.writeLog(0, cCLASS_NAME, cMETHOD_NAME, "rowKey: "+ vProc+"|"+localIntervalID +" NO Existe!!");
-//                            
-//                            //Preperando Datos para Inscribir
-//                            //
-//                            qualifier.add("data,intervalID,"+localIntervalID);
-//                            qualifier.add("data,fecIns,"+sdfToday.format(today));
-//                            qualifier.add("data,status,Ready");
-//                            qualifier.add("data,numExec,0");
-//                            
-//                            connHB.putDataRows("tb_etlInterval", vProc+"|"+localIntervalID, qualifier);
-//                            if (connHB.getStatusCode()==0) {
-//                                gDatos.writeLog(0, cCLASS_NAME, cMETHOD_NAME, "Intervalo: "+localIntervalID +" Inscrito Correctamente");
-//                            } else {
-//                                gDatos.writeLog(2, cCLASS_NAME, cMETHOD_NAME, "Error Inscribiendo Intervalo: "+localIntervalID);
-//                            }
-//                        }
+                        logger.debug("Inscribiendo Intervalos: "+localIntervalID);
+
+                        interval.setETLID(vETLID);
+                        interval.setIntervalID(localIntervalID);
+                        interval.setStatus("Sleeping");
+                        interval.setNumExec(0);
+                        interval.setFechaIns(sdfToday.format(today));
+                        interval.setFechaUpdate(sdfToday.format(today));
+
+                        gDatos.updateLstInterval(interval);
 
                         break;
 
-                case "1":
-                    fecIntervalIni = null;
-                    fecIntervalFin = null;
-                    numInterval = 24/gDatos.getLstETLConf().get(0).getTIMEPERIOD();
-                    for (int i=1;i<=numInterval;i++) {
-                        c.set(AnoItera, MesItera, DiaItera, (i)*gDatos.getLstETLConf().get(0).getTIMEPERIOD(), 0, 0);
-                        fecIntervalFin = c.getTime();
-                        if (fecIntervalFin.compareTo(fecItera) >0 ) {
-                            c.set(AnoItera, MesItera, DiaItera, (i-1)*gDatos.getLstETLConf().get(0).getTIMEPERIOD(), 0, 0);
-                            fecIntervalIni = c.getTime();
-                            break;
+                    case "HOUR":
+                        fecIntervalIni = null;
+                        fecIntervalFin = null;
+                        numInterval = 24/vTimePeriod;
+                        for (int i=1;i<=numInterval;i++) {
+                            c.set(AnoItera, MesItera, DiaItera, (i)*vTimePeriod, 0, 0);
+                            fecIntervalFin = c.getTime();
+                            if (fecIntervalFin.compareTo(fecItera) >0 ) {
+                                c.set(AnoItera, MesItera, DiaItera, (i-1)*vTimePeriod, 0, 0);
+                                fecIntervalIni = c.getTime();
+                                break;
+                            }
                         }
-                    }
-                    c.setTime(fecItera);
-                    c.add(Calendar.HOUR_OF_DAY, gDatos.getLstETLConf().get(0).getTIMEPERIOD());
-                    fecItera = c.getTime();
+                        c.setTime(fecItera);
+                        c.add(Calendar.HOUR_OF_DAY, vTimePeriod);
+                        fecItera = c.getTime();
 
-                    System.out.println(fecIntervalIni);
-                    System.out.println(fecIntervalFin);
+                        IntervalIni = sdf.format(fecIntervalIni);
+                        IntervalFin = sdf.format(fecIntervalFin);
+                        localIntervalID = IntervalIni+'-'+IntervalFin;                    
 
-                    break;
 
-                case "2":
-                case "3":
-                case "4":
-                case "5":
-                default:
+                        logger.debug(fecIntervalIni);
+                        logger.debug(fecIntervalFin);
+
+                        logger.debug("Inscribiendo Intervalos: "+localIntervalID);
+
+                        interval.setETLID(vETLID);
+                        interval.setIntervalID(localIntervalID);
+                        interval.setStatus("Sleeping");
+                        interval.setNumExec(0);
+                        interval.setFechaIns(sdfToday.format(today));
+                        interval.setFechaUpdate(sdfToday.format(today));
+
+                        gDatos.updateLstInterval(interval);                    
+
+                        break;
+
+                    case "2":
+                    case "3":
+                    case "4":
+                    case "5":
+                    default:
+                }
+
             }
-
-        }
         
+        }
+
+
+        //Muestra en DEBUG detalle de Lista de Intervalos
+        //
+        try {
+            for (int i=0; i<gDatos.getLstInterval().size(); i++) {
+                 logger.debug("List interval: "+ gSub.serializeObjectToJSon(gDatos.getLstInterval().get(i), true));
+            }
+            logger.debug("Total Lista Interval: "+gDatos.getLstInterval().size());
+        } catch (IOException ex) {
+            java.util.logging.Logger.getLogger(thGetETL.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
    
         logger.info("Terminando Ciclo Ejecución Thread ETL");
