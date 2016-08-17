@@ -14,27 +14,81 @@ import org.json.JSONObject;
 public class PoolProcess {
     String typeProc;
     String procID;
-    String status;
+    String intervalID;  //Creado para los Procesos ETL
+    String status;      //Status de Operacion del Proceso Sleeping, Ready, Running, Finished
+    String uStatus;     //Status de Termino del Proceso en Ejecucion Pending, Success, Error, Warning 
+    String insTime;     //Fecha/Hora Inscripcion en Pool
     String updateTime;
-    String StartTime;
-    String EndTime;
-    String ExitCode;
+    String startTime;
+    String endTime;
+    String errMesg;
+    int errNum;
     
-    JSONObject params;
+    JSONObject params;  //Objecto para ingresar parametros del proceso
+    
+    //Getter ans Setter
 
-    public String getExitCode() {
-        return ExitCode;
+    public String getIntervalID() {
+        return intervalID;
     }
 
-    public void setExitCode(String ExitCode) {
-        this.ExitCode = ExitCode;
+    public synchronized void setIntervalID(String intervalID) {
+        this.intervalID = intervalID;
     }
-    
+
+    public String getuStatus() {
+        return uStatus;
+    }
+
+    public synchronized void setuStatus(String uStatus) {
+        this.uStatus = uStatus;
+    }
+
+    public String getInsTime() {
+        return insTime;
+    }
+
+    public synchronized void setInsTime(String insTime) {
+        this.insTime = insTime;
+    }
+
+    public String getStartTime() {
+        return startTime;
+    }
+
+    public synchronized void setStartTime(String startTime) {
+        this.startTime = startTime;
+    }
+
+    public String getEndTime() {
+        return endTime;
+    }
+
+    public synchronized void setEndTime(String endTime) {
+        this.endTime = endTime;
+    }
+
+    public String getErrMesg() {
+        return errMesg;
+    }
+
+    public synchronized void setErrMesg(String errMesg) {
+        this.errMesg = errMesg;
+    }
+
+    public int getErrNum() {
+        return errNum;
+    }
+
+    public synchronized void setErrNum(int errNum) {
+        this.errNum = errNum;
+    }
+
     public String getTypeProc() {
         return typeProc;
     }
 
-    public void setTypeProc(String typeProc) {
+    public synchronized void setTypeProc(String typeProc) {
         this.typeProc = typeProc;
     }
 
@@ -42,7 +96,7 @@ public class PoolProcess {
         return procID;
     }
 
-    public void setProcID(String procID) {
+    public synchronized void setProcID(String procID) {
         this.procID = procID;
     }
 
@@ -50,7 +104,7 @@ public class PoolProcess {
         return status;
     }
 
-    public void setStatus(String status) {
+    public synchronized void setStatus(String status) {
         this.status = status;
     }
 
@@ -58,31 +112,15 @@ public class PoolProcess {
         return updateTime;
     }
 
-    public void setUpdateTime(String updateTime) {
+    public synchronized void setUpdateTime(String updateTime) {
         this.updateTime = updateTime;
-    }
-
-    public String getStartTime() {
-        return StartTime;
-    }
-
-    public void setStartTime(String StartTime) {
-        this.StartTime = StartTime;
-    }
-
-    public String getEndTime() {
-        return EndTime;
-    }
-
-    public void setEndTime(String EndTime) {
-        this.EndTime = EndTime;
     }
 
     public JSONObject getParams() {
         return params;
     }
 
-    public void setParams(JSONObject params) {
+    public synchronized void setParams(JSONObject params) {
         this.params = params;
     }
     

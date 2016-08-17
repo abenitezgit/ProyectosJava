@@ -6,6 +6,7 @@
 package utilities;
 
 import dataClass.AssignedTypeProc;
+import dataClass.PoolProcess;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.text.SimpleDateFormat;
@@ -144,6 +145,19 @@ public class srvRutinas {
         ObjectMapper mapper = new ObjectMapper();
         
         try {
+            
+            //LLenando Datos de Prueba
+                PoolProcess pool = new PoolProcess();
+
+                pool.setTypeProc("ETL");
+                pool.setProcID("ETL00001");
+                pool.setuStatus("Success");
+                pool.setStatus("Finished");
+
+                gDatos.getLstPoolProcess().clear();
+                gDatos.getLstPoolProcess().add(pool);
+            //
+            
             //Actualiza Fecha de UpdateTime
             gDatos.getServiceStatus().setSrvUpdateTime(new Date());
             
@@ -154,9 +168,11 @@ public class srvRutinas {
             JSONObject jo = new JSONObject(mapper.writeValueAsString(gDatos.getServiceStatus()));
             JSONArray jaAss = new JSONArray(mapper.writeValueAsString(gDatos.getLstAssignedTypeProc()));
             JSONArray jaAct = new JSONArray(mapper.writeValueAsString(gDatos.getLstActiveTypeProc()));
+            JSONArray jaPool = new JSONArray(mapper.writeValueAsString(gDatos.getLstPoolProcess()));
             
             jo.put("lstAssignedTypeProc", jaAss);
             jo.put("lstActiveTypeProc", jaAct);
+            jo.put("lstPoolProcess", jaPool);
             
             jData.put("ServiceStatus", jo);
             

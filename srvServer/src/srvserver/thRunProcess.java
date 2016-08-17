@@ -95,7 +95,7 @@ public class thRunProcess extends Thread {
             mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
             
             try {
-                System.out.println("Mapper lstSleep: "+mapper.writeValueAsString(lstSleepingProc));
+                logger.debug("Mapper lstSleep: "+mapper.writeValueAsString(lstSleepingProc));
             } catch (IOException ex) {
                 java.util.logging.Logger.getLogger(thRunProcess.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -104,7 +104,7 @@ public class thRunProcess extends Thread {
             if (!lstSleepingProc.isEmpty()) {
                 if (gDatos.getFreeThreadServices()>0) {
                     int numSleep = lstSleepingProc.size();
-                    System.out.println("Procesos Sleeping: "+numSleep);
+                    logger.debug("Procesos Sleeping: "+numSleep);
                     for (int i=0; i<numSleep; i++) {
                         if (gDatos.getFreeThreadProcess(lstSleepingProc.get(i).getTypeProc())>0) {
                             switch (lstSleepingProc.get(i).getTypeProc()) {
@@ -138,6 +138,8 @@ public class thRunProcess extends Thread {
                             }
                         } else {
                             logger.warn("No hay Threads libres del proceso: "+ lstSleepingProc.get(i).getTypeProc() + " para ejecutar");
+                            logger.warn("Se marcaran los procesos con release para ser liberados");
+                            gDatos.updateReleasePool(lstSleepingProc.get(i).getTypeProc());
                         }
                     }
                 } else {

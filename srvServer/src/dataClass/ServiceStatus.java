@@ -34,7 +34,10 @@ public class ServiceStatus {
     int numThreadActives;
     int srvPort;
     Socket skCliente;
-
+    
+    //Getter and Setter
+    //
+    
     public Date getSrvStartTime() {
         return srvStartTime;
     }

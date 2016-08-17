@@ -41,8 +41,19 @@ public class globalAreaData {
 
     /**
      * Getter And Setter Area
-     * @return 
+     * @param typeProc 
      */
+    
+    public synchronized void updateReleasePool(String typeProc) {
+        int numItems = lstPoolProcess.size();
+        
+        for (int i=0; i<numItems; i++) {
+            if (lstPoolProcess.get(i).getTypeProc().equals(typeProc)) {
+                lstPoolProcess.get(i).setStatus("Release");
+            }
+        }
+    }
+    
     public List<PoolProcess> getLstPoolProcess() {
         return lstPoolProcess;
     }
