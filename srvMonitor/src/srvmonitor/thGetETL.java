@@ -489,10 +489,21 @@ public class thGetETL extends Thread{
                     case "5":
                     default:
                 }
-
             }
-        
         }
+        
+        try {
+            //Asigna Intervalos a los Pool de Procesos de Cada Servicio Activo en base a su disponibilidad
+            //y carga asignada.
+            
+            logger.debug("PoolProcess: "+gSub.serializeObjectToJSon(gDatos.getLstServiceStatus().get(0).getLstPoolProcess(),true));
+            
+            
+            //
+        } catch (IOException ex) {
+            java.util.logging.Logger.getLogger(thGetETL.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
 
 
         //Muestra en DEBUG detalle de Lista de Intervalos

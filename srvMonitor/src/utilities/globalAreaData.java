@@ -66,7 +66,7 @@ public class globalAreaData {
         this.lstETLConf = lstETLConf;
     }
     
-    public void updateLstInterval(Interval interval) {
+    public synchronized void updateLstInterval(Interval interval) {
     
         List<Interval> lstTemp1 = this.lstInterval.stream().filter(p -> p.getETLID().equals(interval.getETLID())).collect(Collectors.toList());
         List<Interval> lstTemp2 = lstTemp1.stream().filter(p -> p.getIntervalID().equals(interval.getIntervalID())).collect(Collectors.toList());
@@ -78,18 +78,24 @@ public class globalAreaData {
         }
     }
     
-    public void updateLstEtlConf(ETL etl) {
+    public synchronized void updateLstEtlConf(ETL etl) {
         
-        List<ETL> lstTempEtl = this.lstETLConf.stream().filter(p -> p.getETLID().equals(etl.getETLID())).collect(Collectors.toList());
+        int numItems = lstETLConf.size();
+        boolean isFound = false;
         
-        int numTempEtl = lstTempEtl.size();
+        for (int i=0; i<numItems; i++) {
+            if (lstETLConf.get(i).getETLID().equals(etl.getETLID())) {
+                lstETLConf.set(i, etl);
+                isFound = true;
+            }
+        }
         
-        if (numTempEtl==0) {
+        if (!isFound) {
             lstETLConf.add(etl);
         }
     }
     
-    public void updateLstActiveAgendas(Agenda agenda) {
+    public synchronized void updateLstActiveAgendas(Agenda agenda) {
         
         List<Agenda> lstTempAgendas = this.lstActiveAgendas.stream().filter(p -> p.getAgeID().equals(agenda.getAgeID())).collect(Collectors.toList());
         
@@ -107,7 +113,7 @@ public class globalAreaData {
         }
     }
 
-    public void updateLstActiveGrupos(Grupo grupo) {
+    public synchronized void updateLstActiveGrupos(Grupo grupo) {
         
         List<Grupo> lstTempGrupos = this.lstActiveGrupos.stream().filter(p -> p.getGrpID().equals(grupo.getGrpID())).collect(Collectors.toList());
         

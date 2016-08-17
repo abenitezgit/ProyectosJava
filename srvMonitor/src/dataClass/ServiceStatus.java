@@ -40,15 +40,18 @@ public class ServiceStatus {
     //Información Propia
     List<AssignedTypeProc> lstAssignedTypeProc = new ArrayList<>();
     List<ActiveTypeProc> lstActiveTypeProc = new ArrayList<>();
-    //boolean isPortActive;
+    List<PoolProcess> lstPoolProcess = new ArrayList<>();
+    
+    
+    //Getter and Setter
+    //
+    public List<PoolProcess> getLstPoolProcess() {
+        return lstPoolProcess;
+    }
 
-//    public boolean isIsPortActive() {
-//        return isPortActive;
-//    }
-//
-//    public void setIsPortActive(boolean isPortActive) {
-//        this.isPortActive = isPortActive;
-//    }
+    public void setLstPoolProcess(List<PoolProcess> lstPoolProcess) {
+        this.lstPoolProcess = lstPoolProcess;
+    }
 
     public Date getSrvStartTime() {
         return srvStartTime;
