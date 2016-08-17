@@ -7,6 +7,7 @@ package DataClass;
 
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -15,7 +16,9 @@ import java.util.List;
  */
 public class ServiceStatus {
     String srvID;
-    String srvStartTime;
+    String srvHost;
+    Date srvStartTime;
+    Date srvUpdateTime;
     boolean srvActive;
     boolean isActivePrimaryMonHost;
     boolean isSocketServerActive;
@@ -31,10 +34,45 @@ public class ServiceStatus {
     int numProcMax;
     int srvEnable;
     int numThreadActives;
+    int srvPort;
     Socket skCliente;
     
     List<AssignedTypeProc> lstAssignedTypeProc = new ArrayList<>();
     List<ActiveTypeProc> lstActiveTypeProc = new ArrayList<>();
+    
+    //Getter and Setter
+
+    public String getSrvHost() {
+        return srvHost;
+    }
+
+    public void setSrvHost(String srvHost) {
+        this.srvHost = srvHost;
+    }
+
+    public Date getSrvStartTime() {
+        return srvStartTime;
+    }
+
+    public void setSrvStartTime(Date srvStartTime) {
+        this.srvStartTime = srvStartTime;
+    }
+
+    public Date getSrvUpdateTime() {
+        return srvUpdateTime;
+    }
+
+    public void setSrvUpdateTime(Date srvUpdateTime) {
+        this.srvUpdateTime = srvUpdateTime;
+    }
+
+    public int getSrvPort() {
+        return srvPort;
+    }
+
+    public void setSrvPort(int srvPort) {
+        this.srvPort = srvPort;
+    }
 
     public boolean isIsAssignedTypeProc() {
         return isAssignedTypeProc;
@@ -116,14 +154,6 @@ public class ServiceStatus {
         this.isKeepAliveActive = isKeepAliveActive;
     }
     
-    public String getSrvStartTime() {
-        return srvStartTime;
-    }
-
-    public void setSrvStartTime(String srvStartTime) {
-        this.srvStartTime = srvStartTime;
-    }
-
     public boolean isSrvLoadParam() {
         return srvLoadParam;
     }

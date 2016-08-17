@@ -6,6 +6,7 @@
 package srvclientmonitor;
 
 import DataClass.ServiceStatus;
+import java.awt.Color;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -159,7 +160,11 @@ public class frmMuestra extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new frmMuestra().setVisible(true);
+                frmMuestra _frmMuestra = new frmMuestra();
+                //new frmMuestra().setVisible(true);
+                _frmMuestra.getContentPane().setBackground(Color.WHITE);
+                _frmMuestra.setVisible(true);
+                
             }
         });
     }
