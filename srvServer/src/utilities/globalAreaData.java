@@ -114,6 +114,23 @@ public class globalAreaData {
             return 0;
         }
     }
+    
+    public int getIndexOfActiveTypeProc(String typeProc) {
+        int index=-1;
+        try {
+            if (!lstActiveTypeProc.isEmpty()) {
+                for (int i=0; i<lstActiveTypeProc.size(); i++) {
+                    if (lstActiveTypeProc.get(i).getTypeProc().equals(typeProc)) {
+                        index = i;
+                        break;
+                    }
+                }
+            }
+            return index;
+        } catch (Exception e) {
+            return -1;
+        }
+    }
 
     public synchronized void setStatusFinished(PoolProcess poolProcess) {
         try {

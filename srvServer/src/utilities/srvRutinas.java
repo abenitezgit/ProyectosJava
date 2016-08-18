@@ -147,15 +147,15 @@ public class srvRutinas {
         try {
             
             //LLenando Datos de Prueba
-                PoolProcess pool = new PoolProcess();
-
-                pool.setTypeProc("ETL");
-                pool.setProcID("ETL00001");
-                pool.setuStatus("Success");
-                pool.setStatus("Finished");
-
-                gDatos.getLstPoolProcess().clear();
-                gDatos.getLstPoolProcess().add(pool);
+//                PoolProcess pool = new PoolProcess();
+//
+//                pool.setTypeProc("ETL");
+//                pool.setProcID("ETL00001");
+//                pool.setuStatus("Success");
+//                pool.setStatus("Finished");
+//
+//                gDatos.getLstPoolProcess().clear();
+//                gDatos.getLstPoolProcess().add(pool);
             //
             
             //Actualiza Fecha de UpdateTime

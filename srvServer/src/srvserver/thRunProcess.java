@@ -236,7 +236,7 @@ public class thRunProcess extends Thread {
             
             int numItemsRunning = lstRunning.size();
             for (int i=0; i<numItemsRunning; i++) {
-                int index = gDatos.getLstActiveTypeProc().indexOf(lstRunning.get(i).getTypeProc());
+                int index = gDatos.getIndexOfActiveTypeProc(lstRunning.get(i).getTypeProc());
                 if (index!=-1) {
                     int usedTypeActive = gDatos.getLstActiveTypeProc().get(index).getUsedThread();
                     String typeProc = gDatos.getLstActiveTypeProc().get(index).getTypeProc();
