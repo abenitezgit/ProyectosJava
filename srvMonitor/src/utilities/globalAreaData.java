@@ -21,12 +21,17 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
+import org.apache.log4j.Logger;
 
 /**
  *
  * @author andresbenitez
  */
 public class globalAreaData {    
+    /**
+     * Clase de Logger4
+     */
+    Logger logger = Logger.getLogger("globalAreaData");    
     
     //Referencia Data Class
     private PoolProcess pool = new PoolProcess();
@@ -44,6 +49,43 @@ public class globalAreaData {
     private List<PoolProcess> lstPoolProcess = new ArrayList<>();
 
     //Declarion de Metodos de GET / SET
+    public void inscribePoolProcess(PoolProcess pool) {
+        try {
+            if (lstPoolProcess.isEmpty()) {
+                lstPoolProcess.add(pool);
+                logger.debug("ins paso1");
+            } else {
+                logger.debug("ins paso2");
+                if (pool.getTypeProc().equals("ETL")) {
+                    logger.debug("ins paso3");
+                    if (lstPoolProcess
+                            .stream()
+                            .filter(p -> p.getProcID().equals(pool.getProcID())&&p.getIntervalID()
+                            .equals(pool.getIntervalID()))
+                            .collect(Collectors.toList()).isEmpty()) {
+                        logger.debug("ins paso4");
+                        lstPoolProcess.add(pool);
+                    }
+                    logger.debug("ins paso5");
+                } else {
+                    logger.debug("ins paso6");
+                    if (lstPoolProcess
+                            .stream()
+                            .filter(p -> p.getProcID().equals(pool.getProcID()))
+                            .collect(Collectors.toList()).isEmpty()) {
+                        logger.debug("ins paso7");
+                        lstPoolProcess.add(pool);
+                    }
+                    logger.debug("ins paso8");
+                }
+            }
+            logger.debug("ins paso9");
+        } catch (Exception e) {
+            logger.error("Error en inscribePoolProcess..."+e.getMessage());
+        }
+    }
+    
+    
     public void updateLstPoolProcessInterval(PoolProcess pool) {
         List<PoolProcess> tmp = lstPoolProcess.stream().filter(p -> p.getProcID().equals(pool.getProcID())&&p.getIntervalID().equals(pool.getIntervalID())).collect(Collectors.toList());
         
@@ -90,6 +132,23 @@ public class globalAreaData {
 
     public void setLstETLConf(List<ETL> lstETLConf) {
         this.lstETLConf = lstETLConf;
+    }
+    
+    public int getIndexOfETLConf(String procID) {
+        int index=-1;
+        try {
+            if (!lstETLConf.isEmpty()) {
+                for (int i=0; i<lstETLConf.size(); i++) {
+                    if (lstETLConf.get(i).getETLID().equals(procID)) {
+                        index = i;
+                        break;
+                    }
+                }
+            }
+            return index;
+        } catch (Exception e) {
+            return -1;
+        }
     }
     
     public synchronized void updateLstInterval(Interval interval) {
