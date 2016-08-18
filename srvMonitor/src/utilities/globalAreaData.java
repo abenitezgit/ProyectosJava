@@ -9,6 +9,7 @@ import dataClass.Agenda;
 import dataClass.ETL;
 import dataClass.Grupo;
 import dataClass.Interval;
+import dataClass.PoolProcess;
 import dataClass.ServerStatus;
 import dataClass.ServerInfo;
 import dataClass.ServiceStatus;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 public class globalAreaData {    
     
     //Referencia Data Class
+    private PoolProcess pool = new PoolProcess();
     private ETL etl = new ETL();
     private Agenda agenda = new Agenda();
     private ServerInfo serverInfo = new ServerInfo();
@@ -39,8 +41,32 @@ public class globalAreaData {
     private List<Grupo> lstActiveGrupos = new ArrayList<>();
     private List<ETL> lstETLConf = new ArrayList<>();
     private List<Interval> lstInterval = new ArrayList<>();
+    private List<PoolProcess> lstPoolProcess = new ArrayList<>();
 
     //Declarion de Metodos de GET / SET
+    public void updateLstPoolProcessInterval(PoolProcess pool) {
+        List<PoolProcess> tmp = lstPoolProcess.stream().filter(p -> p.getProcID().equals(pool.getProcID())&&p.getIntervalID().equals(pool.getIntervalID())).collect(Collectors.toList());
+        
+        if (tmp.isEmpty()) {
+            lstPoolProcess.add(pool);
+        }        
+    }
+
+    public PoolProcess getPool() {
+        return pool;
+    }
+
+    public void setPool(PoolProcess pool) {
+        this.pool = pool;
+    }
+
+    public List<PoolProcess> getLstPoolProcess() {
+        return lstPoolProcess;
+    }
+
+    public void setLstPoolProcess(List<PoolProcess> lstPoolProcess) {
+        this.lstPoolProcess = lstPoolProcess;
+    }
 
     public ETL getEtl() {
         return etl;

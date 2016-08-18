@@ -12,6 +12,7 @@ import org.json.JSONObject;
  * @author andresbenitez
  */
 public class PoolProcess {
+    String srvID;       //Para asignación de Servico correspondiente
     String typeProc;
     String procID;
     String intervalID;  //Creado para los Procesos ETL
@@ -27,6 +28,14 @@ public class PoolProcess {
     JSONObject params;  //Objecto para ingresar parametros del proceso
     
     //Getter ans Setter
+
+    public String getSrvID() {
+        return srvID;
+    }
+
+    public void setSrvID(String srvID) {
+        this.srvID = srvID;
+    }
 
     public String getIntervalID() {
         return intervalID;

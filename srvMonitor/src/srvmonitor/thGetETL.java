@@ -8,6 +8,8 @@ package srvmonitor;
 import dataClass.ETL;
 import dataClass.EtlMatch;
 import dataClass.Interval;
+import dataClass.PoolProcess;
+import dataClass.ServiceStatus;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -17,7 +19,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
 import utilities.globalAreaData;
 import utilities.srvRutinas;
 
@@ -492,9 +496,98 @@ public class thGetETL extends Thread{
             }
         }
         
+        //Asigna Intervalos a los Pool de Procesos de Cada Servicio Activo en base a su disponibilidad
+        //y carga asignada.
+        
+        List<Interval> lstSleepInterval = gDatos.getLstInterval().stream().filter(p -> p.getStatus().equals("Sleeping")).collect(Collectors.toList());
+        
+        int numIntervalsSleeping = lstSleepInterval.size();
+        
+        if (numIntervalsSleeping>0) {
+            List<ServiceStatus> lstFindServiceStatus = gDatos.getLstServiceStatus().stream().filter(p -> p.isSrvActive()&&p.getNumThreadActives()<p.getNumProcMax()).collect(Collectors.toList());
+            int numFindServices = lstFindServiceStatus.size();
+            if (numFindServices>0) {
+                logger.debug("Servicios disponibles para ejecutar procesos: "+numFindServices);
+                
+                List<ServiceStatus> lstOKServiceStatus = new ArrayList<>();
+                
+                
+                //Busca Servicios inscritos que tengan disponibilidad de thread a nivel de tipo de procesos
+                //para ejecutar intervalos ETL
+                //
+                for (int i=0; i<numFindServices; i++) {
+                    boolean isDisponible = false;
+                    try {
+                        int numAssignedTypeProc = gDatos.getLstServiceStatus().get(i).getLstAssignedTypeProc().stream().filter(p -> p.getTypeProc().equals("ETL")).collect(Collectors.toList()).get(0).getMaxThread();
+                        int numUsedTypeProc = gDatos.getLstServiceStatus().get(i).getLstActiveTypeProc().stream().filter(p -> p.getTypeProc().equals("ETL")).collect(Collectors.toList()).get(0).getUsedThread();
+                        isDisponible = (numUsedTypeProc<numAssignedTypeProc);
+                    } catch (Exception e) {
+                    }
+                    if (isDisponible) {
+                        lstOKServiceStatus.add(gDatos.getLstServiceStatus().get(i));
+                    }
+                }
+                
+                int numOKServices = lstOKServiceStatus.size();
+                if (numOKServices > 0) {
+                    //Asigna Intervalos a Servicios disponibles
+                    //(se debe evaluar bien la lógica de asignación de procesos)
+                    //
+                    
+                    //Para cada intervalo Sleeping se le asignará un Servicio disponible
+                    
+                    PoolProcess pool;
+                    int nextIndexServiceAssigned = 0;
+                    for (int i=0; i<numIntervalsSleeping; i++) {
+                        
+                        //Instancia Objecto pool
+                        //
+                        pool = new PoolProcess();
+                        
+                        //Asigna Servicio
+                        //
+                        if (nextIndexServiceAssigned<=numOKServices) {
+                            pool.setSrvID(lstOKServiceStatus.get(nextIndexServiceAssigned).getSrvID());
+                        }                       
+                        
+                        pool.setTypeProc("ETL");
+                        pool.setProcID(lstSleepInterval.get(i).getETLID());
+                        pool.setIntervalID(lstSleepInterval.get(i).getIntervalID());
+                        pool.setInsTime(gSub.getDateNow("yyyy-MM-dd HH:mm:ss"));
+                        pool.setUpdateTime(gSub.getDateNow("yyyy-MM-dd HH:mm:ss"));
+                        pool.setStatus("Sleeping");
+                        
+                        JSONObject jData = new JSONObject();
+                        
+                        int indexETL = gDatos.getLstETLConf().indexOf(pool.getProcID());
+                        
+                        try {
+                            jData = new JSONObject(gSub.serializeObjectToJSon(gDatos.getLstETLConf().get(indexETL), false));
+                        } catch (IOException ex) {
+                            java.util.logging.Logger.getLogger(thGetETL.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                        
+                        pool.setParams(jData);
+                        gDatos.updateLstPoolProcessInterval(pool);
+                    }
+                    
+                
+                } else {
+                    logger.info("No hay Servicios disponibles para ejecutar Intervalos de ETL");
+                }
+                
+            } else {
+                logger.warn("No hay Servicios Activos o Disponibles para Inscribir: "+numIntervalsSleeping+" Intervalos");
+            }
+        } else {
+            logger.info("No hay Intervalos a Procesar");
+        }
+        
+        
+
+
+
         try {
-            //Asigna Intervalos a los Pool de Procesos de Cada Servicio Activo en base a su disponibilidad
-            //y carga asignada.
             
             logger.debug("PoolProcess: "+gSub.serializeObjectToJSon(gDatos.getLstServiceStatus().get(0).getLstPoolProcess(),true));
             

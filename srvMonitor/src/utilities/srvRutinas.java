@@ -3,7 +3,6 @@
  */
 package utilities;
 
-import dataClass.ActiveTypeProc;
 import dataClass.AssignedTypeProc;
 import dataClass.ServiceStatus;
 import java.io.IOException;
@@ -163,7 +162,7 @@ public class srvRutinas {
             return sendError(0,e.getMessage());
         }
     }
-        
+    
     public int updateStatusService(JSONObject jData) {
         try {
             ServiceStatus serviceStatus;
