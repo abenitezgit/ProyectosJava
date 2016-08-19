@@ -131,6 +131,37 @@ public class globalAreaData {
             return -1;
         }
     }
+    
+    public synchronized void updateLstPoolProcess(int index, PoolProcess pool, boolean updateActive) {
+        try {
+            if (index==-1) {
+                lstPoolProcess.add(pool);
+            } else { 
+                if (updateActive) {
+                    lstPoolProcess.set(index, pool);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error updating LstPoolProcess..."+e.getMessage());
+        }
+    }
+    
+    public int getIndexOfPoolProcess(String procID) {
+        int index=-1;
+        try {
+            if (!lstPoolProcess.isEmpty()) {
+                for (int i=0; i<lstPoolProcess.size(); i++) {
+                    if (lstPoolProcess.get(i).getProcID().equals(procID)) {
+                        index = i;
+                        break;
+                    }
+                }
+            }
+            return index;
+        } catch (Exception e) {
+            return -1;
+        }
+    }
 
     public synchronized void setStatusFinished(PoolProcess poolProcess) {
         try {

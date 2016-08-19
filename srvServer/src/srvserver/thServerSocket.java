@@ -102,6 +102,9 @@ public class thServerSocket extends Thread {
                             case "ping":
                                 outputData = gSub.sendOkTX();
                                 break;
+                            case "updatePoolProcesss":
+                                outputData = gSub.updatePoolProcess(jData);
+                                break;
                             default:
                                 outputData = gSub.sendError(99,"Error desconocido..");
                         }

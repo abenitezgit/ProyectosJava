@@ -137,7 +137,56 @@ public class srvRutinas {
         if (value == -1.0)      return Double.NaN;
         // returns a percentage value with 1 decimal point precision
         return ((int)(value * 1000) / 10.0);
-    }    
+    }
+
+    public synchronized String updatePoolProcess(JSONObject jData) {
+        try {
+            
+            JSONArray jArray = new JSONArray(jData.getJSONArray("poolProcess"));
+            PoolProcess pool;
+            
+            for (int i=0; i<jArray.length(); i++) {
+                pool = new PoolProcess();
+                
+                pool.setEndTime(jArray.getJSONObject(i).getString("endTime"));
+                pool.setErrMesg(jArray.getJSONObject(i).getString("errMesg"));
+                pool.setErrNum(jArray.getJSONObject(i).getInt("errNum"));
+                pool.setInsTime(jArray.getJSONObject(i).getString("insTime"));
+                pool.setIntervalID(jArray.getJSONObject(i).getString("intervalID"));
+                pool.setParams(jArray.getJSONObject(i).getJSONObject("params"));
+                pool.setProcID(jArray.getJSONObject(i).getString("procID"));
+                pool.setStartTime(jArray.getJSONObject(i).getString("startTime"));
+                pool.setTypeProc(jArray.getJSONObject(i).getString("typeProc"));
+                pool.setuStatus(jArray.getJSONObject(i).getString("uStatus"));
+                
+                switch (pool.getStatus()) {
+                    case "Sleeping":
+                        //Actualiza informacion del proceso
+                        //
+                        pool.setStatus("Ready");
+                        pool.setUpdateTime(getDateNow("yyyy-MM-dd HH:mm:ss"));
+
+                        //Valida posicion en lista actual si es que existe
+                        //
+                        int indexPool = gDatos.getIndexOfPoolProcess(pool.getProcID());
+
+                        gDatos.updateLstPoolProcess(indexPool, pool, false);
+                        break;
+                    case "Stopped":
+                        break;
+                    case "deleted":
+                        break;
+                    default:
+                        break;
+                }
+            }
+            
+            return sendOkTX();
+        } catch (Exception e) {
+            return sendError(10, e.getMessage());
+        }
+    
+    }
     
     public String sendDataKeep(String type) {
         //
@@ -145,18 +194,6 @@ public class srvRutinas {
         ObjectMapper mapper = new ObjectMapper();
         
         try {
-            
-            //LLenando Datos de Prueba
-//                PoolProcess pool = new PoolProcess();
-//
-//                pool.setTypeProc("ETL");
-//                pool.setProcID("ETL00001");
-//                pool.setuStatus("Success");
-//                pool.setStatus("Finished");
-//
-//                gDatos.getLstPoolProcess().clear();
-//                gDatos.getLstPoolProcess().add(pool);
-            //
             
             //Actualiza Fecha de UpdateTime
             gDatos.getServiceStatus().setSrvUpdateTime(new Date());

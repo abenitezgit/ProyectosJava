@@ -150,7 +150,7 @@ public class SrvServer {
                     if (!gDatos.getServiceStatus().isIsSubRunProcActive()) {
                         thRunProc.setName("thRunProcess");
                         gDatos.getServiceStatus().setIsSubRunProcActive(true);
-                        logger.info(" Agendando thread RunProcess....normal...");
+                        logger.info("Agendando thread RunProcess....normal...");
                         thRunProc.start();
                     } 
                 } catch (Exception e) {
