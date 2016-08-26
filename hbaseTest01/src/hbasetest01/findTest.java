@@ -39,24 +39,24 @@ public class findTest {
     
     
         Configuration hcfg = HBaseConfiguration.create();
+        
+        hcfg.addResource(new Path("/Users/andresbenitez/Documents/apps/Cluster-hwkcluster00/conf/hbase-site.xml"));
+        hcfg.addResource(new Path("/Users/andresbenitez/Documents/apps/Cluster-hwkcluster00/conf/core-site.xml"));
+        hcfg.addResource(new Path("/Users/andresbenitez/Documents/apps/Cluster-hwkcluster00/conf/hdfs-site.xml"));
         /*
-        hcfg.addResource(new Path("/Users/andresbenitez/Documents/Apps/Azure-conf/hbase-site.xml"));
-        hcfg.addResource(new Path("/Users/andresbenitez/Documents/Apps/Azure-conf/core-site.xml"));
-        hcfg.addResource(new Path("/Users/andresbenitez/Documents/Apps/Azure-conf/hdfs-site.xml"));
+        hcfg.addResource(new Path("/Users/andresbenitez/Documents/Apps/ApacheHws/hbase-site.xml"));
+        hcfg.addResource(new Path("/Users/andresbenitez/Documents/Apps/ApacheHws/core-site.xml"));
+        hcfg.addResource(new Path("/Users/andresbenitez/Documents/Apps/ApacheHws/hdfs-site.xml"));
         */
-        hcfg.addResource(new Path("/Users/andresbenitez/Documents/apps/HBase-Cluster-Conf/hbase-site.xml"));
-        hcfg.addResource(new Path("/Users/andresbenitez/Documents/apps/HBase-Cluster-Conf/core-site.xml"));
-        hcfg.addResource(new Path("/Users/andresbenitez/Documents/apps/HBase-Cluster-Conf/hdfs-site.xml"));
-        
 
-        try {
-            HBaseAdmin hadmin = new HBaseAdmin( hcfg );
-        
-        } catch (ZooKeeperConnectionException e) {
-            System.out.println("Zookeeper Error: "+ e.getMessage());
-        } catch (IOException e) {
-            System.out.println("IOException Error: "+ e.getMessage());
-        }
+//        try {
+//            HBaseAdmin hadmin = new HBaseAdmin( hcfg );
+//        
+//        } catch (ZooKeeperConnectionException e) {
+//            System.out.println("Zookeeper Error: "+ e.getMessage());
+//        } catch (IOException e) {
+//            System.out.println("IOException Error: "+ e.getMessage());
+//        }
         
         
         //find by scan function
@@ -104,8 +104,8 @@ public class findTest {
         //String inicio   = vKeyValue;
         //String fin      = vKeyValue+"A";
         
-        String inicio   = "C000022016030116312801_20151001_163128_Environment_440993585064_1443727888.43127.wav";
-        String fin      = "C000022016030216312801_20151001_163128_Environment_440993585064_1443727888.43128.wav";
+        String inicio   = "C00001201603011400";
+        String fin      = "C00003201603011410";
         
         scan.setStartRow(Bytes.toBytes(inicio));// 
         scan.setStopRow(Bytes.toBytes(fin));//
@@ -123,21 +123,30 @@ public class findTest {
         
             List<Filter> filters = new ArrayList<Filter>();
 
-            SingleColumnValueFilter colValFilter = new SingleColumnValueFilter(Bytes.toBytes("grab"), Bytes.toBytes("label")
-                , CompareFilter.CompareOp.GREATER_OR_EQUAL, new BinaryComparator(Bytes.toBytes("ROJO")));
+            SingleColumnValueFilter colValFilterLABEL = new SingleColumnValueFilter(Bytes.toBytes("label"), Bytes.toBytes("color")
+                , CompareFilter.CompareOp.EQUAL, new BinaryComparator(Bytes.toBytes("ROJO")));
             
             SingleColumnValueFilter colValFilter2 = new SingleColumnValueFilter(Bytes.toBytes("grab"), Bytes.toBytes("url")
                 , CompareFilter.CompareOp.GREATER_OR_EQUAL, new BinaryComparator(Bytes.toBytes("http://srv-gui-g.e-contact.cl/e-recorder/audio/20160310/09/01_20160310_095259")));
+
+            SingleColumnValueFilter colValFilterDNIS = new SingleColumnValueFilter(Bytes.toBytes("cli"), Bytes.toBytes("color")
+                , CompareFilter.CompareOp.EQUAL, new BinaryComparator(Bytes.toBytes("rojo")));
             
         
-            colValFilter.setFilterIfMissing(true);
-            colValFilter.filterRow();
-            colValFilter.getLatestVersionOnly();
+            colValFilterLABEL.setFilterIfMissing(true); //Si la columna no existe para una fila entonces no la muestra
+            colValFilterLABEL.filterRow();
+            colValFilterLABEL.getLatestVersionOnly();
+
+            colValFilterDNIS.setFilterIfMissing(true); //Si la columna no existe para una fila entonces no la muestra
+            colValFilterDNIS.filterRow();
+            colValFilterDNIS.getLatestVersionOnly();
+
             
-            filters.add(colValFilter);
+            filters.add(colValFilterDNIS);
             //filters.add(colValFilter2);
             //filters.add(filter2);
             
+            //FilterList fl = new FilterList( FilterList.Operator.MUST_PASS_ALL, filters);
             FilterList fl = new FilterList( FilterList.Operator.MUST_PASS_ALL, filters);
             
             scan.setFilter(fl);
