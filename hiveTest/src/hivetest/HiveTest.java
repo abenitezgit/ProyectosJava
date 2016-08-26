@@ -58,7 +58,11 @@ public class HiveTest {
         int i=0;
         while (res.next()) {
             i++;
-          System.out.println(res.getString(1) );
+          System.out.print(res.getString(1) );
+          System.out.print(" "+res.getString(2) );
+          System.out.print(" "+res.getString(3) );
+          System.out.print(" "+res.getString(4) );
+          System.out.println(" "+res.getString(5) );
         }
         System.out.println(i);
         
