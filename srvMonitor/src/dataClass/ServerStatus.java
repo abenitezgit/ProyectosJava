@@ -19,13 +19,34 @@ public class ServerStatus {
     boolean isGetAgendaActive;
     boolean isValMetadataConnect;
     boolean isThreadETLActive;
-    boolean srvLoadParam;
+    boolean isLoadParam;
+    boolean isLoadRutinas;
     boolean srvActive;
     Connection metadataConnection;
     int numProcMax;
     String srvStartTime;
+
+    /**
+     * 
+     * Getter and Setter
+     * @return 
+     */
     
-    //Getter ans Setter
+    public boolean isIsLoadParam() {
+        return isLoadParam;
+    }
+
+    public void setIsLoadParam(boolean isLoadParam) {
+        this.isLoadParam = isLoadParam;
+    }
+
+    public boolean isIsLoadRutinas() {
+        return isLoadRutinas;
+    }
+
+    public void setIsLoadRutinas(boolean isLoadRutinas) {
+        this.isLoadRutinas = isLoadRutinas;
+    }
 
     public boolean isIsThreadETLActive() {
         return isThreadETLActive;
@@ -67,14 +88,6 @@ public class ServerStatus {
         this.numProcMax = numProcMax;
     }
 
-    public boolean isSrvLoadParam() {
-        return srvLoadParam;
-    }
-
-    public void setSrvLoadParam(boolean srvLoadParam) {
-        this.srvLoadParam = srvLoadParam;
-    }
-    
     public Connection getMetadataConnection() {
         return metadataConnection;
     }
@@ -106,7 +119,5 @@ public class ServerStatus {
     public void setIsKeepAliveActive(boolean isKeepAliveActive) {
         this.isKeepAliveActive = isKeepAliveActive;
     }
-
-    
     
 }

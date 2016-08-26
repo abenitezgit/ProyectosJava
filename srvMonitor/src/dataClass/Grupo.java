@@ -23,7 +23,6 @@ public class Grupo {
     long numSecExec;
     long lastNumSecExec;
     
-    
     List<Process> lstProcess = new ArrayList<>();
 
     //Getter and Setter

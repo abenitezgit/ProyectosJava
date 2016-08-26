@@ -13,7 +13,13 @@ public class ServerInfo {
     String srvDesc;
     int srvEnable;
     int txpMain;
+    int txpKeep;
+    int txpSocket;
+    int txpAgendas;
+    int txpETL;
     int srvPort;
+    int ageShowHour;
+    int ageGapMinute;
     String authKey;
     String driver;
     String connString;
@@ -39,6 +45,54 @@ public class ServerInfo {
         this.srvID = srvID;
         this.srvDesc = srvDesc;
         this.srvEnable = srvEnable;
+    }
+
+    public int getAgeShowHour() {
+        return ageShowHour;
+    }
+
+    public void setAgeShowHour(int ageShowHour) {
+        this.ageShowHour = ageShowHour;
+    }
+
+    public int getAgeGapMinute() {
+        return ageGapMinute;
+    }
+
+    public void setAgeGapMinute(int ageGapMinute) {
+        this.ageGapMinute = ageGapMinute;
+    }
+
+    public int getTxpKeep() {
+        return txpKeep;
+    }
+
+    public void setTxpKeep(int txpKeep) {
+        this.txpKeep = txpKeep;
+    }
+
+    public int getTxpSocket() {
+        return txpSocket;
+    }
+
+    public void setTxpSocket(int txpSocket) {
+        this.txpSocket = txpSocket;
+    }
+
+    public int getTxpAgendas() {
+        return txpAgendas;
+    }
+
+    public void setTxpAgendas(int txpAgendas) {
+        this.txpAgendas = txpAgendas;
+    }
+
+    public int getTxpETL() {
+        return txpETL;
+    }
+
+    public void setTxpETL(int txpETL) {
+        this.txpETL = txpETL;
     }
 
     public int getTxpMain() {

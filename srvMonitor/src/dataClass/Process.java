@@ -12,6 +12,15 @@ package dataClass;
 public class Process {
     String procID;
     int nOrder;
+    int critical;
+
+    public int getCritical() {
+        return critical;
+    }
+
+    public void setCritical(int critical) {
+        this.critical = critical;
+    }
 
     public int getnOrder() {
         return nOrder;

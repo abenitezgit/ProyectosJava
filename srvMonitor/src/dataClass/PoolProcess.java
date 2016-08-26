@@ -28,7 +28,8 @@ public class PoolProcess {
         String endTime;             //Fecha-Hora de termino del proceso
         String errMesg;             //Mensaje de Error capturado
         int errNum;                 //Numero de error capturado
-        Map params = new HashMap(); //Objecto para ingresar parametros del proceso
+        String numSecExec;          //Numero Secuencia de Ejecución del Grupo incorporado en cada proceso
+        Map<Object, Object> params = new HashMap(); //Objecto para ingresar parametros del proceso
     
     /**
      * Getter and Setter

@@ -13,7 +13,6 @@ import dataClass.PoolProcess;
 import dataClass.ServerStatus;
 import dataClass.ServerInfo;
 import dataClass.ServiceStatus;
-import dataClass.Threads;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -35,12 +34,8 @@ public class globalAreaData {
     Logger logger = Logger.getLogger("globalAreaData");    
     
     //Referencia Data Class
-    private PoolProcess pool = new PoolProcess();
-    private ETL etl = new ETL();
-    private Agenda agenda = new Agenda();
     private ServerInfo serverInfo = new ServerInfo();
     private ServerStatus serverStatus = new ServerStatus();
-    private ServiceStatus serviceStatus = new ServiceStatus();
     private List<ServiceStatus> lstServiceStatus = new ArrayList<>();
     private List<Agenda> lstShowAgendas = new ArrayList<>();
     private List<Agenda> lstActiveAgendas = new ArrayList<>();
@@ -48,98 +43,66 @@ public class globalAreaData {
     private List<ETL> lstETLConf = new ArrayList<>();
     private List<Interval> lstInterval = new ArrayList<>();
     private List<PoolProcess> lstPoolProcess = new ArrayList<>();
-    
-    //Referencia Listas de Threads
-    private List<Threads> lstThreads = new ArrayList<>();
-
 
     /**
      * Declaraciones de Getter ans Setter
      * @return 
      */
-
-    public List<Threads> getLstThreads() {
-        return lstThreads;
-    }
-
-    public void setLstThreads(List<Threads> lstThreads) {
-        this.lstThreads = lstThreads;
-    }
     
-    
-    
-    /**
-     * Metodos Personalizados
-     * @param pool 
-     */
-    
-    public void inscribePoolProcess(PoolProcess pool) {
-        try {
-            if (lstPoolProcess.isEmpty()) {
-                lstPoolProcess.add(pool);
-                logger.debug("ins paso1");
-            } else {
-                logger.debug("ins paso2");
-                if (pool.getTypeProc().equals("ETL")) {
-                    logger.debug("ins paso3");
-                    if (lstPoolProcess
-                            .stream()
-                            .filter(p -> p.getProcID().equals(pool.getProcID())&&p.getIntervalID()
-                            .equals(pool.getIntervalID()))
-                            .collect(Collectors.toList()).isEmpty()) {
-                        logger.debug("ins paso4");
-                        lstPoolProcess.add(pool);
-                    }
-                    logger.debug("ins paso5");
-                } else {
-                    logger.debug("ins paso6");
-                    if (lstPoolProcess
-                            .stream()
-                            .filter(p -> p.getProcID().equals(pool.getProcID()))
-                            .collect(Collectors.toList()).isEmpty()) {
-                        logger.debug("ins paso7");
-                        lstPoolProcess.add(pool);
-                    }
-                    logger.debug("ins paso8");
-                }
-            }
-            logger.debug("ins paso9");
-        } catch (Exception e) {
-            logger.error("Error en inscribePoolProcess..."+e.getMessage());
-        }
-    }
-    
-    
-    public void updateLstPoolProcessInterval(PoolProcess pool) {
-        List<PoolProcess> tmp = lstPoolProcess.stream().filter(p -> p.getProcID().equals(pool.getProcID())&&p.getIntervalID().equals(pool.getIntervalID())).collect(Collectors.toList());
-        
-        if (tmp.isEmpty()) {
-            lstPoolProcess.add(pool);
-        }        
+    public ServerInfo getServerInfo() {
+        return serverInfo;
     }
 
-    public PoolProcess getPool() {
-        return pool;
+    public void setServerInfo(ServerInfo serverInfo) {
+        this.serverInfo = serverInfo;
     }
 
-    public void setPool(PoolProcess pool) {
-        this.pool = pool;
+    public ServerStatus getServerStatus() {
+        return serverStatus;
     }
 
-    public List<PoolProcess> getLstPoolProcess() {
-        return lstPoolProcess;
+    public void setServerStatus(ServerStatus serverStatus) {
+        this.serverStatus = serverStatus;
     }
 
-    public void setLstPoolProcess(List<PoolProcess> lstPoolProcess) {
-        this.lstPoolProcess = lstPoolProcess;
+    public List<ServiceStatus> getLstServiceStatus() {
+        return lstServiceStatus;
     }
 
-    public ETL getEtl() {
-        return etl;
+    public void setLstServiceStatus(List<ServiceStatus> lstServiceStatus) {
+        this.lstServiceStatus = lstServiceStatus;
     }
 
-    public void setEtl(ETL etl) {
-        this.etl = etl;
+    public List<Agenda> getLstShowAgendas() {
+        return lstShowAgendas;
+    }
+
+    public void setLstShowAgendas(List<Agenda> lstShowAgendas) {
+        this.lstShowAgendas = lstShowAgendas;
+    }
+
+    public List<Agenda> getLstActiveAgendas() {
+        return lstActiveAgendas;
+    }
+
+    public void setLstActiveAgendas(List<Agenda> lstActiveAgendas) {
+        this.lstActiveAgendas = lstActiveAgendas;
+    }
+
+    public List<Grupo> getLstActiveGrupos() {
+        return lstActiveGrupos;
+    }
+
+    public void setLstActiveGrupos(List<Grupo> lstActiveGrupos) {
+        this.lstActiveGrupos = lstActiveGrupos;
+    }
+
+    public List<ETL> getLstETLConf() {
+        return lstETLConf;
+    }
+
+    public void setLstETLConf(List<ETL> lstETLConf) {
+        this.lstETLConf = lstETLConf;
     }
 
     public List<Interval> getLstInterval() {
@@ -150,14 +113,54 @@ public class globalAreaData {
         this.lstInterval = lstInterval;
     }
 
-    public List<ETL> getLstETLConf() {
-        return lstETLConf;
+    public List<PoolProcess> getLstPoolProcess() {
+        return lstPoolProcess;
     }
 
-    public void setLstETLConf(List<ETL> lstETLConf) {
-        this.lstETLConf = lstETLConf;
+    public void setLstPoolProcess(List<PoolProcess> lstPoolProcess) {
+        this.lstPoolProcess = lstPoolProcess;
     }
     
+    /**
+     * Metodos Personalizados
+     * @param pool 
+     */
+    
+    public void inscribePoolProcess(PoolProcess pool) {
+        try {
+            if (lstPoolProcess.isEmpty()) {
+                lstPoolProcess.add(pool);
+            } else {
+                if (pool.getTypeProc().equals("ETL")) {
+                    if (lstPoolProcess
+                            .stream()
+                            .filter(p -> p.getProcID().equals(pool.getProcID())&&p.getIntervalID()
+                            .equals(pool.getIntervalID()))
+                            .collect(Collectors.toList()).isEmpty()) {
+                        lstPoolProcess.add(pool);
+                    }
+                } else {
+                    if (lstPoolProcess
+                            .stream()
+                            .filter(p -> p.getProcID().equals(pool.getProcID()))
+                            .collect(Collectors.toList()).isEmpty()) {
+                        lstPoolProcess.add(pool);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error en inscribePoolProcess..."+e.getMessage());
+        }
+    }
+    
+    public void updateLstPoolProcessInterval(PoolProcess pool) {
+        List<PoolProcess> tmp = lstPoolProcess.stream().filter(p -> p.getProcID().equals(pool.getProcID())&&p.getIntervalID().equals(pool.getIntervalID())).collect(Collectors.toList());
+        
+        if (tmp.isEmpty()) {
+            lstPoolProcess.add(pool);
+        }        
+    }
+
     public int getIndexOfETLConf(String procID) {
         int index=-1;
         try {
@@ -240,70 +243,6 @@ public class globalAreaData {
         }
     }
 
-    public List<Grupo> getLstActiveGrupos() {
-        return lstActiveGrupos;
-    }
-
-    public void setLstActiveGrupos(List<Grupo> lstActiveGrupos) {
-        this.lstActiveGrupos = lstActiveGrupos;
-    }
-    
-    public Agenda getAgenda() {
-        return agenda;
-    }
-
-    public void setAgenda(Agenda agenda) {
-        this.agenda = agenda;
-    }
-
-    public List<Agenda> getLstShowAgendas() {
-        return lstShowAgendas;
-    }
-
-    public void setLstShowAgendas(List<Agenda> lstShowAgendas) {
-        this.lstShowAgendas = lstShowAgendas;
-    }
-
-    public List<Agenda> getLstActiveAgendas() {
-        return lstActiveAgendas;
-    }
-
-    public void setLstActiveAgendas(List<Agenda> lstActiveAgendas) {
-        this.lstActiveAgendas = lstActiveAgendas;
-    }
-
-    public ServiceStatus getServiceStatus() {
-        return serviceStatus;
-    }
-
-    public void setServiceStatus(ServiceStatus serviceStatus) {
-        this.serviceStatus = serviceStatus;
-    }
-
-    public List<ServiceStatus> getLstServiceStatus() {
-        return lstServiceStatus;
-    }
-
-    public void setLstServiceStatus(List<ServiceStatus> lstServiceStatus) {
-        this.lstServiceStatus = lstServiceStatus;
-    }
-    
-    public ServerInfo getServerInfo() {
-        return serverInfo;
-    }
-
-    public void setServerInfo(ServerInfo serverInfo) {
-        this.serverInfo = serverInfo;
-    }
-
-    public ServerStatus getServerStatus() {
-        return serverStatus;
-    }
-
-    public void setServerStatus(ServerStatus serverStatus) {
-        this.serverStatus = serverStatus;
-    }
-    
     public void updateLstServiceStatus(ServiceStatus serviceStatus) {
         int numItems = lstServiceStatus.size();
         boolean itemFound = false;
@@ -323,6 +262,13 @@ public class globalAreaData {
             lstServiceStatus.add(serviceStatus);
         }
     }
+    
+    /**
+     * 
+     * Declaracion del Constructor
+     * 
+     */
+    
 
     public globalAreaData() {
         Properties fileConf = new Properties();
@@ -335,7 +281,13 @@ public class globalAreaData {
 
             serverInfo.setSrvID(fileConf.getProperty("srvID"));
             serverInfo.setTxpMain(Integer.valueOf(fileConf.getProperty("txpMain")));
+            serverInfo.setTxpAgendas(Integer.valueOf(fileConf.getProperty("txpAgendas")));
+            serverInfo.setTxpETL(Integer.valueOf(fileConf.getProperty("txpETL")));
+            serverInfo.setTxpKeep(Integer.valueOf(fileConf.getProperty("txpKeep")));
+            serverInfo.setTxpSocket(Integer.valueOf(fileConf.getProperty("txpSocket")));
             serverInfo.setSrvPort(Integer.valueOf(fileConf.getProperty("srvPort")));
+            serverInfo.setAgeShowHour(Integer.valueOf(fileConf.getProperty("ageShowHour")));
+            serverInfo.setAgeGapMinute(Integer.valueOf(fileConf.getProperty("ageGapMinute")));
             serverInfo.setAuthKey(fileConf.getProperty("authKey"));
             serverInfo.setDriver(fileConf.getProperty("driver"));
             serverInfo.setConnString(fileConf.getProperty("ConnString"));
@@ -374,13 +326,12 @@ public class globalAreaData {
             today = new Date();
             
             serverStatus.setSrvStartTime(formatter.format(today));
-            serverStatus.setSrvLoadParam(true);
+            serverStatus.setIsLoadParam(true);
             
             
         } catch (IOException | NumberFormatException e) {
-            serverStatus.setSrvLoadParam(false);
-            System.out.println("Error: "+e.getMessage());
+            serverStatus.setIsLoadParam(false);
+            logger.error("Error en constructor: "+e.getMessage());
         }
     }
-    
 }

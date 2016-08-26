@@ -82,7 +82,6 @@ public class thMonitorSocket extends Thread {
                                 outputData = gSub.sendStatusServices();
                                 break;
                             case "putExecOSP":
-                                gSub.putExecOSP(inputData);
                                 outputData = gSub.sendOkTX();
                                 break;
                             case "sendPing":

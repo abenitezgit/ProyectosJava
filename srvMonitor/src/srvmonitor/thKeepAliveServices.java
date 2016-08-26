@@ -102,11 +102,11 @@ public class thKeepAliveServices extends Thread {
                         JSONObject jHeader = new JSONObject(response);
                         
                         if (jHeader.getString("result").equals("OK")) {
-                            gDatos.getServiceStatus().setIsSocketServerActive(true);
+                            gDatos.getServerStatus().setIsSocketServerActive(true);
                             numServiceOnline++;
                         } else {
                             if (jHeader.getString("result").equals("error")) {
-                                gDatos.getServiceStatus().setIsSocketServerActive(false);
+                                gDatos.getServerStatus().setIsSocketServerActive(false);
                                 numServiceOffline++;
                             }
                         }
@@ -120,7 +120,7 @@ public class thKeepAliveServices extends Thread {
                         
                     } catch (IOException e) {
                         numServiceOffline++;
-                        gDatos.getServiceStatus().setIsSocketServerActive(false);
+                        gDatos.getServerStatus().setIsSocketServerActive(false);
                         logger.error("Error conectando a socket servicio cliente..."+ e.getMessage());
                     };
                     

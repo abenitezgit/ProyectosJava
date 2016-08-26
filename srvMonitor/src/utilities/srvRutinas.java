@@ -29,16 +29,42 @@ public class srvRutinas {
     globalAreaData gDatos;
     Logger logger = Logger.getLogger("srvRutinas");
     
-    //Constructor de la clase
-    //
+    /**
+     * 
+     * Inicia Constructor
+     * @param m 
+     */
+
     public srvRutinas(globalAreaData m) {
-        gDatos = m;
+        try {
+            gDatos = m;
+            gDatos.getServerStatus().setIsLoadRutinas(true);
+        } catch (Exception e) {
+            gDatos.getServerStatus().setIsLoadRutinas(false);
+        }
     }
     
-    public void sysOutln(Object obj) {
-        System.out.println(obj);
-    }
     
+    /**
+     * 
+     * Rutinas Publicas
+     * @return 
+     */
+    
+    public String getDateNow() {
+        try {
+            //Extrae Fecha de Hoy
+            //
+            Date today;
+            SimpleDateFormat formatter;
+            formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            System.out.println(formatter.getTimeZone());
+            today = new Date();
+            return formatter.format(today);  
+        } catch (Exception e) {
+            return null;
+        }
+    }
     
     public String getDateNow(String xformat) {
         try {
@@ -55,22 +81,6 @@ public class srvRutinas {
         }
     }
         
-    public String appendJSonParam(String cadena, String param, String valor) {
-        String output="{}";
-        
-        try {
-            if (cadena==null) {cadena="{}";}
-            
-            JSONObject obj = new JSONObject(cadena);
-            obj.append(param, valor);
-            output = obj.toString();
-        
-            return output;
-        } catch (Exception e) {
-            return output;
-        }
-    }
-    
     public String sendPing() {
         JSONObject jData = new JSONObject();
         JSONObject jHeader = new JSONObject();
@@ -136,24 +146,13 @@ public class srvRutinas {
         return jHeader.toString();
     }
     
-    public void putExecOSP(String inputData) {
-        try {
-            JSONObject ds = new JSONObject(inputData);
-            JSONArray rows = ds.getJSONArray("params");
-            JSONObject row = rows.getJSONObject(0); //Recupera el primero registro de la lista
-        } catch (Exception e) {
-            sysOutln(e);
-        }    
-    }
-
     public String sendStatusServices() {
         try {
             JSONObject jData = new JSONObject();
             JSONObject jHeader = new JSONObject();
             JSONArray jArray;
-            ObjectMapper mapper = new ObjectMapper();
             
-            jArray = new JSONArray(mapper.writeValueAsString(gDatos.getLstServiceStatus()));
+            jArray = new JSONArray(serializeObjectToJSon(gDatos.getLstServiceStatus(), false));
             
             jData.put("servicios", jArray);
             jHeader.put("data",jData);
@@ -170,7 +169,7 @@ public class srvRutinas {
             ServiceStatus serviceStatus;
             List<AssignedTypeProc> lstAssignedTypeProc;
             
-            serviceStatus = (ServiceStatus) serializeJSonString(jData.toString(), ServiceStatus.class);
+            serviceStatus = (ServiceStatus) serializeJSonStringToObject(jData.toString(), ServiceStatus.class);
             
             int numItems = gDatos.getLstServiceStatus().size();
             boolean itemFound = false;
@@ -240,15 +239,14 @@ public class srvRutinas {
     
     public String sendDate() {
         try {
-            JSONObject jo = new JSONObject();
+            JSONObject jData = new JSONObject();
             JSONArray ja = new JSONArray();
-            JSONObject mainjo = new JSONObject();
+            JSONObject jHeader = new JSONObject();
 
-            jo.put("fecha", getDateNow("yyyy-MM-dd HH:mm:ss"));
-            ja.put(jo);
-            mainjo.put("params", ja);
-            mainjo.put("result", "getDate");
-            return mainjo.toString();
+            jData.put("fecha", getDateNow("yyyy-MM-dd HH:mm:ss"));
+            jHeader.put("data", jData);
+            jHeader.put("result", "OK");
+            return jHeader.toString();
         } catch (Exception e) {
             return sendError(99, e.getMessage());
         }
@@ -274,7 +272,7 @@ public class srvRutinas {
                             jo.put("srvID", rs.getString("srvID"));
                             jo.put("srvEnable", rs.getInt("srvEnable"));
 
-                            serviceStatus = (ServiceStatus) serializeJSonString(jo.toString(), ServiceStatus.class);
+                            serviceStatus = (ServiceStatus) serializeJSonStringToObject(jo.toString(), ServiceStatus.class);
 
                             gDatos.updateLstServiceStatus(serviceStatus);
                         }
@@ -291,17 +289,26 @@ public class srvRutinas {
     }
     
     public String serializeObjectToJSon (Object object, boolean formated) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        
-        mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, formated);
-        
-        return mapper.writeValueAsString(object);
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+
+            mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, formated);
+
+            return mapper.writeValueAsString(object);
+        } catch (Exception e) {
+            logger.error("Error serializeObjectToJson: "+e.getMessage());
+            return null;
+        }
     }
     
-    public Object serializeJSonString (String parseJson, Class className) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        
-        return mapper.readValue(parseJson, className);
-    }        
+    public Object serializeJSonStringToObject (String parseJson, Class className) throws IOException {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
 
+            return mapper.readValue(parseJson, className);
+        } catch (Exception e) {
+            logger.error("Error serializeJSonStringToObject: "+e.getMessage());
+            return null;
+        }
+    }        
 }
