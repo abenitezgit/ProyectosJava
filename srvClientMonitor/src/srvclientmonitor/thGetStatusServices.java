@@ -14,6 +14,8 @@ import java.net.Socket;
 import java.util.Timer;
 import java.util.TimerTask;
 import javax.swing.ImageIcon;
+import javax.swing.JTextArea;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import static srvclientmonitor.frmMain.gDatos;
 
@@ -59,7 +61,28 @@ public class thGetStatusServices extends Thread{
             
             if (ds.getString("result").equals("OK")) {
                 JSONObject jData = ds.getJSONObject("data");
+                gDatos.getjTextAreaLog().append(jData.toString()+"\n");
+                gDatos.getjTextAreaLog().setCaretPosition(gDatos.getjTextAreaLog().getText().length());
                 
+                JSONArray jaServicios = jData.getJSONArray("servicios");
+                gDatos.getjTextAreaPoolProcess().setText(null);
+                gDatos.getjTextAreaTypeProc().setText(null);
+                for (int i=0; i<jaServicios.length(); i++) {
+                    String srvID = jaServicios.getJSONObject(i).getString("srvID");
+                    
+                    JSONArray jaPool = jaServicios.getJSONObject(i).getJSONArray("lstPoolProcess");
+                    for (int j=0; j<jaPool.length(); j++) {
+                        gDatos.getjTextAreaPoolProcess().append(srvID+" "+jaPool.getJSONObject(j).toString()+"\n");
+                        gDatos.getjTextAreaPoolProcess().setCaretPosition(gDatos.getjTextAreaPoolProcess().getText().length());
+                    }
+                    
+                    JSONArray jaType = jaServicios.getJSONObject(i).getJSONArray("lstAssignedTypeProc");
+                    for (int j=0; j<jaType.length(); j++) {
+                        gDatos.getjTextAreaTypeProc().append(srvID+" "+jaType.getJSONObject(j).toString()+"\n");
+                        gDatos.getjTextAreaTypeProc().setCaretPosition(gDatos.getjTextAreaTypeProc().getText().length());
+                    }
+                    
+                }
             }
             
             //Enable Status Monitor
@@ -76,8 +99,11 @@ public class thGetStatusServices extends Thread{
             
         } catch (NumberFormatException | IOException e) {
             //Enable Status Monitor
-                gDatos.getLblMonDesc().setIcon(new ImageIcon(gDatos.getDIR_ICON_BASE()+gDatos.getICO_SPHERE_OFF_STATUS()));
-            System.out.println(" Error conexion a server de monitoreo primary...."+ e.getMessage());
+            String mesg = "Error conexion a server de monitoreo primary...."+ e.getMessage();
+            gDatos.getLblMonDesc().setIcon(new ImageIcon(gDatos.getDIR_ICON_BASE()+gDatos.getICO_SPHERE_OFF_STATUS()));
+            System.out.println(mesg);
+            gDatos.getjTextAreaLog().append(mesg+"\n");
+            gDatos.getjTextAreaLog().setCaretPosition(gDatos.getjTextAreaLog().getRows()-1);
         }
     }
 }

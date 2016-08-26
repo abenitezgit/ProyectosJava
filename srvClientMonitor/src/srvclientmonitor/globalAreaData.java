@@ -14,6 +14,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 import org.json.JSONArray;
 
 /**
@@ -28,6 +29,9 @@ public class globalAreaData {
     private JLabel lblMonDesc = new JLabel();
     private JLabel lblMonTime = new JLabel();
     private JLabel lblMonTimeNow = new JLabel();
+    private JTextArea jTextAreaLog = new JTextArea();
+    private JTextArea jTextAreaTypeProc = new JTextArea();
+    private JTextArea jTextAreaPoolProcess = new JTextArea();
     private final String DIR_ICON_BASE = "/Users/andresbenitez/Documents/Apps/NetBeansProjects3/srvClientMonitor/src/";
     private final String ICO_SPHERE_OFF_STATUS = "1469138256_stock_draw-sphere.png";
     private final String ICO_SPHERE_OFF_STATUS2 = "16x15_dialog-error.png";
@@ -81,6 +85,46 @@ public class globalAreaData {
     }
     
     //Getter an Setter
+
+    public JTextArea getjTextAreaTypeProc() {
+        return jTextAreaTypeProc;
+    }
+
+    public void setjTextAreaTypeProc(JTextArea jTextAreaTypeProc) {
+        this.jTextAreaTypeProc = jTextAreaTypeProc;
+    }
+
+    public JTextArea getjTextAreaPoolProcess() {
+        return jTextAreaPoolProcess;
+    }
+
+    public void setjTextAreaPoolProcess(JTextArea jTextAreaPoolProcess) {
+        this.jTextAreaPoolProcess = jTextAreaPoolProcess;
+    }
+    
+    public JTextArea getjTextAreaLog() {
+        return jTextAreaLog;
+    }
+
+    public void setjTextAreaLog(JTextArea jTextAreaLog) {
+        this.jTextAreaLog = jTextAreaLog;
+    }
+
+    public boolean isStatusMonActive() {
+        return statusMonActive;
+    }
+
+    public void setStatusMonActive(boolean statusMonActive) {
+        this.statusMonActive = statusMonActive;
+    }
+
+    public String getStatusMonStartDate() {
+        return statusMonStartDate;
+    }
+
+    public void setStatusMonStartDate(String statusMonStartDate) {
+        this.statusMonStartDate = statusMonStartDate;
+    }
 
     public List<JSONArray> getLstServiceStatus() {
         return lstServiceStatus;

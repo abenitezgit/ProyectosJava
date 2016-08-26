@@ -22,6 +22,7 @@ import org.jfree.data.category.DefaultCategoryDataset;
  */
 public class frmMain extends javax.swing.JFrame {
     static globalAreaData gDatos = new globalAreaData();
+    Thread thgetStatus = new thGetStatusServices(gDatos);
 
     /**
      * Creates new form frmMain
@@ -65,8 +66,15 @@ public class frmMain extends javax.swing.JFrame {
         jButton1 = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         btnStartStop = new javax.swing.JButton();
+        btnStop = new javax.swing.JToggleButton();
         jToolBar1 = new javax.swing.JToolBar();
         lblTimeNow = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTextLog = new javax.swing.JTextArea();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        jTextAreaTypeProc = new javax.swing.JTextArea();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        jTextAreaPoolProcess = new javax.swing.JTextArea();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
@@ -314,7 +322,7 @@ public class frmMain extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
-        jButton1.setText("jButton1");
+        jButton1.setText("Grafico");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
@@ -329,7 +337,7 @@ public class frmMain extends javax.swing.JFrame {
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 110, Short.MAX_VALUE)
+            .addGap(0, 55, Short.MAX_VALUE)
         );
 
         btnStartStop.setText("Start");
@@ -339,21 +347,32 @@ public class frmMain extends javax.swing.JFrame {
             }
         });
 
+        btnStop.setText("Stop");
+        btnStop.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnStopActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout pnlMainLayout = new javax.swing.GroupLayout(pnlMain);
         pnlMain.setLayout(pnlMainLayout);
         pnlMainLayout.setHorizontalGroup(
             pnlMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlMainLayout.createSequentialGroup()
-                .addGap(43, 43, 43)
-                .addComponent(jButton1)
-                .addGap(56, 56, 56)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(218, Short.MAX_VALUE))
-            .addGroup(pnlMainLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(pnlMonMain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(btnStartStop)
+                .addGroup(pnlMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(pnlMainLayout.createSequentialGroup()
+                        .addComponent(pnlMonMain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(pnlMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlMainLayout.createSequentialGroup()
+                                .addComponent(jButton1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(btnStartStop))
+                            .addComponent(btnStop, javax.swing.GroupLayout.Alignment.TRAILING)))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlMainLayout.createSequentialGroup()
+                        .addGap(0, 435, Short.MAX_VALUE)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         pnlMainLayout.setVerticalGroup(
@@ -361,16 +380,16 @@ public class frmMain extends javax.swing.JFrame {
             .addGroup(pnlMainLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(pnlMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(btnStartStop)
+                    .addGroup(pnlMainLayout.createSequentialGroup()
+                        .addGroup(pnlMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(btnStartStop)
+                            .addComponent(jButton1))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnStop))
                     .addComponent(pnlMonMain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGroup(pnlMainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(pnlMainLayout.createSequentialGroup()
-                        .addGap(80, 80, 80)
-                        .addComponent(jButton1))
-                    .addGroup(pnlMainLayout.createSequentialGroup()
-                        .addGap(38, 38, 38)
-                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(78, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(22, Short.MAX_VALUE))
         );
 
         jToolBar1.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(102, 102, 102), 1, true));
@@ -382,6 +401,27 @@ public class frmMain extends javax.swing.JFrame {
         lblTimeNow.setForeground(new java.awt.Color(255, 255, 255));
         lblTimeNow.setText("    ");
         jToolBar1.add(lblTimeNow);
+
+        jTextLog.setBackground(java.awt.Color.black);
+        jTextLog.setColumns(20);
+        jTextLog.setFont(new java.awt.Font("Dialog", 0, 10)); // NOI18N
+        jTextLog.setForeground(java.awt.Color.orange);
+        jTextLog.setRows(5);
+        jScrollPane1.setViewportView(jTextLog);
+
+        jTextAreaTypeProc.setBackground(java.awt.Color.darkGray);
+        jTextAreaTypeProc.setColumns(20);
+        jTextAreaTypeProc.setFont(new java.awt.Font("Dialog", 0, 10)); // NOI18N
+        jTextAreaTypeProc.setForeground(new java.awt.Color(255, 255, 204));
+        jTextAreaTypeProc.setRows(5);
+        jScrollPane2.setViewportView(jTextAreaTypeProc);
+
+        jTextAreaPoolProcess.setBackground(java.awt.Color.darkGray);
+        jTextAreaPoolProcess.setColumns(20);
+        jTextAreaPoolProcess.setFont(new java.awt.Font("Dialog", 0, 10)); // NOI18N
+        jTextAreaPoolProcess.setForeground(new java.awt.Color(255, 255, 204));
+        jTextAreaPoolProcess.setRows(5);
+        jScrollPane3.setViewportView(jTextAreaPoolProcess);
 
         jMenu1.setText("General");
         jMenu1.setFont(new java.awt.Font("Dialog", 1, 10)); // NOI18N
@@ -428,17 +468,27 @@ public class frmMain extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(pnlMain, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jToolBar1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jScrollPane1)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(pnlMain, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(0, 14, Short.MAX_VALUE))
-            .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jScrollPane2)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 723, Short.MAX_VALUE))
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(pnlMain, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jToolBar1, javax.swing.GroupLayout.DEFAULT_SIZE, 23, Short.MAX_VALUE))
+                .addComponent(pnlMain, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(52, 52, 52)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 70, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(3, 3, 3)
+                .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         pack();
@@ -518,11 +568,15 @@ public class frmMain extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void btnStartStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStartStopActionPerformed
-        Thread thgetStatus = new thGetStatusServices(gDatos);
+        
         thgetStatus.start();
         
         
     }//GEN-LAST:event_btnStartStopActionPerformed
+
+    private void btnStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStopActionPerformed
+        thgetStatus.interrupt();
+    }//GEN-LAST:event_btnStopActionPerformed
 
     /**
      * @param args the command line arguments
@@ -586,6 +640,9 @@ public class frmMain extends javax.swing.JFrame {
             
             //Asocia a variables Globales
             gDatos.setLblMonDesc(_frmMain.lblMon);
+            gDatos.setjTextAreaLog(_frmMain.jTextLog);
+            gDatos.setjTextAreaTypeProc(_frmMain.jTextAreaTypeProc);
+            gDatos.setjTextAreaPoolProcess(_frmMain.jTextAreaPoolProcess);
             
             //Habilita Time Hour
             Thread _thTime = new thTime(_frmMain.lblTimeNow);
@@ -597,6 +654,7 @@ public class frmMain extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnStartStop;
+    private javax.swing.JToggleButton btnStop;
     private javax.swing.JButton jButton1;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
@@ -606,6 +664,12 @@ public class frmMain extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JTextArea jTextAreaPoolProcess;
+    private javax.swing.JTextArea jTextAreaTypeProc;
+    private javax.swing.JTextArea jTextLog;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JLabel lblActive1;
     private javax.swing.JLabel lblActive2;
