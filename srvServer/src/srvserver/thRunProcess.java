@@ -75,79 +75,88 @@ public class thRunProcess extends Thread {
                     lstPesoActive
                     */
                     setPesoEspecifico();
+                    updatePoolStatistics();
                     
-                    
+                    /*
+                    Ejcuta Procesos en estado Ready
+                    */
+                    List<PoolProcess> lstReadyProc = gDatos.getLstPoolProcess().stream().filter(p -> p.getStatus().equals("Ready")).collect(Collectors.toList());
+
+                    ObjectMapper mapper = new ObjectMapper();
+                    mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
+
+                    try {
+                        logger.debug("Mapper lstReady: "+mapper.writeValueAsString(lstReadyProc));
+                    } catch (IOException ex) {
+                        java.util.logging.Logger.getLogger(thRunProcess.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+
+
+                    if (!lstReadyProc.isEmpty()) {
+                        if (gDatos.getFreeThreadServices()>0) {
+                            int numSleep = lstReadyProc.size();
+                            logger.debug("Procesos Sleeping: "+numSleep);
+                            for (int i=0; i<numSleep; i++) {
+                                if (gDatos.getFreeThreadProcess(lstReadyProc.get(i).getTypeProc())>0) {
+                                    switch (lstReadyProc.get(i).getTypeProc()) {
+                                        case "OSP":
+                                            Thread thOSP = new thExecOSP(gDatos, lstReadyProc.get(i));
+                                            //thOSP.setName("thExecOSP-"+lstSleepingProc.get(i).getProcID());
+                                            thOSP.setName("OSPThread");
+                                            gDatos.setStatusRunning(lstReadyProc.get(i));
+                                            thOSP.start();
+                                            break;
+                                        case "OTX":
+//                                            Thread thOTX = new thExecOTX(gDatos, lstReadyProc.get(i).getParams());
+//                                            thOTX.setName("thExecOTX-"+lstReadyProc.get(i).getProcID());
+//                                            gDatos.setStatusRunning(lstReadyProc.get(i));
+//                                            thOTX.start();
+                                            break;
+                                        case "LOR":
+//                                            Thread thLOR = new thExecLOR(gDatos, lstReadyProc.get(i).getParams());
+//                                            thLOR.setName("thExecLOR-"+lstReadyProc.get(i).getProcID());
+//                                            gDatos.setStatusRunning(lstReadyProc.get(i));
+//                                            thLOR.start();
+                                            break;
+                                        case "FTP":
+//                                            Thread thFTP = new thExecFTP(gDatos, lstReadyProc.get(i).getParams());
+//                                            thFTP.setName("thExecFTP-"+lstReadyProc.get(i).getProcID());
+//                                            gDatos.setStatusRunning(lstReadyProc.get(i));
+//                                            thFTP.start();
+                                            break;
+                                        case "ETL":
+                                            Thread thETL = new thExecETL(gDatos, lstReadyProc.get(i));
+                                            thETL.setName("thExecETL-"+ lstReadyProc.get(i).getIntervalID());
+                                            //gDatos.setStatusRunning(lstReadyProc.get(i));
+                                            gDatos.updateStatusPoolProcess("ETL", lstReadyProc.get(i).getProcID(), "Running", lstReadyProc.get(i).getIntervalID());
+                                            thETL.start();
+                                            break;
+                                        default:
+                                            logger.info("No hay Rutinas de Ejecucion asiciadas a este tipo de proceso: "+lstReadyProc.get(i).getTypeProc());
+                                            break;
+                                    }
+                                } else {
+                                    logger.warn("No hay Threads libres del proceso: "+ lstReadyProc.get(i).getTypeProc() + " para ejecutar");
+                                    logger.warn("Se marcaran los procesos con release para ser liberados");
+                                    gDatos.updateReleasePool(lstReadyProc.get(i).getTypeProc());
+                                }
+                                updatePoolStatistics();
+                            }
+                        } else {
+                            logger.warn("No hay Threads libres del Servicio para ejecutar");
+                        }
+                    } else {
+                        logger.info("No hay procesos pendientes para ejecutar");
+                    }
                 
                 } else {
                     logger.info("No hay tipos de procesos Asignados");
                 }
             } else {
-                logger.info("No hay procesos en Pool de Ejecucion");
+                logger.info("No hay procesos Ready para ser ejecutados en Pool de Ejecucion");
             }
             
-            
-            /*
-            Ejcuta Procesos en Sleeping
-            */
-            List<PoolProcess> lstSleepingProc = gDatos.getLstPoolProcess().stream().filter(p -> p.getStatus().equals("Sleeping")).collect(Collectors.toList());
-            
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
-            
-            try {
-                logger.debug("Mapper lstSleep: "+mapper.writeValueAsString(lstSleepingProc));
-            } catch (IOException ex) {
-                java.util.logging.Logger.getLogger(thRunProcess.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            
-            
-            if (!lstSleepingProc.isEmpty()) {
-                if (gDatos.getFreeThreadServices()>0) {
-                    int numSleep = lstSleepingProc.size();
-                    logger.debug("Procesos Sleeping: "+numSleep);
-                    for (int i=0; i<numSleep; i++) {
-                        if (gDatos.getFreeThreadProcess(lstSleepingProc.get(i).getTypeProc())>0) {
-                            switch (lstSleepingProc.get(i).getTypeProc()) {
-                                case "OSP":
-                                    Thread thOSP = new thExecOSP(gDatos, lstSleepingProc.get(i));
-                                    //thOSP.setName("thExecOSP-"+lstSleepingProc.get(i).getProcID());
-                                    thOSP.setName("OSPThread");
-                                    gDatos.setStatusRunning(lstSleepingProc.get(i));
-                                    thOSP.start();
-                                    break;
-                                case "OTX":
-                                    Thread thOTX = new thExecOTX(gDatos, lstSleepingProc.get(i).getParams());
-                                    thOTX.setName("thExecOTX-"+lstSleepingProc.get(i).getProcID());
-                                    gDatos.setStatusRunning(lstSleepingProc.get(i));
-                                    thOTX.start();
-                                    break;
-                                case "LOR":
-                                    Thread thLOR = new thExecLOR(gDatos, lstSleepingProc.get(i).getParams());
-                                    thLOR.setName("thExecLOR-"+lstSleepingProc.get(i).getProcID());
-                                    gDatos.setStatusRunning(lstSleepingProc.get(i));
-                                    thLOR.start();
-                                    break;
-                                case "FTP":
-                                    Thread thFTP = new thExecFTP(gDatos, lstSleepingProc.get(i).getParams());
-                                    thFTP.setName("thExecFTP-"+lstSleepingProc.get(i).getProcID());
-                                    gDatos.setStatusRunning(lstSleepingProc.get(i));
-                                    thFTP.start();
-                                    break;
-                                default:
-                                    break;
-                            }
-                        } else {
-                            logger.warn("No hay Threads libres del proceso: "+ lstSleepingProc.get(i).getTypeProc() + " para ejecutar");
-                            logger.warn("Se marcaran los procesos con release para ser liberados");
-                            gDatos.updateReleasePool(lstSleepingProc.get(i).getTypeProc());
-                        }
-                    }
-                } else {
-                    logger.warn("No hay Threads libres del Servicio para ejecutar");
-                }
-            } else {
-                logger.info("No hay procesos pendientes para ejecutar");
-            }
+            logger.info("Finalizando Thread thRunProcess.");
             
         }
         
@@ -221,7 +230,7 @@ public class thRunProcess extends Thread {
             lstFinished.clear();
             
             lstRunning = gDatos.getLstPoolProcess().stream().filter(p -> p.getStatus().equals("Running")).collect(Collectors.toList());
-            lstSleeping = gDatos.getLstPoolProcess().stream().filter(p -> p.getStatus().equals("Sleeping")).collect(Collectors.toList());
+            lstSleeping = gDatos.getLstPoolProcess().stream().filter(p -> p.getStatus().equals("Assigned")).collect(Collectors.toList());
             lstFinished = gDatos.getLstPoolProcess().stream().filter(p -> p.getStatus().equals("Finished")).collect(Collectors.toList());
             
             gDatos.getServiceStatus().setNumProcRunning(lstRunning.size());

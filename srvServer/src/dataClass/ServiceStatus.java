@@ -15,8 +15,8 @@ import java.util.Date;
 public class ServiceStatus {
     String srvID;
     String srvHost;
-    Date srvStartTime;
-    Date srvUpdateTime;
+    String srvStartTime;
+    String srvUpdateTime;
     boolean srvActive;
     boolean isActivePrimaryMonHost;
     boolean isSocketServerActive;
@@ -37,20 +37,20 @@ public class ServiceStatus {
     
     //Getter and Setter
     //
-    
-    public Date getSrvStartTime() {
+
+    public String getSrvStartTime() {
         return srvStartTime;
     }
 
-    public void setSrvStartTime(Date srvStartTime) {
+    public void setSrvStartTime(String srvStartTime) {
         this.srvStartTime = srvStartTime;
     }
 
-    public Date getSrvUpdateTime() {
+    public String getSrvUpdateTime() {
         return srvUpdateTime;
     }
 
-    public void setSrvUpdateTime(Date srvUpdateTime) {
+    public void setSrvUpdateTime(String srvUpdateTime) {
         this.srvUpdateTime = srvUpdateTime;
     }
 

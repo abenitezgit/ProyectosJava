@@ -27,7 +27,7 @@ public class thExecOSP extends Thread{
         gDatos = m;
         gSub = new srvRutinas(gDatos);
         this.poolProcess = poolProcess;
-        this.params = poolProcess.getParams();
+        //this.params = poolProcess.getParams();
         this.procID = poolProcess.getProcID();
     }
     

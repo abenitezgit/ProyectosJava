@@ -55,7 +55,10 @@ public class thKeepAliveSocket extends Thread {
                         //Como es una repsuesta no se espera retorno de error del SP
                         //el mismo lo resporta internamente si hay alguno.
                         //gSub.updateAssignedProcess(jData);
+                        logger.info("Enviando a actualizar lstAssignedTypeProc...");
                         gSub.updateAssignedProcess(jData);
+                        logger.info("Enviando a actualizar lstPoolProcess...");
+                        gSub.updatePoolProcess(jData);
                     } else {
                         if (jHeader.getString("result").equals("error")) {
                             JSONObject jData = jHeader.getJSONObject("data");

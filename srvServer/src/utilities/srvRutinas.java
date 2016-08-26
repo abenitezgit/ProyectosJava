@@ -142,25 +142,31 @@ public class srvRutinas {
     public synchronized String updatePoolProcess(JSONObject jData) {
         try {
             
-            JSONArray jArray = new JSONArray(jData.getJSONArray("poolProcess"));
+            logger.debug("Data recibida para updatePoolProcess: "+jData.toString());
+            JSONArray jArray = jData.getJSONArray("poolProcess");
             PoolProcess pool;
             
+            logger.info("Se han recibido: "+jArray.length()+" asignaciones de Ejecución de Procesos.");
             for (int i=0; i<jArray.length(); i++) {
                 pool = new PoolProcess();
                 
+                pool = (PoolProcess) serializeJSonString(jArray.getJSONObject(i).toString(), PoolProcess.class);
+                
+                /*
                 pool.setEndTime(jArray.getJSONObject(i).getString("endTime"));
                 pool.setErrMesg(jArray.getJSONObject(i).getString("errMesg"));
                 pool.setErrNum(jArray.getJSONObject(i).getInt("errNum"));
                 pool.setInsTime(jArray.getJSONObject(i).getString("insTime"));
                 pool.setIntervalID(jArray.getJSONObject(i).getString("intervalID"));
-                pool.setParams(jArray.getJSONObject(i).getJSONObject("params"));
+                //pool.setParams(jArray.getJSONObject(i).getJSONObject("params"));
                 pool.setProcID(jArray.getJSONObject(i).getString("procID"));
                 pool.setStartTime(jArray.getJSONObject(i).getString("startTime"));
                 pool.setTypeProc(jArray.getJSONObject(i).getString("typeProc"));
                 pool.setuStatus(jArray.getJSONObject(i).getString("uStatus"));
+                */
                 
                 switch (pool.getStatus()) {
-                    case "Sleeping":
+                    case "Assigned":
                         //Actualiza informacion del proceso
                         //
                         pool.setStatus("Ready");
@@ -168,7 +174,12 @@ public class srvRutinas {
 
                         //Valida posicion en lista actual si es que existe
                         //
-                        int indexPool = gDatos.getIndexOfPoolProcess(pool.getProcID());
+                        int indexPool;
+                        if (pool.getTypeProc().equals("ETL")) {
+                            indexPool = gDatos.getIndexOfPoolProcess(pool.getProcID(), pool.getIntervalID());
+                        } else {
+                            indexPool = gDatos.getIndexOfPoolProcess(pool.getProcID());
+                        }
 
                         gDatos.updateLstPoolProcess(indexPool, pool, false);
                         break;
@@ -180,10 +191,10 @@ public class srvRutinas {
                         break;
                 }
             }
-            
+            logger.info("Total de Ejecuciones de Procesos en lista PoolProcess: "+gDatos.getLstPoolProcess().size());
             return sendOkTX();
-        } catch (Exception e) {
-            return sendError(10, e.getMessage());
+        } catch (JSONException | IOException e) {
+            logger.error("Error updatePoolProcess: "+e.getMessage());                                                                                                                                                                                                                                                                                                             return sendError(10, e.getMessage());
         }
     
     }
@@ -196,7 +207,12 @@ public class srvRutinas {
         try {
             
             //Actualiza Fecha de UpdateTime
-            gDatos.getServiceStatus().setSrvUpdateTime(new Date());
+            Date today;
+            SimpleDateFormat formatter;
+            formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            today = new Date();
+            
+            gDatos.getServiceStatus().setSrvUpdateTime(formatter.format(today));
             
             // Se genera la salida de la lista 
             JSONObject jHeader = new JSONObject();
@@ -236,6 +252,7 @@ public class srvRutinas {
             JSONArray jArray = jData.getJSONArray("AssignedTypeProc");
             int numItems = jArray.length();
             
+            logger.info("Se han recibido: "+numItems+" asignaciones de Tipos de Procesos.");
             gDatos.getLstAssignedTypeProc().clear();
             
             for (int i=0; i<numItems; i++) {
@@ -249,7 +266,7 @@ public class srvRutinas {
             } else {
                 gDatos.getServiceStatus().setIsAssignedTypeProc(false);
             }
-            
+                        
         } catch (JSONException | IOException e) {
             logger.error("Error actualizando Asignacion de Procesos: " + e.getMessage());
         }

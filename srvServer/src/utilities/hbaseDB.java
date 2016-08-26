@@ -240,7 +240,7 @@ public class hbaseDB {
  
     public DefaultTableModel getRsQuery(String vHBTable, List<String> qualifier, String StartRow, String StopRow, List<Filter> filters){
         try {
-            HTablePool pool = new HTablePool(hcfg,100000);
+            HTablePool pool = new HTablePool(hcfg,10);
             HTableInterface hTable = pool.getTable(vHBTable);
             
             DefaultTableModel model = new DefaultTableModel();
@@ -340,7 +340,7 @@ public class hbaseDB {
     public DefaultTableModel getRsQuery(String vHBTable, List<String> qualifier, List<Filter> filters){
         
         try {
-            HTablePool pool = new HTablePool(hcfg,100000);
+            HTablePool pool = new HTablePool(hcfg,10);
             HTableInterface hTable = pool.getTable(vHBTable);
             
             DefaultTableModel model = new DefaultTableModel();
@@ -429,7 +429,7 @@ public class hbaseDB {
     public DefaultTableModel getRsQuery(String vHBTable, List<String> qualifier, String StartRow, String StopRow){
         
         try {
-            HTablePool pool = new HTablePool(hcfg,100000);
+            HTablePool pool = new HTablePool(hcfg,10);
             HTableInterface hTable = pool.getTable(vHBTable);
             
             DefaultTableModel model = new DefaultTableModel();
@@ -529,7 +529,7 @@ public class hbaseDB {
     public DefaultTableModel getRsQuery(String vHBTable, List<String> qualifier, long maxRows){
         
         try {
-            HTablePool pool = new HTablePool(hcfg,100000);
+            HTablePool pool = new HTablePool(hcfg,10);
             HTableInterface hTable = pool.getTable(vHBTable);
             
             DefaultTableModel model = new DefaultTableModel();

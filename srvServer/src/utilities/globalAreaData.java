@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Properties;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
+import static utilities.srvRutinas.gDatos;
 
 /**
  *
@@ -132,6 +133,39 @@ public class globalAreaData {
         }
     }
     
+    public String getFechaNow() {
+            //Extrae Fecha de Hoy
+            //
+            Date today;
+            SimpleDateFormat formatter;
+            formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            today = new Date();
+            
+            return formatter.format(today);
+    }
+    
+    public synchronized void updateStatusPoolProcess(String typeProc, String procID, String status, String intervalID) {
+        try {
+            int indexPool;
+            if (typeProc.equals("ETL")) {
+                indexPool = gDatos.getIndexOfPoolProcess(procID, intervalID);
+            } else {
+                indexPool = gDatos.getIndexOfPoolProcess(procID);
+            }
+
+            PoolProcess pool = new PoolProcess();
+            
+            pool = gDatos.getLstPoolProcess().get(indexPool);
+            pool.setUpdateTime(getFechaNow());
+            pool.setStatus(status);
+            
+            gDatos.getLstPoolProcess().set(indexPool, pool);
+        
+        } catch (Exception e) {
+            logger.error("Error updateStatusPoolProcess: "+e.getMessage());
+        }
+    }
+    
     public synchronized void updateLstPoolProcess(int index, PoolProcess pool, boolean updateActive) {
         try {
             if (index==-1) {
@@ -163,6 +197,23 @@ public class globalAreaData {
         }
     }
 
+    public int getIndexOfPoolProcess(String procID, String intervalID) {
+        int index=-1;
+        try {
+            if (!lstPoolProcess.isEmpty()) {
+                for (int i=0; i<lstPoolProcess.size(); i++) {
+                    if (lstPoolProcess.get(i).getProcID().equals(procID)&&lstPoolProcess.get(i).getIntervalID().equals(intervalID)) {
+                        index = i;
+                        break;
+                    }
+                }
+            }
+            return index;
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+    
     public synchronized void setStatusFinished(PoolProcess poolProcess) {
         try {
             PoolProcess newPoolProcess = poolProcess;
@@ -302,20 +353,24 @@ public class globalAreaData {
     }
     
     public int getFreeThreadProcess(String typeProc) {
+        int numFree = 0;
+        int numAssigned=0;
+        int numActive=0;
         try {
             int numItems = lstAssignedTypeProc.size();
             for (int i=0; i<numItems; i++) {
                 if (lstAssignedTypeProc.get(i).getTypeProc().equals(typeProc)) {
+                    numAssigned = lstAssignedTypeProc.get(i).getMaxThread();
                     int numItemsActive = lstActiveTypeProc.size();
                     for (int j=0; j<numItemsActive; j++) {
                         if (lstActiveTypeProc.get(i).getTypeProc().equals(typeProc)) {
-                            return lstAssignedTypeProc.get(i).getMaxThread()-lstActiveTypeProc.get(j).getUsedThread();
+                            numActive = lstActiveTypeProc.get(i).getUsedThread();
                         }
                     }
                     break;
                 }
             }
-            return 0;
+            return (numAssigned-numActive);
         } catch (Exception e) {
             return 0;
         }
@@ -364,15 +419,7 @@ public class globalAreaData {
                 serviceStatus.setNumTotalExec(0);
                 serviceStatus.setSrvHost(serviceInfo.getSrvHost());
                 serviceStatus.setSrvPort(serviceInfo.getSrvPort());
-                
-                //Extrae Fecha de Hoy
-                //
-                    Date today;
-                    SimpleDateFormat formatter;
-                    formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                    today = new Date();
-
-                serviceStatus.setSrvStartTime(today);
+                serviceStatus.setSrvStartTime(getFechaNow());
                 serviceStatus.setSrvLoadParam(true);
                 
                 logger.info("Se ha iniciado correctamente la globalAreaData...");

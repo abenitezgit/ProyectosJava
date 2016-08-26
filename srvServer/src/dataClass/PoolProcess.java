@@ -5,13 +5,15 @@
  */
 package dataClass;
 
-import org.json.JSONObject;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
  * @author andresbenitez
  */
 public class PoolProcess {
+    String srvID;       //Utilizado en srvMonitor para almacenar servidor asignado
     String typeProc;
     String procID;
     String intervalID;  //Creado para los Procesos ETL
@@ -24,9 +26,26 @@ public class PoolProcess {
     String errMesg;
     int errNum;
     
-    JSONObject params;  //Objecto para ingresar parametros del proceso
+    //JSONObject params;  //Objecto para ingresar parametros del proceso
+    Map params = new HashMap();
     
     //Getter ans Setter
+
+    public Map getParams() {
+        return params;
+    }
+
+    public void setParams(Map params) {
+        this.params = params;
+    }
+    
+    public String getSrvID() {
+        return srvID;
+    }
+
+    public void setSrvID(String srvID) {
+        this.srvID = srvID;
+    }
 
     public String getIntervalID() {
         return intervalID;
@@ -115,13 +134,4 @@ public class PoolProcess {
     public synchronized void setUpdateTime(String updateTime) {
         this.updateTime = updateTime;
     }
-
-    public JSONObject getParams() {
-        return params;
-    }
-
-    public synchronized void setParams(JSONObject params) {
-        this.params = params;
-    }
-    
 }
