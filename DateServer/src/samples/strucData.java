@@ -6,6 +6,9 @@
 package samples;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 
@@ -17,10 +20,27 @@ public class strucData {
     
     public static void main(String args[]) throws IOException {
         dataServicio servicio = new dataServicio();
+        dataServicio srv = new dataServicio();
+        
+        List<dataServicio> lst = new ArrayList<>();
+        
+        List<String> lst2 = new ArrayList<>();
         
         servicio.setSrvID("srv00001");
         servicio.setSrvDesc("Servicio Primariio");
         servicio.setSrvEnable(1);
+        
+        lst.add(servicio);
+        
+        lst2.add("srv00001");
+        
+        srv.setSrvID("srv00001");
+        srv.setSrvDesc("Servicio Primariio");
+        srv.setSrvEnable(1);
+        
+        int index = lst2.indexOf(srv.getSrvID());
+        
+        System.out.println("indice found: "+index);
         
         ObjectMapper mapper = new ObjectMapper();
         
@@ -32,6 +52,9 @@ public class strucData {
         response = mapper.writeValueAsString(servicio);
         
         System.out.println(response);
+        
+        Map<String,String> myMap = new Map<>();
+        
         
         
     
