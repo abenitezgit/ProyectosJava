@@ -17,8 +17,8 @@ import java.util.List;
 public class ServiceStatus {
     String srvID;
     String srvHost;
-    Date srvStartTime;
-    Date srvUpdateTime;
+    String srvStartTime;
+    String srvUpdateTime;
     boolean srvActive;
     boolean isActivePrimaryMonHost;
     boolean isSocketServerActive;
@@ -45,6 +45,22 @@ public class ServiceStatus {
     
     //Getter and Setter
     //
+    public String getSrvStartTime() {
+        return srvStartTime;
+    }
+
+    public void setSrvStartTime(String srvStartTime) {
+        this.srvStartTime = srvStartTime;
+    }
+
+    public String getSrvUpdateTime() {
+        return srvUpdateTime;
+    }
+
+    public void setSrvUpdateTime(String srvUpdateTime) {
+        this.srvUpdateTime = srvUpdateTime;
+    }
+
     public List<PoolProcess> getLstPoolProcess() {
         return lstPoolProcess;
     }
@@ -53,22 +69,6 @@ public class ServiceStatus {
         this.lstPoolProcess = lstPoolProcess;
     }
 
-    public Date getSrvStartTime() {
-        return srvStartTime;
-    }
-
-    public void setSrvStartTime(Date srvStartTime) {
-        this.srvStartTime = srvStartTime;
-    }
-
-    public Date getSrvUpdateTime() {
-        return srvUpdateTime;
-    }
-
-    public void setSrvUpdateTime(Date srvUpdateTime) {
-        this.srvUpdateTime = srvUpdateTime;
-    }
-    
     public String getSrvHost() {
         return srvHost;
     }

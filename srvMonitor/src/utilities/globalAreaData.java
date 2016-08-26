@@ -13,6 +13,7 @@ import dataClass.PoolProcess;
 import dataClass.ServerStatus;
 import dataClass.ServerInfo;
 import dataClass.ServiceStatus;
+import dataClass.Threads;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -47,8 +48,31 @@ public class globalAreaData {
     private List<ETL> lstETLConf = new ArrayList<>();
     private List<Interval> lstInterval = new ArrayList<>();
     private List<PoolProcess> lstPoolProcess = new ArrayList<>();
+    
+    //Referencia Listas de Threads
+    private List<Threads> lstThreads = new ArrayList<>();
 
-    //Declarion de Metodos de GET / SET
+
+    /**
+     * Declaraciones de Getter ans Setter
+     * @return 
+     */
+
+    public List<Threads> getLstThreads() {
+        return lstThreads;
+    }
+
+    public void setLstThreads(List<Threads> lstThreads) {
+        this.lstThreads = lstThreads;
+    }
+    
+    
+    
+    /**
+     * Metodos Personalizados
+     * @param pool 
+     */
+    
     public void inscribePoolProcess(PoolProcess pool) {
         try {
             if (lstPoolProcess.isEmpty()) {

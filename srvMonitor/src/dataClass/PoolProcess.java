@@ -5,29 +5,43 @@
  */
 package dataClass;
 
-import org.json.JSONObject;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
  * @author andresbenitez
  */
 public class PoolProcess {
-    String srvID;       //Para asignación de Servico correspondiente
-    String typeProc;
-    String procID;
-    String intervalID;  //Creado para los Procesos ETL
-    String status;      //Status de Operacion del Proceso Sleeping, Ready, Running, Finished
-    String uStatus;     //Status de Termino del Proceso en Ejecucion Pending, Success, Error, Warning 
-    String insTime;     //Fecha/Hora Inscripcion en Pool
-    String updateTime;
-    String startTime;
-    String endTime;
-    String errMesg;
-    int errNum;
+    /**
+     * Declaraciones de Variables
+     */
+        String srvID;               //Para asignación de Servico correspondiente
+        String typeProc;            //Tipo de Proceso: ETL,OSP,LOR,etc
+        String procID;              //ProcID Unico del Proceso: ETL00001, OSP00002,etc
+        String intervalID;          //Creado para los Procesos ETL
+        String status;              //Status de Operacion del Proceso: Assigned, Ready, Running, Finished, Released
+        String uStatus;             //Status de Termino del Proceso en Ejecucion: Success, Error, Warning 
+        String insTime;             //Fecha-Hora Inscripcion en Pool
+        String updateTime;          //Fecha-Hora cualquier actualización
+        String startTime;           //Fecha-Hora que paso a estado Running
+        String endTime;             //Fecha-Hora de termino del proceso
+        String errMesg;             //Mensaje de Error capturado
+        int errNum;                 //Numero de error capturado
+        Map params = new HashMap(); //Objecto para ingresar parametros del proceso
     
-    JSONObject params;  //Objecto para ingresar parametros del proceso
-    
-    //Getter ans Setter
+    /**
+     * Getter and Setter
+     * @return 
+     */
+
+    public Map getParams() {
+        return params;
+    }
+
+    public void setParams(Map params) {
+        this.params = params;
+    }
 
     public String getSrvID() {
         return srvID;
@@ -124,13 +138,4 @@ public class PoolProcess {
     public synchronized void setUpdateTime(String updateTime) {
         this.updateTime = updateTime;
     }
-
-    public JSONObject getParams() {
-        return params;
-    }
-
-    public synchronized void setParams(JSONObject params) {
-        this.params = params;
-    }
-    
 }

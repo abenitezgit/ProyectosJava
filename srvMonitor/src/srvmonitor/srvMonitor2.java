@@ -5,6 +5,7 @@
  */
 package srvmonitor;
 
+import dataClass.Threads;
 import utilities.globalAreaData;
 import java.io.IOException;
 import java.util.Set;
@@ -17,14 +18,14 @@ import org.apache.log4j.Logger;
  *
  * @author andresbenitez
  */
-public class srvMonitor {
+public class srvMonitor2 {
     static globalAreaData gDatos;
     static srvRutinas gSub;
     
     //Carga Clase log4
     static Logger logger = Logger.getLogger("srvMonitor");
     
-    public srvMonitor() {
+    public srvMonitor2() {
         /*
             El constructor solo se ejecuta cuando la clase es instanciada desde otra.
             Cuando la clase posee un main() principal de ejecución, el constructor  no
@@ -38,6 +39,7 @@ public class srvMonitor {
         gSub = new srvRutinas(gDatos);
                 
         if (gDatos.getServerStatus().isSrvLoadParam()) {
+            
             Timer mainTimer = new Timer("thMain");
             mainTimer.schedule(new mainTimerTask(), 2000, gDatos.getServerInfo().getTxpMain());
             logger.info("Scheduling MainTask cada: "+ gDatos.getServerInfo().getTxpMain()/1000 + " segundos");
@@ -45,6 +47,7 @@ public class srvMonitor {
             logger.info("Listener Port: " + gDatos.getServerInfo().getSrvPort());
             logger.info("Metadata Type: " + gDatos.getServerInfo().getDbType());
             logger.info("Maximo Procesos: " +  gDatos.getServerStatus().getNumProcMax());
+            logger.info("Estado Servicio: " + gDatos.getServerStatus().isSrvActive());
         } else { 
             logger.error("Error cargando globalAreaData");
         }
@@ -73,14 +76,15 @@ public class srvMonitor {
             boolean thAgendaFound = false;
             boolean thSubKeepFound = false;
             boolean thETLFound = false;
-
-            logger.info("Revisando Threads Activos...");
+            
+            logger.info("Revisando Threads en Ejecucion...");
             //Thread tr = Thread.currentThread();
             Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
             //System.out.println("Current Thread: "+tr.getName()+" ID: "+tr.getId());
             for ( Thread t : threadSet){
                 //System.out.println("Thread :"+t+":"+"state:"+t.getState()+" ID: "+t.getId());
                 if (t.getName().equals("thMonitorSocket")) {
+                    Threads newDThread = new Threads(t);
                     thMonitorFound=true;
                 }
                 if (t.getName().equals("thKeepAlive")) {

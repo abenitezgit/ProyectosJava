@@ -474,7 +474,7 @@ public class thGetETL extends Thread{
 
                         interval.setETLID(vETLID);
                         interval.setIntervalID(localIntervalID);
-                        interval.setStatus("Sleeping");
+                        interval.setStatus("Initial");
                         interval.setNumExec(0);
                         interval.setFechaIns(sdfToday.format(today));
                         interval.setFechaUpdate(sdfToday.format(today));
@@ -513,7 +513,7 @@ public class thGetETL extends Thread{
 
                         interval.setETLID(vETLID);
                         interval.setIntervalID(localIntervalID);
-                        interval.setStatus("Sleeping");
+                        interval.setStatus("Initial");
                         interval.setNumExec(0);
                         interval.setFechaIns(sdfToday.format(today));
                         interval.setFechaUpdate(sdfToday.format(today));
@@ -536,13 +536,13 @@ public class thGetETL extends Thread{
         //y carga asignada.
         logger.info("Asignando Intervalos a Servicios Incritos...");
         
-        List<Interval> lstSleepInterval = gDatos.getLstInterval().stream().filter(p -> p.getStatus().equals("Sleeping")).collect(Collectors.toList());
+        List<Interval> lstInitialInterval = gDatos.getLstInterval().stream().filter(p -> p.getStatus().equals("Initial")).collect(Collectors.toList());
         
-        int numIntervalsSleeping = lstSleepInterval.size();
+        int numIntervalsInitial = lstInitialInterval.size();
         
-        logger.debug("Total Intervalos Sleeping: "+numIntervalsSleeping);
+        logger.debug("Total Intervalos Initial: "+numIntervalsInitial);
         
-        if (numIntervalsSleeping>0) {
+        if (numIntervalsInitial>0) {
             List<ServiceStatus> lstFindServiceStatus = gDatos.getLstServiceStatus().stream().filter(p -> p.isSrvActive()&&p.getNumThreadActives()<p.getNumProcMax()).collect(Collectors.toList());
             int numFindServices = lstFindServiceStatus.size();
             if (numFindServices>0) {
@@ -586,7 +586,7 @@ public class thGetETL extends Thread{
                     
                     PoolProcess pool;
                     int nextIndexServiceAssigned = 0;
-                    for (int i=0; i<numIntervalsSleeping; i++) {
+                    for (int i=0; i<numIntervalsInitial; i++) {
                         
                         //Instancia Objecto pool
                         //
@@ -603,11 +603,11 @@ public class thGetETL extends Thread{
                         }                      
                         
                         pool.setTypeProc("ETL");
-                        pool.setProcID(lstSleepInterval.get(i).getETLID());
-                        pool.setIntervalID(lstSleepInterval.get(i).getIntervalID());
+                        pool.setProcID(lstInitialInterval.get(i).getETLID());
+                        pool.setIntervalID(lstInitialInterval.get(i).getIntervalID());
                         pool.setInsTime(gSub.getDateNow("yyyy-MM-dd HH:mm:ss"));
                         pool.setUpdateTime(gSub.getDateNow("yyyy-MM-dd HH:mm:ss"));
-                        pool.setStatus("Sleeping");
+                        pool.setStatus("Assigned");
                         
                         JSONObject jData = new JSONObject();
                         
@@ -619,7 +619,7 @@ public class thGetETL extends Thread{
 //                            java.util.logging.Logger.getLogger(thGetETL.class.getName()).log(Level.SEVERE, null, ex);
 //                        }
                         
-                        pool.setParams(jData);
+                        //pool.setParams(jData);
                         logger.info("Asignado Interval: "+pool.getIntervalID() + " a Servicio: "+pool.getSrvID());
                         gDatos.inscribePoolProcess(pool);
                     }
@@ -630,7 +630,7 @@ public class thGetETL extends Thread{
                 }
                 
             } else {
-                logger.warn("No hay Servicios Activos o Disponibles para Inscribir: "+numIntervalsSleeping+" Intervalos");
+                logger.warn("No hay Servicios Activos o Disponibles para Inscribir: "+numIntervalsInitial+" Intervalos");
             }
         } else {
             logger.info("No hay Intervalos a Procesar");

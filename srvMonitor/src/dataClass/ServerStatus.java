@@ -6,6 +6,8 @@
 package dataClass;
 
 import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -22,7 +24,6 @@ public class ServerStatus {
     Connection metadataConnection;
     int numProcMax;
     String srvStartTime;
-
     
     //Getter ans Setter
 

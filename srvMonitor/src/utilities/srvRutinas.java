@@ -4,11 +4,13 @@
 package utilities;
 
 import dataClass.AssignedTypeProc;
+import dataClass.PoolProcess;
 import dataClass.ServiceStatus;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import org.apache.log4j.Logger;
@@ -196,6 +198,7 @@ public class srvRutinas {
     
     public String sendAssignedProc(String srvID) throws SQLException {
         try {
+            List<PoolProcess> lstPoolProcess = new ArrayList<>();
             List<AssignedTypeProc> lstAssignedTypeProc = null;
             JSONObject jData = new JSONObject();
             JSONObject jHeader = new JSONObject();
@@ -214,9 +217,18 @@ public class srvRutinas {
                 }
             }
             
+            
+            int numPools = gDatos.getLstPoolProcess().size();
+            for (int i=0; i<numPools; i++) {
+                if (gDatos.getLstPoolProcess().get(i).getSrvID().equals(srvID)) {
+                    lstPoolProcess.add(gDatos.getLstPoolProcess().get(i));
+                }
+            }
+            
             JSONArray assignedTypeProc = new JSONArray(serializeObjectToJSon(lstAssignedTypeProc, false));
 
             jData.put("AssignedTypeProc", assignedTypeProc);
+            jData.put("poolProcess", lstPoolProcess);
             jHeader.put("data",jData);
             jHeader.put("result", "OK");
             
