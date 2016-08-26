@@ -7,6 +7,7 @@ package mypkg;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -465,6 +466,7 @@ public class hbaseDB {
 
             //Genera la Consulta a la BD
             //
+            hTable.setAutoFlush(true);
             ResultScanner HBResult = hTable.getScanner(scan);
             
             //Extrae la DATA del Scanner realizado
@@ -513,6 +515,8 @@ public class hbaseDB {
             }
             
             model.setDataVector(data , cq_cols);
+            ResultSet rs;
+            
             
             statusCode = 0;
             statusMessage = null;

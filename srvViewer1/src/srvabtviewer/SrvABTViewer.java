@@ -54,8 +54,8 @@ public class SrvABTViewer {
         //Filtro de columnas con valores
         
 
-            SingleColumnValueFilter colValFilter = new SingleColumnValueFilter(Bytes.toBytes("time"), Bytes.toBytes("ano")
-                , CompareFilter.CompareOp.GREATER_OR_EQUAL, new BinaryComparator(Bytes.toBytes("2015")));
+            SingleColumnValueFilter colValFilter = new SingleColumnValueFilter(Bytes.toBytes("grab"), Bytes.toBytes("ani")
+                , CompareFilter.CompareOp.EQUAL, new BinaryComparator(Bytes.toBytes("974038607")));
             
             //SingleColumnValueFilter colValFilter2 = new SingleColumnValueFilter(Bytes.toBytes("grab"), Bytes.toBytes("url")
             //    , CompareFilter.CompareOp.GREATER_OR_EQUAL, new BinaryComparator(Bytes.toBytes("http://srv-gui-g.e-contact.cl/e-recorder/audio/20160310/09/01_20160310_095259")));
@@ -111,10 +111,19 @@ public class SrvABTViewer {
         //Se ejecuta el Metodo connHB.getRsQuery
         //
         DefaultTableModel dtmData = connHB.getRsQuery("hgrab", qualifiers, filters);
+        //DefaultTableModel dtmData = connHB.getRsQuery("hgrab", qualifiers, "C0000220160101", "C0000220160331",filters);
+        
         
         for (int i=0; i<dtmData.getRowCount(); i++) {
-            System.out.println(dtmData.getValueAt(i,0).toString());
+            System.out.print(dtmData.getValueAt(i,0).toString()+" ");
+            System.out.print(dtmData.getValueAt(i,1).toString()+" ");
+            System.out.print(dtmData.getValueAt(i,2).toString()+" ");
+            System.out.print(dtmData.getValueAt(i,3).toString()+" ");
+            System.out.print(dtmData.getValueAt(i,4).toString()+" ");
+            System.out.println(dtmData.getValueAt(i,5).toString()+" ");
         }
+        
+        System.out.println("rows: "+dtmData.getRowCount());
         /*
         if (dtmData.getRowCount()!=0) {
             for (int i=0; i<dtmData.getColumnCount();i++) {

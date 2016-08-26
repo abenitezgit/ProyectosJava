@@ -729,6 +729,7 @@ public class globalVARArea {
                 scan.addColumn(Bytes.toBytes(cf_cols.get(i)), Bytes.toBytes(cq_cols.get(i)));
             }            
 
+            hTable.setAutoFlush(true);
             ResultScanner HBResult = hTable.getScanner(scan);
 
             //Extrae la DATA del Scanner realizado
