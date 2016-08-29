@@ -16,13 +16,13 @@ import utilities.srvRutinas;
  *
  * @author andresbenitez
  */
-public class thKeepAliveSocket extends Thread {
+public class thKeepAlive extends Thread {
     static srvRutinas gSub;
     static globalAreaData gDatos;
     Logger logger = Logger.getLogger("thKeepAlive");
     
     //Carga constructor para inicializar los datos
-    public thKeepAliveSocket(globalAreaData m) {
+    public thKeepAlive(globalAreaData m) {
         gDatos = m;
         gSub = new srvRutinas(gDatos);
     }

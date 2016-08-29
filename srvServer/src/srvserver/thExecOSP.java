@@ -6,6 +6,7 @@
 package srvserver;
 
 import dataClass.PoolProcess;
+import java.util.logging.Level;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import utilities.globalAreaData;
@@ -34,6 +35,12 @@ public class thExecOSP extends Thread{
     @Override
     public void run() {
         logger.info("Ejecutando OSP: "+procID);
+        
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException ex) {
+            java.util.logging.Logger.getLogger(thExecOSP.class.getName()).log(Level.SEVERE, null, ex);
+        }
                 
         
         gDatos.setStatusFinished(poolProcess);

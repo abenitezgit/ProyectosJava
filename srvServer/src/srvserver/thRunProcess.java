@@ -119,10 +119,10 @@ public class thRunProcess extends Thread {
 //                                            thLOR.start();
                                             break;
                                         case "FTP":
-//                                            Thread thFTP = new thExecFTP(gDatos, lstReadyProc.get(i).getParams());
-//                                            thFTP.setName("thExecFTP-"+lstReadyProc.get(i).getProcID());
-//                                            gDatos.setStatusRunning(lstReadyProc.get(i));
-//                                            thFTP.start();
+                                            Thread thFTP = new thExecFTP(gDatos, lstReadyProc.get(i));
+                                            thFTP.setName("thExecFTP-"+lstReadyProc.get(i).getProcID());
+                                            gDatos.setStatusRunning(lstReadyProc.get(i));
+                                            thFTP.start();
                                             break;
                                         case "ETL":
                                             Thread thETL = new thExecETL(gDatos, lstReadyProc.get(i));

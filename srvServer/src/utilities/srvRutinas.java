@@ -13,6 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.MBeanServer;
@@ -49,6 +50,21 @@ public class srvRutinas {
         System.out.println(obj);
     }
     
+    public String getDateNow() {
+        try {
+            //Extrae Fecha de Hoy
+            //
+            Date today;
+            SimpleDateFormat formatter;
+            formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            System.out.println(formatter.getTimeZone());
+            today = new Date();
+            return formatter.format(today);  
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public String getDateNow(String xformat) {
         try {
             //Extrae Fecha de Hoy
@@ -138,6 +154,20 @@ public class srvRutinas {
         // returns a percentage value with 1 decimal point precision
         return ((int)(value * 1000) / 10.0);
     }
+    
+    public List<PoolProcess> genLstProcessOfPool(String typeProc) {
+        try {
+            List<PoolProcess> lstProcess = gDatos.getLstPoolProcess().stream().filter(p -> p.getTypeProc().equals(typeProc)).collect(Collectors.toList());
+            
+            if (!lstProcess.isEmpty()) {
+            
+            }
+            return lstProcess;
+        } catch (Exception e) {
+            logger.error("Error generando lista de procesos: "+typeProc);
+            return null;
+        }
+    }
 
     public synchronized String updatePoolProcess(JSONObject jData) {
         try {
@@ -206,13 +236,7 @@ public class srvRutinas {
         
         try {
             
-            //Actualiza Fecha de UpdateTime
-            Date today;
-            SimpleDateFormat formatter;
-            formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            today = new Date();
-            
-            gDatos.getServiceStatus().setSrvUpdateTime(formatter.format(today));
+            gDatos.getServiceStatus().setSrvUpdateTime(getDateNow());
             
             // Se genera la salida de la lista 
             JSONObject jHeader = new JSONObject();

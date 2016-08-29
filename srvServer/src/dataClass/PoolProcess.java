@@ -13,24 +13,46 @@ import java.util.Map;
  * @author andresbenitez
  */
 public class PoolProcess {
-    String srvID;       //Utilizado en srvMonitor para almacenar servidor asignado
-    String typeProc;
-    String procID;
-    String intervalID;  //Creado para los Procesos ETL
-    String status;      //Status de Operacion del Proceso Sleeping, Ready, Running, Finished
-    String uStatus;     //Status de Termino del Proceso en Ejecucion Pending, Success, Error, Warning 
-    String insTime;     //Fecha/Hora Inscripcion en Pool
-    String updateTime;
-    String startTime;
-    String endTime;
-    String errMesg;
-    int errNum;
-    
-    //JSONObject params;  //Objecto para ingresar parametros del proceso
-    Map params = new HashMap();
-    
-    //Getter ans Setter
+    /**
+     * Declaraciones de Variables
+     */
+        String srvID;               //Para asignación de Servico correspondiente
+        String grpID;               //Grupo del Proceso
+        String typeProc;            //Tipo de Proceso: ETL,OSP,LOR,etc
+        String procID;              //ProcID Unico del Proceso: ETL00001, OSP00002,etc
+        String intervalID;          //Creado para los Procesos ETL
+        String status;              //Status de Operacion del Proceso: Assigned, Ready, Running, Finished, Released
+        String uStatus;             //Status de Termino del Proceso en Ejecucion: Success, Error, Warning 
+        String insTime;             //Fecha-Hora Inscripcion en Pool
+        String updateTime;          //Fecha-Hora cualquier actualización
+        String startTime;           //Fecha-Hora que paso a estado Running
+        String endTime;             //Fecha-Hora de termino del proceso
+        String errMesg;             //Mensaje de Error capturado
+        int errNum;                 //Numero de error capturado
+        String numSecExec;          //Numero Secuencia de Ejecución del Grupo incorporado en cada proceso
+        Map<Object, Object> params = new HashMap(); //Objecto para ingresar parametros del proceso
 
+    /**
+     * Getter and Setter
+     * @return 
+     */
+        
+    public String getGrpID() {
+        return grpID;
+    }
+
+    public void setGrpID(String grpID) {
+        this.grpID = grpID;
+    }
+
+    public String getNumSecExec() {
+        return numSecExec;
+    }
+
+    public void setNumSecExec(String numSecExec) {
+        this.numSecExec = numSecExec;
+    }
+        
     public Map getParams() {
         return params;
     }
@@ -38,7 +60,7 @@ public class PoolProcess {
     public void setParams(Map params) {
         this.params = params;
     }
-    
+
     public String getSrvID() {
         return srvID;
     }

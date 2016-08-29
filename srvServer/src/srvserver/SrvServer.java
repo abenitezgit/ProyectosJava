@@ -54,7 +54,7 @@ public class SrvServer {
         //
         Thread thRunProc = new thRunProcess(gDatos);
         Thread thSocket = new thServerSocket(gDatos);
-        Thread thKeep; // = new thKeepAliveSocket(gDatos);
+        Thread thKeep; // = new thKeepAlive(gDatos);
         
         //Constructor de la clase
         public mainTimerTask() {
@@ -127,7 +127,7 @@ public class SrvServer {
             //
             try {
                 if (!gDatos.getServiceStatus().isIsKeepAliveActive()) {
-                    thKeep = new thKeepAliveSocket(gDatos);
+                    thKeep = new thKeepAlive(gDatos);
                     thKeep.setName("thKeepAlive");
                     gDatos.getServiceStatus().setIsKeepAliveActive(true);
                     logger.info(" Levantando thread KeepAlive....normal...");
