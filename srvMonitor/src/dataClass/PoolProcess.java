@@ -17,6 +17,7 @@ public class PoolProcess {
      * Declaraciones de Variables
      */
         String srvID;               //Para asignación de Servico correspondiente
+        String grpID;               //Grupo del Proceso
         String typeProc;            //Tipo de Proceso: ETL,OSP,LOR,etc
         String procID;              //ProcID Unico del Proceso: ETL00001, OSP00002,etc
         String intervalID;          //Creado para los Procesos ETL
@@ -30,12 +31,28 @@ public class PoolProcess {
         int errNum;                 //Numero de error capturado
         String numSecExec;          //Numero Secuencia de Ejecución del Grupo incorporado en cada proceso
         Map<Object, Object> params = new HashMap(); //Objecto para ingresar parametros del proceso
-    
+
     /**
      * Getter and Setter
      * @return 
      */
+        
+    public String getGrpID() {
+        return grpID;
+    }
 
+    public void setGrpID(String grpID) {
+        this.grpID = grpID;
+    }
+
+    public String getNumSecExec() {
+        return numSecExec;
+    }
+
+    public void setNumSecExec(String numSecExec) {
+        this.numSecExec = numSecExec;
+    }
+        
     public Map getParams() {
         return params;
     }

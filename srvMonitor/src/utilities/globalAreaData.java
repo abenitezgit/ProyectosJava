@@ -208,20 +208,14 @@ public class globalAreaData {
     }
     
     public synchronized void updateLstActiveAgendas(Agenda agenda) {
-        
-        List<Agenda> lstTempAgendas = this.lstActiveAgendas.stream().filter(p -> p.getAgeID().equals(agenda.getAgeID())).collect(Collectors.toList());
-        
-        int numTempAgendas = lstTempAgendas.size();
-        boolean isSecFound = false;
-        
-        for (int i=0; i<numTempAgendas; i++) {
-            if (lstTempAgendas.get(i).getNumSecExec()==agenda.getNumSecExec()) {
-                isSecFound=true;
+        //Agrega nueva agenda a Lista de Agendas
+        //Solo si AgeID y el numSecExec no esta
+        try {
+            if (this.lstActiveAgendas.stream().filter(p -> p.getAgeID().equals(agenda.getAgeID())&&p.getNumSecExec()==agenda.getNumSecExec()).collect(Collectors.toList()).isEmpty()) {
+                this.lstActiveAgendas.add(agenda);
             }
-        }
-        
-        if (!isSecFound) {
-            this.lstActiveAgendas.add(agenda);
+        } catch (Exception e) {
+            logger.error("Error updateLstActiveAgendas..."+e.getMessage());
         }
     }
 

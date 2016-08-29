@@ -25,7 +25,7 @@ import utilities.srvRutinas;
  *
  * @author andresbenitez
  */
-public class thGetAgendas extends Thread{
+public class thGenActiveGroups extends Thread{
     static srvRutinas gSub;
     static globalAreaData gDatos;
     MetaData metadata;
@@ -33,7 +33,7 @@ public class thGetAgendas extends Thread{
 //Carga Clase log4
     static Logger logger = Logger.getLogger("thGetAgendas");   
     
-    public thGetAgendas(globalAreaData m) {
+    public thGenActiveGroups(globalAreaData m) {
         try {
             gDatos = m;
             gSub = new srvRutinas(gDatos);
@@ -50,6 +50,9 @@ public class thGetAgendas extends Thread{
         */
         logger.info("Buscando Agendas Activas");
 
+        
+        //Setea Calendario en Base al TimeZone
+        //
         String[] ids = TimeZone.getAvailableIDs(-4 * 60 * 60 * 1000);
         String clt = ids[0];
         SimpleTimeZone tz = new SimpleTimeZone(-4 * 60 * 60 * 1000, clt);
@@ -64,9 +67,10 @@ public class thGetAgendas extends Thread{
         int weekOfYear = calendar.get(Calendar.WEEK_OF_YEAR);
         int weekOfMonth= calendar.get(Calendar.WEEK_OF_MONTH);
 
-        int findHour    = gDatos.getServerInfo().getAgeShowHour();
-        int findMinutes = gDatos.getServerInfo().getAgeGapMinute();  //GAP de error
+        int findHour    = gDatos.getServerInfo().getAgeShowHour();  //Cantidad de Horas definidas para la muestra de las agendas
+        int findMinutes = gDatos.getServerInfo().getAgeGapMinute(); //GAP en minutos para encontrar agendas que deberían haberse activado
 
+        //Genera las variables de Posicion a comparar con las guardadas en la base de datos
         String posmonth = String.valueOf(month+1);
         String posdayOfMonth = String.valueOf(dayOfMonth);
         String posdayOfWeek = String.valueOf(dayOfWeek);
@@ -85,11 +89,11 @@ public class thGetAgendas extends Thread{
         /*
         Inicializa Lista de Agendas
         */
-        gDatos.getLstShowAgendas().clear();
-        gDatos.getLstActiveAgendas().clear();
+        gDatos.getLstShowAgendas().clear();     //Lista para el muestreo de agendas
+        gDatos.getLstActiveAgendas().clear();   //Lista para las agendas que deben activar grupos de procesos
         
         //Data Class
-        Agenda agenda;
+        Agenda agenda;  //La clase de datos para agenda
         
         
         /**
@@ -99,6 +103,10 @@ public class thGetAgendas extends Thread{
         
         for (int i=-findHour; i<=findHour; i++) {
             iteratorCalendar = new GregorianCalendar(tz);
+            
+            //Posiciona el iteratorCalendar tantas horas atrás como definido en findHour
+            //Y extrae la hora correspondiente
+            //
             iteratorCalendar.add(Calendar.HOUR_OF_DAY, i);
             iteratorHour = String.valueOf(iteratorCalendar.get(Calendar.HOUR_OF_DAY));
             posIteratorHour = String.valueOf(Integer.valueOf(iteratorHour)+1);
@@ -127,6 +135,9 @@ public class thGetAgendas extends Thread{
                         }
                         rs.close();
                     } else {
+                        //Si para la hora buscada no encuentra agenda genera un objeto vacio
+                        //solo con el valor de la hora correspondiente
+                        //esto es para poder mostrar que en esa hora no hay agenda
                         agenda = new Agenda();
                         agenda.setHoraAgenda(iteratorHour);
                         agenda.setAgeID("");
@@ -145,22 +156,28 @@ public class thGetAgendas extends Thread{
         
         logger.info("Se encontraron: "+gDatos.getLstShowAgendas().size()+ " Agendas para Monitoreo..");
         
-        iteratorCalendar = new GregorianCalendar(tz);
-        iteratorHour = String.valueOf(iteratorCalendar.get(Calendar.HOUR_OF_DAY));
-        posIteratorHour = String.valueOf(Integer.valueOf(iteratorHour)+1);
         
         /**
          * Busca Todas las agendas que deberían ser activadas en el periodo de findMinutes (5) minutos de holgura
          */
         logger.info("Buscando Agendas Activas...");
 
+        //Vuelve a inicializar las variables para realizar la busqueda de agendas que activaran grupos
+        //
+        iteratorCalendar = new GregorianCalendar(tz);
+        iteratorHour = String.valueOf(iteratorCalendar.get(Calendar.HOUR_OF_DAY));
+        posIteratorHour = String.valueOf(Integer.valueOf(iteratorHour)+1);
+        
         for (int i=-findMinutes; i<=0; i++) {
             iteratorCalendar = new GregorianCalendar(tz);
             iteratorCalendar.add(Calendar.MINUTE, i);
             iteratorMinute = String.valueOf(iteratorCalendar.get(Calendar.MINUTE));
             posIteratorMinute = String.valueOf(Integer.valueOf(iteratorMinute)+1);
+            
+            //Para cada agenda que se encuentra en el periodo buscado se le asignara un numero unico de secuencia de ejecucion
+            //Esto para no confundir las mismas agendas en periodos de ejecución buscados en el gap
+            //
             numSecExec = String.format("%04d", year)+String.format("%02d", month+1)+String.format("%02d", dayOfMonth)+String.format("%02d", Integer.valueOf(iteratorHour))+String.format("%02d", Integer.valueOf(iteratorMinute));
-            logger.info("Numero de Secuencia de Ejecucion: "+numSecExec);
             
             vSQL = "select "+iteratorMinute+" horaAgenda,ageID, month, dayOfMonth, dayOfWeek, weekOfYear, weekOfMonth, hourOfDay from process.tb_agenda where "
                     + "     ageEnable=1 "
@@ -232,6 +249,10 @@ public class thGetAgendas extends Thread{
                         grupo.setNumSecExec(gDatos.getLstActiveAgendas().get(i).getNumSecExec());
                         grupo.setLastNumSecExec(Long.valueOf(rs.getString("LASTNUMSECEXEC")));
                         
+                        /**
+                         * Por cada Grupo encontrado se buscan los procesos respectivos
+                         */
+                        logger.info("Buscando procesos asociados al grupo: "+grupo.getGrpID());
                         vSQL =  "  select PROCID, NORDER, CRITICAL \n" +
                                 "  from \n" +
                                 "    PROCESS.TB_PROCGRUPO\n" +
@@ -280,7 +301,7 @@ public class thGetAgendas extends Thread{
             //Date fecha = gDatos.getLstActiveGrupos().get(0).getGrpUFechaExec();
             //logger.info("UfechaExec: "+formatter.format(fecha));
         } catch (IOException ex) {
-            java.util.logging.Logger.getLogger(thGetAgendas.class.getName()).log(Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(thGenActiveGroups.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         logger.info("Finaliza busquenda agendas activas...");
@@ -294,14 +315,19 @@ public class thGetAgendas extends Thread{
         
         //Inicia Recorriendo la lista de Grupos Activos y validando si cada proceso interno se encuentra o no en la poolProcess
         //para no tener que ir a buscar su información nuevamente a la base de datos.
+        //La llave de acceso a busquedas es el grpID, procID, numSecExec
         
         
         int numLstGrupos = gDatos.getLstActiveGrupos().size();
         
         if (numLstGrupos>0) {
             for (int i=0; i<numLstGrupos; i++) {
-                
-                
+                String grpID = gDatos.getLstActiveGrupos().get(i).getGrpID();
+                //String numSecExec = gDatos.getLstActiveGrupos().get(i).getNumSecExec();
+                int numProcAssigned = gDatos.getLstActiveGrupos().get(i).getLstProcess().size();
+                for (int j=0; j<numProcAssigned; j++) {
+                    String procID = gDatos.getLstActiveGrupos().get(i).getLstProcess().get(j).getProcID();
+                }
             }
         } else {
             logger.info("No hay Grupos asociados a Agendas activas.");

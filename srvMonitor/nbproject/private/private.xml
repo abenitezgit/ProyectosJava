@@ -4,18 +4,14 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/srvMonitor/src/srvmonitor/thGetETL.java</file>
-            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/srvMonitor/src/srvmonitor/MetaData.java</file>
-            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/srvMonitor/src/srvmonitor/thControlThread.java</file>
-            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/srvMonitor/src/dataClass/ServerStatus.java</file>
-            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/srvMonitor/src/srvmonitor/thGetAgendas.java</file>
-            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/srvMonitor/src/dataClass/ServerInfo.java</file>
-            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/srvMonitor/src/dataClass/Threads.java</file>
             <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/srvMonitor/src/srvmonitor/thKeepAliveServices.java</file>
-            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/srvMonitor/src/log4j.properties</file>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/srvMonitor/src/dataClass/Grupo.java</file>
             <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/srvMonitor/src/srvmonitor/thMonitorSocket.java</file>
-            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/srvMonitor/src/utilities/hbaseDB.java</file>
             <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/srvMonitor/src/utilities/globalAreaData.java</file>
-            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/srvMonitor/src/srvmonitor/srvMonitor.java</file>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/srvMonitor/src/dataClass/ETL.java</file>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/srvMonitor/src/dataClass/Interval.java</file>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/srvMonitor/src/srvmonitor/thGenActiveGroups.java</file>
+            <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/srvMonitor/src/dataClass/PoolProcessHead.java</file>
             <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/srvMonitor/src/utilities/srvRutinas.java</file>
             <file>file:/Users/andresbenitez/Documents/Apps/NetBeansProjects3/srvMonitor/src/dataClass/PoolProcess.java</file>
         </group>

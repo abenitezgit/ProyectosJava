@@ -87,6 +87,9 @@ public class thMonitorSocket extends Thread {
                             case "sendPing":
                                 outputData = "OK";
                                 break;
+                            case "getFTPServices":
+                                outputData = gSub.sendFTPservices("*");
+                                break;
                             default:
                                 outputData = gSub.sendError(99, "Error Desconocido...");
                         }

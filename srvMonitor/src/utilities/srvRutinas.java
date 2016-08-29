@@ -51,6 +51,39 @@ public class srvRutinas {
      * @return 
      */
     
+    public String sendFTPservices(String ftpID) {
+        JSONObject jData = new JSONObject();
+        JSONObject jHeader = new JSONObject();
+        JSONObject jo;
+        JSONArray ja = new JSONArray();
+        MetaData metadata = new MetaData(gDatos);
+        try {
+            if (metadata.isConnected()) {
+                String vSQL = "select * from process.tb_ftp where ftpEnable=1 order by ftpID";
+                ResultSet rs = (ResultSet) metadata.getQuery(vSQL);
+                if (rs!=null) {
+                    while (rs.next()) {
+                        jo = new JSONObject();
+                        jo.put("ftpID",rs.getString("ftpID"));
+                        jo.put("ftpDESC", rs.getString("ftpDESC"));
+                        jo.put("fileSourceName", rs.getString("fileSourceName"));
+                        ja.put(jo);
+                    }
+                }
+                jData.put("details", ja);
+                jHeader.put("data", jData);
+                jHeader.put("request", "OK");
+                return jHeader.toString();
+            } else {
+                logger.error("Se perdió conexión a Metadata");
+                return sendError(0);
+            }
+            
+        } catch (SQLException | JSONException e) {
+            return sendError(0);
+        }
+    }
+    
     public String getDateNow() {
         try {
             //Extrae Fecha de Hoy

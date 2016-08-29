@@ -202,7 +202,7 @@ public class srvMonitor {
                 //
                 try {
                     if (!gDatos.getServerStatus().isIsGetAgendaActive()) {
-                        thAgendas = new thGetAgendas(gDatos);  
+                        thAgendas = new thGenActiveGroups(gDatos);  
                         thAgendas.setName("thGetAgendas");
                         gDatos.getServerStatus().setIsGetAgendaActive(true);
                         thAgendas.start();
