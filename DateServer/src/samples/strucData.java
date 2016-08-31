@@ -53,7 +53,6 @@ public class strucData {
         
         System.out.println(response);
         
-        Map<String,String> myMap = new Map<>();
         
         
         
