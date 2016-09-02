@@ -207,6 +207,9 @@ public class srvRutinas {
             int numItems = gDatos.getLstServiceStatus().size();
             boolean itemFound = false;
             
+            /**
+             * Realiza la actualizacion de statusServices sin actualizar la lisra de asignaciones lstAssignedTypeProc()
+             */
             for (int i=0; i<numItems; i++) {
                 if (gDatos.getLstServiceStatus().get(i).getSrvID().equals(serviceStatus.getSrvID())) {
                     lstAssignedTypeProc = gDatos.getLstServiceStatus().get(i).getLstAssignedTypeProc();
@@ -235,6 +238,9 @@ public class srvRutinas {
             JSONObject jData = new JSONObject();
             JSONObject jHeader = new JSONObject();
 
+            /**
+             * Extrae las asigcaciones de tipos de procesos desde la base de datos
+             */
             int exitCode = getMDprocAssigned();
             
             if (exitCode!=0) {
@@ -258,9 +264,14 @@ public class srvRutinas {
             }
             
             JSONArray assignedTypeProc = new JSONArray(serializeObjectToJSon(lstAssignedTypeProc, false));
+            JSONArray poolProcess = new JSONArray(serializeObjectToJSon(lstPoolProcess, false));
+            
+            /**
+             * Se envian las listas de assignedTypeProc y poolProcess en forma independiente, sin asignacion al serviceStatus object
+             */
 
-            jData.put("AssignedTypeProc", assignedTypeProc);
-            jData.put("poolProcess", lstPoolProcess);
+            jData.put("assignedTypeProc", assignedTypeProc);
+            jData.put("poolProcess", poolProcess);
             jHeader.put("data",jData);
             jHeader.put("result", "OK");
             

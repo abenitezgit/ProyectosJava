@@ -101,7 +101,7 @@ public class srvMonitor {
                     lstThreadActivos.add(t.getName()+" "+t.getId()+ " "+t.getPriority()+" "+t.getState().toString());
                     thKeepFound=true;
                 }
-                if (t.getName().equals("thGetAgendas")) {
+                if (t.getName().equals("thGetActiveGroups")) {
                     lstThreadActivos.add(t.getName()+" "+t.getId()+ " "+t.getPriority()+" "+t.getState().toString());
                     thAgendaFound=true;
                 }
@@ -149,7 +149,7 @@ public class srvMonitor {
             /**
              * Informa Threads encontrados
              */
-            if (lstThreadActivos.size()!=0) {
+            if (!lstThreadActivos.isEmpty()) {
                 for (int i=0; i<lstThreadActivos.size(); i++) {
                     logger.info("Se ha encontrado el thread: "+lstThreadActivos.get(i));
                 }
@@ -203,10 +203,10 @@ public class srvMonitor {
                 try {
                     if (!gDatos.getServerStatus().isIsGetAgendaActive()) {
                         thAgendas = new thGenActiveGroups(gDatos);  
-                        thAgendas.setName("thGetAgendas");
+                        thAgendas.setName("thGetActiveGroups");
                         gDatos.getServerStatus().setIsGetAgendaActive(true);
                         thAgendas.start();
-                        logger.info(" Iniciando thGetAgendas....normal...");
+                        logger.info(" Iniciando thGetActiveGroups....normal...");
                     } 
                 } catch (Exception e) {
                     gDatos.getServerStatus().setIsGetAgendaActive(false);

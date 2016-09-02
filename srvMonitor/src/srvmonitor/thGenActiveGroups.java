@@ -14,6 +14,8 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 import java.util.logging.Level;
@@ -71,11 +73,18 @@ public class thGenActiveGroups extends Thread{
         int findMinutes = gDatos.getServerInfo().getAgeGapMinute(); //GAP en minutos para encontrar agendas que deberían haberse activado
 
         //Genera las variables de Posicion a comparar con las guardadas en la base de datos
+        
+        //Ajusta Semana del Mes para que no retorne una semana 5
+        if (weekOfMonth==5) {
+            weekOfMonth = 4;
+        }
+        
         String posmonth = String.valueOf(month+1);
         String posdayOfMonth = String.valueOf(dayOfMonth);
         String posdayOfWeek = String.valueOf(dayOfWeek);
         String posweekOfYear = String.valueOf(weekOfYear);
         String posweekOfMonth = String.valueOf(weekOfMonth);
+        
         
         Calendar iteratorCalendar;
         String vSQL;
@@ -214,7 +223,7 @@ public class thGenActiveGroups extends Thread{
         logger.info("Se han encontrado: "+gDatos.getLstActiveAgendas().size()+" Agendas activas.");
         
         /**
-         * Busca paraa todas las agendas activas los grupos y procesos asignados
+         * Busca para todas las agendas activas los grupos y procesos asignados
          */
         
         logger.info("Buscando Grupos de Procesos asociados a las agendas activas.");
@@ -269,6 +278,47 @@ public class thGenActiveGroups extends Thread{
                                     process.setProcID(rs2.getString("PROCID"));
                                     process.setnOrder(rs2.getInt("NORDER"));
                                     process.setCritical(rs2.getInt("CRITICAL"));
+                                    
+                                    
+                                    //Recupera Detalle del Proceso
+                                    try {
+                                        switch (process.getProcID().substring(0, 3)) {
+                                            case "FTP":
+                                                String vSQLproc = "select * from process.tb_ftp where ftpID='"+process.getProcID()+"'";
+                                                ResultSet rsProc = (ResultSet) metadata.getQuery(vSQLproc);
+                                                if (rsProc!=null) {
+                                                    while (rsProc.next()) {
+                                                        Map<String, Object> map = new HashMap();
+                                                        map.put("ftpID", rsProc.getString("FTPID"));
+                                                        map.put("FTPDESC", rsProc.getString("FTPDESC"));
+                                                        map.put("SRVSOURCEID", rsProc.getString("SRVSOURCEID"));
+                                                        map.put("SRVDESTID", rsProc.getString("SRVDESTID"));
+                                                        map.put("PATTERNFIND", rsProc.getString("PATTERNFIND"));
+                                                        map.put("USEPATTERNFIND", rsProc.getString("USEPATTERNFIND"));
+                                                        map.put("FILESOURCENAME", rsProc.getString("FILESOURCENAME"));
+                                                        map.put("FILESOURCEDEST", rsProc.getString("FILESOURCEDEST"));
+                                                        map.put("USERSOURCEID", rsProc.getString("USERSOURCEID"));
+                                                        map.put("USERDESTID", rsProc.getString("USERDESTID"));
+                                                        map.put("PATHSOURCE", rsProc.getString("PATHSOURCE"));
+                                                        map.put("PATHDEST", rsProc.getString("PATHDEST"));
+                                                        map.put("FTPTYPE", rsProc.getString("FTPTYPE"));
+                                                        map.put("FTPENABLE", rsProc.getString("FTPENABLE"));
+                                                        process.setParams(map);
+                                                    }
+                                                } else {
+                                                    logger.error("No hay detalle para el proceso: "+process.getProcID());
+                                                }
+                                                break;
+                                            default:
+                                                break;
+                                        }
+                                    } catch (Exception e) {
+                                        logger.error("Error buscando detalle del proceso: "+process.getProcID());
+                                    }
+                                    
+                                    /**
+                                     * Agrega el proceso al grupo correspondiente
+                                     */
                                     grupo.getLstProcess().add(process);
                                 }
                             }
@@ -298,8 +348,6 @@ public class thGenActiveGroups extends Thread{
             SimpleDateFormat formatter;
             formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-            //Date fecha = gDatos.getLstActiveGrupos().get(0).getGrpUFechaExec();
-            //logger.info("UfechaExec: "+formatter.format(fecha));
         } catch (IOException ex) {
             java.util.logging.Logger.getLogger(thGenActiveGroups.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -317,13 +365,15 @@ public class thGenActiveGroups extends Thread{
         //para no tener que ir a buscar su información nuevamente a la base de datos.
         //La llave de acceso a busquedas es el grpID, procID, numSecExec
         
+        /**
+         * Inicia asignacion de grupos de procesos a pool de servicios para ser enviados a server de procesos.
+         */
         
         int numLstGrupos = gDatos.getLstActiveGrupos().size();
         
         if (numLstGrupos>0) {
             for (int i=0; i<numLstGrupos; i++) {
                 String grpID = gDatos.getLstActiveGrupos().get(i).getGrpID();
-                //String numSecExec = gDatos.getLstActiveGrupos().get(i).getNumSecExec();
                 int numProcAssigned = gDatos.getLstActiveGrupos().get(i).getLstProcess().size();
                 for (int j=0; j<numProcAssigned; j++) {
                     String procID = gDatos.getLstActiveGrupos().get(i).getLstProcess().get(j).getProcID();
@@ -332,8 +382,6 @@ public class thGenActiveGroups extends Thread{
         } else {
             logger.info("No hay Grupos asociados a Agendas activas.");
         }
-        
-        
         
         metadata.closeConnection();
     }

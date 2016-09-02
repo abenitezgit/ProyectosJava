@@ -18,7 +18,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import org.apache.log4j.Logger;
@@ -265,13 +267,18 @@ public class thGetETL extends Thread{
                                 }
                                 rs2.close();
                             } else {
-                                logger.info("No hay match de campos para esta configuracion de ETL");
+                                logger.info("No hay match de campos para esta configuracion de ETL: "+etl.getETLID());
                             }
                         } catch (Exception e) {
-                            logger.error("Error Ejecutando extraccion de Match de campos");
+                            logger.error("Error Ejecutando extraccion de Match de campos para ETL: "+etl.getETLID());
                         }
-                        logger.info("Actualizando lista lstETLConf con ETL: "+etl.getETLID());
-                        gDatos.updateLstEtlConf(etl);
+                        //Agraga a la lista de ETL solo las configuraciones que tienen match asignado
+                        if (!etl.getLstEtlMatch().isEmpty()) {
+                            logger.info("Actualizando lista lstETLConf con ETL: "+etl.getETLID());
+                            gDatos.updateLstEtlConf(etl);
+                        } else {
+                            logger.error("No estan definidos los match de campos para ETL: "+etl.getETLID());
+                        }
                     }
                     rs.close();
                     logger.info("Se econtraron: "+numRecords+ "configuraciones de ETL");
@@ -303,7 +310,7 @@ public class thGetETL extends Thread{
                 "from\n" +
                 "  process.tb_etlinterval\n" +
                 "where\n" +
-                "  status<>'Finished'\n" +
+                "  status='FinishedOLD'\n" +
                 "order by\n" +
                 "  ETLID,\n" +
                 "  INTERVALID";
@@ -350,11 +357,11 @@ public class thGetETL extends Thread{
         }
         
         
-        try {
-            logger.debug("Detalle List interval: "+ gSub.serializeObjectToJSon(gDatos.getLstInterval().get(0), true));
-        } catch (IOException ex) {
-            java.util.logging.Logger.getLogger(thGetETL.class.getName()).log(Level.SEVERE, null, ex);
-        }
+//        try {
+//            logger.debug("Detalle List interval: "+ gSub.serializeObjectToJSon(gDatos.getLstInterval().get(0), true));
+//        } catch (IOException ex) {
+//            java.util.logging.Logger.getLogger(thGetETL.class.getName()).log(Level.SEVERE, null, ex);
+//        }
         
 
 
@@ -386,6 +393,8 @@ public class thGetETL extends Thread{
         //Setea Fecha Actual
         //
         today = new Date();
+        
+        //recorre lista de ETL para 
         
         int numEtlConf = gDatos.getLstETLConf().size();
         for (int it=0; it<numEtlConf; it++) {
@@ -474,10 +483,11 @@ public class thGetETL extends Thread{
 
                         interval.setETLID(vETLID);
                         interval.setIntervalID(localIntervalID);
-                        interval.setStatus("Initial");
+                        interval.setStatus("initialised");
                         interval.setNumExec(0);
                         interval.setFechaIns(sdfToday.format(today));
                         interval.setFechaUpdate(sdfToday.format(today));
+                        interval.setEtlConf(gDatos.getLstETLConf().get(it));
 
                         logger.info("Actualizando lista de Intervalos...");
                         gDatos.updateLstInterval(interval);
@@ -513,10 +523,11 @@ public class thGetETL extends Thread{
 
                         interval.setETLID(vETLID);
                         interval.setIntervalID(localIntervalID);
-                        interval.setStatus("Initial");
+                        interval.setStatus("initialised");
                         interval.setNumExec(0);
                         interval.setFechaIns(sdfToday.format(today));
                         interval.setFechaUpdate(sdfToday.format(today));
+                        interval.setEtlConf(gDatos.getLstETLConf().get(it));
 
                         logger.info("Actualizando lista de Intervalos...");
                         gDatos.updateLstInterval(interval);                    
@@ -536,7 +547,7 @@ public class thGetETL extends Thread{
         //y carga asignada.
         logger.info("Asignando Intervalos a Servicios Incritos...");
         
-        List<Interval> lstInitialInterval = gDatos.getLstInterval().stream().filter(p -> p.getStatus().equals("Initial")).collect(Collectors.toList());
+        List<Interval> lstInitialInterval = gDatos.getLstInterval().stream().filter(p -> p.getStatus().equals("initialised")).collect(Collectors.toList());
         
         int numIntervalsInitial = lstInitialInterval.size();
         
@@ -609,18 +620,19 @@ public class thGetETL extends Thread{
                         pool.setUpdateTime(gSub.getDateNow("yyyy-MM-dd HH:mm:ss"));
                         pool.setStatus("Assigned");
                         
-                        JSONObject jData = new JSONObject();
+                        Map<String, Object> params = new HashMap();
+                        params.put("etlConf", lstInitialInterval.get(i).getEtlConf());
                         
-                        int indexETL = gDatos.getIndexOfETLConf(pool.getProcID());
+                        pool.setParams(params);
                         
-//                        try {
-//                            jData = new JSONObject(gSub.serializeObjectToJSon(gDatos.getLstETLConf().get(indexETL), false));
-//                        } catch (IOException ex) {
-//                            java.util.logging.Logger.getLogger(thGetETL.class.getName()).log(Level.SEVERE, null, ex);
-//                        }
-                        
-                        //pool.setParams(jData);
                         logger.info("Asignado Interval: "+pool.getIntervalID() + " a Servicio: "+pool.getSrvID());
+                        
+                        try {
+                            System.out.println("pool: "+gSub.serializeObjectToJSon(pool, true));
+                        } catch (IOException ex) {
+                            java.util.logging.Logger.getLogger(thGetETL.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                        
                         gDatos.inscribePoolProcess(pool);
                     }
                     
@@ -638,28 +650,28 @@ public class thGetETL extends Thread{
         
         logger.info("Se completa la asignacion de Intervalos. Total en pool: "+gDatos.getLstPoolProcess().size());
 
-        try {
-            for (int i=0; i<gDatos.getLstPoolProcess().size(); i++) {
-                PoolProcessHead myPool = new PoolProcessHead();
-                myPool.setSrvID(gDatos.getLstPoolProcess().get(i).getSrvID());
-                myPool.setEndTime(gDatos.getLstPoolProcess().get(i).getEndTime());
-                myPool.setErrMesg(gDatos.getLstPoolProcess().get(i).getErrMesg());
-                myPool.setErrNum(gDatos.getLstPoolProcess().get(i).getErrNum());
-                myPool.setInsTime(gDatos.getLstPoolProcess().get(i).getInsTime());
-                myPool.setIntervalID(gDatos.getLstPoolProcess().get(i).getIntervalID());
-                myPool.setProcID(gDatos.getLstPoolProcess().get(i).getProcID());
-                myPool.setStartTime(gDatos.getLstPoolProcess().get(i).getStartTime());
-                myPool.setStatus(gDatos.getLstPoolProcess().get(i).getStatus());
-                myPool.setTypeProc(gDatos.getLstPoolProcess().get(i).getTypeProc());
-                myPool.setUpdateTime(gDatos.getLstPoolProcess().get(i).getUpdateTime());
-                myPool.setuStatus(gDatos.getLstPoolProcess().get(i).getuStatus());
-                
-                logger.debug("Detalle Lista poolProcess: "+gSub.serializeObjectToJSon(myPool, true));
-            }
-            
-        } catch (IOException ex) {
-            java.util.logging.Logger.getLogger(thGetETL.class.getName()).log(Level.SEVERE, null, ex);
-        }
+//        try {
+//            for (int i=0; i<gDatos.getLstPoolProcess().size(); i++) {
+//                PoolProcessHead myPool = new PoolProcessHead();
+//                myPool.setSrvID(gDatos.getLstPoolProcess().get(i).getSrvID());
+//                myPool.setEndTime(gDatos.getLstPoolProcess().get(i).getEndTime());
+//                myPool.setErrMesg(gDatos.getLstPoolProcess().get(i).getErrMesg());
+//                myPool.setErrNum(gDatos.getLstPoolProcess().get(i).getErrNum());
+//                myPool.setInsTime(gDatos.getLstPoolProcess().get(i).getInsTime());
+//                myPool.setIntervalID(gDatos.getLstPoolProcess().get(i).getIntervalID());
+//                myPool.setProcID(gDatos.getLstPoolProcess().get(i).getProcID());
+//                myPool.setStartTime(gDatos.getLstPoolProcess().get(i).getStartTime());
+//                myPool.setStatus(gDatos.getLstPoolProcess().get(i).getStatus());
+//                myPool.setTypeProc(gDatos.getLstPoolProcess().get(i).getTypeProc());
+//                myPool.setUpdateTime(gDatos.getLstPoolProcess().get(i).getUpdateTime());
+//                myPool.setuStatus(gDatos.getLstPoolProcess().get(i).getuStatus());
+//                
+//                logger.debug("Detalle Lista poolProcess: "+gSub.serializeObjectToJSon(myPool, true));
+//            }
+//            
+//        } catch (IOException ex) {
+//            java.util.logging.Logger.getLogger(thGetETL.class.getName()).log(Level.SEVERE, null, ex);
+//        }
    
         logger.info("Terminando Ciclo Ejecución Thread ETL");
     }

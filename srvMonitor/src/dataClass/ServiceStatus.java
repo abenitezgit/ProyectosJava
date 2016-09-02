@@ -7,7 +7,6 @@ package dataClass;
 
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -26,7 +25,8 @@ public class ServiceStatus {
     boolean isAssignedTypeProc;
     boolean isKeepAliveActive;
     boolean isSubRunProcActive;
-    boolean srvLoadParam;
+    boolean isLoadParam;
+    boolean isLoadRutinas;
     int numProcRunning;
     int numProcSleeping;
     int numProcFinished;
@@ -45,6 +45,23 @@ public class ServiceStatus {
     
     //Getter and Setter
     //
+
+    public boolean isIsLoadParam() {
+        return isLoadParam;
+    }
+
+    public void setIsLoadParam(boolean isLoadParam) {
+        this.isLoadParam = isLoadParam;
+    }
+
+    public boolean isIsLoadRutinas() {
+        return isLoadRutinas;
+    }
+
+    public void setIsLoadRutinas(boolean isLoadRutinas) {
+        this.isLoadRutinas = isLoadRutinas;
+    }
+    
     public String getSrvStartTime() {
         return srvStartTime;
     }
@@ -165,14 +182,6 @@ public class ServiceStatus {
         this.isKeepAliveActive = isKeepAliveActive;
     }
     
-    public boolean isSrvLoadParam() {
-        return srvLoadParam;
-    }
-
-    public void setSrvLoadParam(boolean srvLoadParam) {
-        this.srvLoadParam = srvLoadParam;
-    }
-
     public boolean isIsActivePrimaryMonHost() {
         return isActivePrimaryMonHost;
     }

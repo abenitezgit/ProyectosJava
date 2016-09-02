@@ -5,6 +5,7 @@
  */
 package dataClass;
 
+
 /**
  *
  * @author andresbenitez
@@ -17,7 +18,17 @@ public class Interval {
     String fechaUpdate;
     int numExec;
     
+    ETL etlConf;
+    
     //Getter and Setter
+
+    public ETL getEtlConf() {
+        return etlConf;
+    }
+
+    public void setEtlConf(ETL etlConf) {
+        this.etlConf = etlConf;
+    }
 
     public String getETLID() {
         return ETLID;
@@ -66,6 +77,4 @@ public class Interval {
     public void setNumExec(int numExec) {
         this.numExec = numExec;
     }
-    
-    
 }

@@ -126,7 +126,7 @@ public class globalAreaData {
      * @param pool 
      */
     
-    public void inscribePoolProcess(PoolProcess pool) {
+    public synchronized void inscribePoolProcess(PoolProcess pool) {
         try {
             if (lstPoolProcess.isEmpty()) {
                 lstPoolProcess.add(pool);
@@ -153,7 +153,7 @@ public class globalAreaData {
         }
     }
     
-    public void updateLstPoolProcessInterval(PoolProcess pool) {
+    public synchronized void updateLstPoolProcessInterval(PoolProcess pool) {
         List<PoolProcess> tmp = lstPoolProcess.stream().filter(p -> p.getProcID().equals(pool.getProcID())&&p.getIntervalID().equals(pool.getIntervalID())).collect(Collectors.toList());
         
         if (tmp.isEmpty()) {
@@ -191,19 +191,12 @@ public class globalAreaData {
     }
     
     public synchronized void updateLstEtlConf(ETL etl) {
-        
-        int numItems = lstETLConf.size();
-        boolean isFound = false;
-        
-        for (int i=0; i<numItems; i++) {
-            if (lstETLConf.get(i).getETLID().equals(etl.getETLID())) {
-                lstETLConf.set(i, etl);
-                isFound = true;
+        try {
+            if (lstETLConf.stream().filter(p -> p.getETLID().equals(etl.getETLID())).collect(Collectors.toList()).isEmpty()) {
+                lstETLConf.add(etl);
             }
-        }
-        
-        if (!isFound) {
-            lstETLConf.add(etl);
+        } catch (Exception e) {
+            logger.error("Error updateLstEtlConf..."+e.getMessage());
         }
     }
     

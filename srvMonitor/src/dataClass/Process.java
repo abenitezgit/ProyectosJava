@@ -5,6 +5,9 @@
  */
 package dataClass;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  *
  * @author andresbenitez
@@ -13,6 +16,16 @@ public class Process {
     String procID;
     int nOrder;
     int critical;
+    
+    Map<String, Object> params = new HashMap();
+
+    public Map<String, Object> getParams() {
+        return params;
+    }
+
+    public void setParams(Map<String, Object> params) {
+        this.params = params;
+    }
 
     public int getCritical() {
         return critical;
