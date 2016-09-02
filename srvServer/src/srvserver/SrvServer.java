@@ -7,6 +7,8 @@ package srvserver;
 
 import utilities.globalAreaData;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -18,7 +20,7 @@ import utilities.srvRutinas;
  * @author andresbenitez
  */
 public class SrvServer {
-    static globalAreaData gDatos = new globalAreaData();
+    static globalAreaData gDatos;
     static srvRutinas gSub ;
     
     //Carga Clase log4
@@ -34,17 +36,24 @@ public class SrvServer {
 
     public static void main(String[] args) throws IOException {
         try {
+            //Instancia las Clases
+            logger.info("Iniciando srvServer...");
+            gDatos = new globalAreaData();
             gSub = new srvRutinas(gDatos);
 
-            if (gDatos.getServiceStatus().isSrvLoadParam()) {
-                Timer mainTimer = new Timer("thMain");
-                mainTimer.schedule(new mainTimerTask(), 2000, gDatos.getServiceInfo().getTxpMain());
-                logger.info("Agendando mainTimerTask cada "+gDatos.getServiceInfo().getTxpMain()+ " segundos...");
+            if (gDatos.getServiceStatus().isIsLoadParam()) {
+                if (gDatos.getServiceStatus().isIsLoadRutinas()) {
+                    Timer mainTimer = new Timer("thMain");
+                    mainTimer.schedule(new mainTimerTask(), 2000, gDatos.getServiceInfo().getTxpMain());
+                    logger.info("Agendando mainTimerTask cada "+gDatos.getServiceInfo().getTxpMain()+ " segundos...");
+                } else {
+                    logger.error("Error cargando Rutinas...abortando modulo.");
+                }
             } else {
-                logger.error("Error leyendo archivo de parametros");
+                logger.error("Error cargando globalAreaData...abortando modulo.");
             }
         } catch (Exception e) {
-            logger.error("Error General: "+e.getMessage());
+            logger.error("Error en modulo principal: "+e.getMessage());
         }
     }
     
@@ -67,42 +76,60 @@ public class SrvServer {
             /*
             Buscando Thread Activos
             */
-                boolean thServerFound=false;
-                boolean thKeepFound= false;
-                boolean thSubRunFound = false;
-                //Thread tr = Thread.currentThread();
-                Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
-                //System.out.println("TOTAL de Threads del Servicio: "+threadSet.size());
-                for ( Thread t : threadSet){
-                    //System.out.println("Thread :"+t+":"+"state:"+t.getState());
-                    if (t.getName().equals("thServerSocket")) {
-                        thServerFound=true;
-                    }
-                    if (t.getName().equals("thKeepAlive")) {
-                        thKeepFound=true;
-                    }
-                    if (t.getName().equals("thSubRunProcess")) {
-                        thSubRunFound=true;
-                    }
-                }
-                //Resulta Busqueda
-                if (!thServerFound) {
-                    gDatos.getServiceStatus().setIsSocketServerActive(false);
-                } else {
-                    gDatos.getServiceStatus().setIsSocketServerActive(true);
-                }
-                
-                if (!thKeepFound) {
-                    gDatos.getServiceStatus().setIsKeepAliveActive(false);
-                } else {
-                    gDatos.getServiceStatus().setIsKeepAliveActive(true);
-                }
+            boolean thServerFound=false;
+            boolean thKeepFound= false;
+            boolean thSubRunFound = false;
+            List<String> lstThreadActivos = new ArrayList<>();
+            lstThreadActivos.clear();
 
-                if (!thSubRunFound) {
-                    gDatos.getServiceStatus().setIsSubRunProcActive(false);
-                } else {
-                    gDatos.getServiceStatus().setIsSubRunProcActive(true);
+            logger.info("Revisando Threads de Modulos Activos...");
+            //Thread tr = Thread.currentThread();
+            Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+            //System.out.println("TOTAL de Threads del Servicio: "+threadSet.size());
+            for ( Thread t : threadSet){
+                //System.out.println("Thread :"+t+":"+"state:"+t.getState());
+                if (t.getName().equals("thServerSocket")) {
+                    lstThreadActivos.add(t.getName()+" "+t.getId()+ " "+t.getPriority()+" "+t.getState().toString());
+                    thServerFound=true;
                 }
+                if (t.getName().equals("thKeepAlive")) {
+                    lstThreadActivos.add(t.getName()+" "+t.getId()+ " "+t.getPriority()+" "+t.getState().toString());
+                    thKeepFound=true;
+                }
+                if (t.getName().equals("thSubRunProcess")) {
+                    lstThreadActivos.add(t.getName()+" "+t.getId()+ " "+t.getPriority()+" "+t.getState().toString());
+                    thSubRunFound=true;
+                }
+            }
+            //Resulta Busqueda
+            if (!thServerFound) {
+                gDatos.getServiceStatus().setIsSocketServerActive(false);
+            } else {
+                gDatos.getServiceStatus().setIsSocketServerActive(true);
+            }
+
+            if (!thKeepFound) {
+                gDatos.getServiceStatus().setIsKeepAliveActive(false);
+            } else {
+                gDatos.getServiceStatus().setIsKeepAliveActive(true);
+            }
+
+            if (!thSubRunFound) {
+                gDatos.getServiceStatus().setIsSubRunProcActive(false);
+            } else {
+                gDatos.getServiceStatus().setIsSubRunProcActive(true);
+            }
+                
+            /**
+             * Informa Threads encontrados
+             */
+            if (!lstThreadActivos.isEmpty()) {
+                for (int i=0; i<lstThreadActivos.size(); i++) {
+                    logger.info("Se ha encontrado el thread: "+lstThreadActivos.get(i));
+                }
+            } else {
+                logger.info("No hay Threads de Modulos internos activos.");
+            }                
             
             /*
             Se aplicara validacion modular de procesos, ya que se encuentran en un bucle infinito.
@@ -159,7 +186,7 @@ public class SrvServer {
                     logger.error("no se ha podido Agendar thread: "+ thRunProc.getName()+ " "+e.getMessage());
                 }
             } else {
-                logger.warn("Aun no hay procesos asignados al servicio.");
+                logger.warn("Aun no hay tipos de procesos asignados al servicio.");
             }
             
             logger.info("Finalizando mainTimerTask.: "+gSub.getDateNow("yyyy-MM-dd HH:mm:ss"));

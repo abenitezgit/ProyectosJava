@@ -6,7 +6,8 @@
 package dataClass;
 
 import java.net.Socket;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -24,7 +25,8 @@ public class ServiceStatus {
     boolean isAssignedTypeProc;
     boolean isKeepAliveActive;
     boolean isSubRunProcActive;
-    boolean srvLoadParam;
+    boolean isLoadParam;
+    boolean isLoadRutinas;
     int numProcRunning;
     int numProcSleeping;
     int numProcFinished;
@@ -35,9 +37,31 @@ public class ServiceStatus {
     int srvPort;
     Socket skCliente;
     
+    //Información Propia
+    List<AssignedTypeProc> lstAssignedTypeProc = new ArrayList<>();
+    List<ActiveTypeProc> lstActiveTypeProc = new ArrayList<>();
+    List<PoolProcess> lstPoolProcess = new ArrayList<>();
+    
+    
     //Getter and Setter
     //
 
+    public boolean isIsLoadParam() {
+        return isLoadParam;
+    }
+
+    public void setIsLoadParam(boolean isLoadParam) {
+        this.isLoadParam = isLoadParam;
+    }
+
+    public boolean isIsLoadRutinas() {
+        return isLoadRutinas;
+    }
+
+    public void setIsLoadRutinas(boolean isLoadRutinas) {
+        this.isLoadRutinas = isLoadRutinas;
+    }
+    
     public String getSrvStartTime() {
         return srvStartTime;
     }
@@ -52,6 +76,14 @@ public class ServiceStatus {
 
     public void setSrvUpdateTime(String srvUpdateTime) {
         this.srvUpdateTime = srvUpdateTime;
+    }
+
+    public List<PoolProcess> getLstPoolProcess() {
+        return lstPoolProcess;
+    }
+
+    public void setLstPoolProcess(List<PoolProcess> lstPoolProcess) {
+        this.lstPoolProcess = lstPoolProcess;
     }
 
     public String getSrvHost() {
@@ -77,13 +109,21 @@ public class ServiceStatus {
     public void setIsAssignedTypeProc(boolean isAssignedTypeProc) {
         this.isAssignedTypeProc = isAssignedTypeProc;
     }
-    
+
     public int getNumThreadActives() {
         return numThreadActives;
     }
 
     public void setNumThreadActives(int numThreadActives) {
         this.numThreadActives = numThreadActives;
+    }
+    
+    public boolean isIsSubRunProcActive() {
+        return isSubRunProcActive;
+    }
+
+    public void setIsSubRunProcActive(boolean isSubRunProcActive) {
+        this.isSubRunProcActive = isSubRunProcActive;
     }
     
     public int getNumProcRunning() {
@@ -110,12 +150,20 @@ public class ServiceStatus {
         this.numProcFinished = numProcFinished;
     }
     
-    public boolean isIsSubRunProcActive() {
-        return isSubRunProcActive;
+    public List<AssignedTypeProc> getLstAssignedTypeProc() {
+        return lstAssignedTypeProc;
     }
 
-    public void setIsSubRunProcActive(boolean isSubRunProcActive) {
-        this.isSubRunProcActive = isSubRunProcActive;
+    public void setLstAssignedTypeProc(List<AssignedTypeProc> lstAssignedTypeProc) {
+        this.lstAssignedTypeProc = lstAssignedTypeProc;
+    }
+
+    public List<ActiveTypeProc> getLstActiveTypeProc() {
+        return lstActiveTypeProc;
+    }
+
+    public void setLstActiveTypeProc(List<ActiveTypeProc> lstActiveTypeProc) {
+        this.lstActiveTypeProc = lstActiveTypeProc;
     }
     
     public Socket getSkCliente() {
@@ -134,14 +182,6 @@ public class ServiceStatus {
         this.isKeepAliveActive = isKeepAliveActive;
     }
     
-    public boolean isSrvLoadParam() {
-        return srvLoadParam;
-    }
-
-    public void setSrvLoadParam(boolean srvLoadParam) {
-        this.srvLoadParam = srvLoadParam;
-    }
-
     public boolean isIsActivePrimaryMonHost() {
         return isActivePrimaryMonHost;
     }

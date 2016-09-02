@@ -30,7 +30,7 @@ public class PoolProcess {
         String errMesg;             //Mensaje de Error capturado
         int errNum;                 //Numero de error capturado
         String numSecExec;          //Numero Secuencia de Ejecución del Grupo incorporado en cada proceso
-        Map<Object, Object> params = new HashMap(); //Objecto para ingresar parametros del proceso
+        Map<String, Object> params = new HashMap(); //Objecto para ingresar parametros del proceso
 
     /**
      * Getter and Setter

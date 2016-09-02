@@ -43,7 +43,7 @@ public class thExecOSP extends Thread{
         }
                 
         
-        gDatos.setStatusFinished(poolProcess);
+        //gDatos.setStatusFinished(poolProcess);
     
     }
     

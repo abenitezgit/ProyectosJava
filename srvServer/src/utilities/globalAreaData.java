@@ -6,17 +6,15 @@
 package utilities;
 
 import dataClass.ActiveTypeProc;
-import dataClass.AssignedTypeProc;
 import dataClass.PoolProcess;
 import dataClass.ServiceInfo;
 import dataClass.ServiceStatus;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import static utilities.srvRutinas.gDatos;
@@ -34,9 +32,9 @@ public class globalAreaData {
     /**
      * Clases de Estructuras de Datos
      */
-    List<AssignedTypeProc> lstAssignedTypeProc = new ArrayList<>();
-    List<ActiveTypeProc> lstActiveTypeProc = new ArrayList<>();
-    List<PoolProcess> lstPoolProcess = new ArrayList<>();
+    //List<AssignedTypeProc> lstAssignedTypeProc = new ArrayList<>();
+    //List<ActiveTypeProc> lstActiveTypeProc = new ArrayList<>();
+    //List<PoolProcess> lstPoolProcess = new ArrayList<>();
     ServiceInfo serviceInfo = new ServiceInfo();
     ServiceStatus serviceStatus = new ServiceStatus();
 
@@ -45,40 +43,16 @@ public class globalAreaData {
      * @param typeProc 
      */
     
-    public synchronized void updateReleasePool(String typeProc) {
-        int numItems = lstPoolProcess.size();
-        
-        for (int i=0; i<numItems; i++) {
-            if (lstPoolProcess.get(i).getTypeProc().equals(typeProc)) {
-                lstPoolProcess.get(i).setStatus("Release");
-            }
-        }
-    }
+//    public synchronized void updateReleasePool(String typeProc) {
+//        int numItems = lstPoolProcess.size();
+//        
+//        for (int i=0; i<numItems; i++) {
+//            if (lstPoolProcess.get(i).getTypeProc().equals(typeProc)) {
+//                lstPoolProcess.get(i).setStatus("Release");
+//            }
+//        }
+//    }
     
-    public List<PoolProcess> getLstPoolProcess() {
-        return lstPoolProcess;
-    }
-
-    public synchronized void setLstPoolProcess(List<PoolProcess> lstPoolProcess) {
-        this.lstPoolProcess = lstPoolProcess;
-    }
-    
-    public List<AssignedTypeProc> getLstAssignedTypeProc() {
-        return lstAssignedTypeProc;
-    }
-
-    public synchronized void setLstAssignedTypeProc(List<AssignedTypeProc> lstAssignedTypeProc) {
-        this.lstAssignedTypeProc = lstAssignedTypeProc;
-    }
-
-    public List<ActiveTypeProc> getLstActiveTypeProc() {
-        return lstActiveTypeProc;
-    }
-
-    public synchronized void setLstActiveTypeProc(List<ActiveTypeProc> lstActiveTypeProc) {
-        this.lstActiveTypeProc = lstActiveTypeProc;
-    }
-
     public ServiceInfo getServiceInfo() {
         return serviceInfo;
     }
@@ -97,41 +71,25 @@ public class globalAreaData {
     
     //Metodos de Acceso a los Datos
     //
-    public int getPosTypeProc(String typeProc) {
-        int posFound=0;
-        if (lstAssignedTypeProc!=null) {
-            int numItems= lstAssignedTypeProc.size();
-            if (numItems!=0) {
-                for (int i=0; i<numItems; i++) {
-                    if (lstAssignedTypeProc.get(i).getTypeProc().equals(typeProc)) {
-                        posFound=i;
-                    }
-                }
-                return posFound;
-            } else {
-                return 0;
-            }
-        } else {
-            return 0;
-        }
-    }
+//    public int getPosTypeProc(String typeProc) {
+//        int posFound=0;
+//        if (lstAssignedTypeProc!=null) {
+//            int numItems= lstAssignedTypeProc.size();
+//            if (numItems!=0) {
+//                for (int i=0; i<numItems; i++) {
+//                    if (lstAssignedTypeProc.get(i).getTypeProc().equals(typeProc)) {
+//                        posFound=i;
+//                    }
+//                }
+//                return posFound;
+//            } else {
+//                return 0;
+//            }
+//        } else {
+//            return 0;
+//        }
+//    }
     
-    public int getIndexOfActiveTypeProc(String typeProc) {
-        int index=-1;
-        try {
-            if (!lstActiveTypeProc.isEmpty()) {
-                for (int i=0; i<lstActiveTypeProc.size(); i++) {
-                    if (lstActiveTypeProc.get(i).getTypeProc().equals(typeProc)) {
-                        index = i;
-                        break;
-                    }
-                }
-            }
-            return index;
-        } catch (Exception e) {
-            return -1;
-        }
-    }
     
     public String getFechaNow() {
             //Extrae Fecha de Hoy
@@ -155,11 +113,11 @@ public class globalAreaData {
 
             PoolProcess pool = new PoolProcess();
             
-            pool = gDatos.getLstPoolProcess().get(indexPool);
+            pool = gDatos.serviceStatus.getLstPoolProcess().get(indexPool);
             pool.setUpdateTime(getFechaNow());
             pool.setStatus(status);
             
-            gDatos.getLstPoolProcess().set(indexPool, pool);
+            gDatos.serviceStatus.getLstPoolProcess().set(indexPool, pool);
         
         } catch (Exception e) {
             logger.error("Error updateStatusPoolProcess: "+e.getMessage());
@@ -167,25 +125,29 @@ public class globalAreaData {
     }
     
     public synchronized void updateLstPoolProcess(int index, PoolProcess pool, boolean updateActive) {
+        /**
+         * Actualiza lista de poolProcess asociada a Objeto serviceStatus
+         * El index informado es el indice de la posicion del objeto en la lista interna del objeto serviceStatus
+         */
         try {
             if (index==-1) {
-                lstPoolProcess.add(pool);
+                serviceStatus.getLstPoolProcess().add(pool);
             } else { 
                 if (updateActive) {
-                    lstPoolProcess.set(index, pool);
+                    serviceStatus.getLstPoolProcess().set(index, pool);
                 }
             }
         } catch (Exception e) {
-            logger.error("Error updating LstPoolProcess..."+e.getMessage());
+            logger.error("Error updating LstPoolProcess del serviceStatus..."+e.getMessage());
         }
     }
     
     public int getIndexOfPoolProcess(String procID) {
         int index=-1;
         try {
-            if (!lstPoolProcess.isEmpty()) {
-                for (int i=0; i<lstPoolProcess.size(); i++) {
-                    if (lstPoolProcess.get(i).getProcID().equals(procID)) {
+            if (!serviceStatus.getLstPoolProcess().isEmpty()) {
+                for (int i=0; i<serviceStatus.getLstPoolProcess().size(); i++) {
+                    if (serviceStatus.getLstPoolProcess().get(i).getProcID().equals(procID)) {
                         index = i;
                         break;
                     }
@@ -200,9 +162,9 @@ public class globalAreaData {
     public int getIndexOfPoolProcess(String procID, String intervalID) {
         int index=-1;
         try {
-            if (!lstPoolProcess.isEmpty()) {
-                for (int i=0; i<lstPoolProcess.size(); i++) {
-                    if (lstPoolProcess.get(i).getProcID().equals(procID)&&lstPoolProcess.get(i).getIntervalID().equals(intervalID)) {
+            if (!serviceStatus.getLstPoolProcess().isEmpty()) {
+                for (int i=0; i<serviceStatus.getLstPoolProcess().size(); i++) {
+                    if (serviceStatus.getLstPoolProcess().get(i).getProcID().equals(procID)&&serviceStatus.getLstPoolProcess().get(i).getIntervalID().equals(intervalID)) {
                         index = i;
                         break;
                     }
@@ -214,77 +176,97 @@ public class globalAreaData {
         }
     }
     
-    public synchronized void setStatusFinished(PoolProcess poolProcess) {
-        try {
-            PoolProcess newPoolProcess = poolProcess;
-            String typeProc = poolProcess.getTypeProc();
-            String procID = poolProcess.getProcID();
-            
-            ActiveTypeProc activeTypeProc;
-            
-            serviceStatus.setNumProcRunning(serviceStatus.getNumProcRunning()-1);
-            serviceStatus.setNumProcFinished(serviceStatus.getNumProcFinished()+1);
-
-            int index = getLstActiveTypeProc().indexOf(typeProc);
-            if (index!=-1) {
-                int usedTypeActive = getLstActiveTypeProc().get(index).getUsedThread();
-                
-                activeTypeProc = new ActiveTypeProc();
-                activeTypeProc.setTypeProc(typeProc);
-                activeTypeProc.setUsedThread(usedTypeActive-1);
-
-                getLstActiveTypeProc().set(index, activeTypeProc);
-            }
-            
-            index = getLstPoolProcess().indexOf(procID);
-            if (index!=-1) {
-                newPoolProcess.setStatus("Finished");
-                getLstPoolProcess().set(index, newPoolProcess);
-            } else {
-                logger.error("El proceso: "+procID+" ya no está disponible...");
-            }
-        } catch (Exception e) {
-            logger.error("Error en setStatusFinished: "+e.getMessage());
-        }
-    }
+//    public synchronized void setStatusFinished(PoolProcess poolProcess) {
+//        try {
+//            PoolProcess newPoolProcess = poolProcess;
+//            String typeProc = poolProcess.getTypeProc();
+//            String procID = poolProcess.getProcID();
+//            
+//            ActiveTypeProc activeTypeProc;
+//            
+//            serviceStatus.setNumProcRunning(serviceStatus.getNumProcRunning()-1);
+//            serviceStatus.setNumProcFinished(serviceStatus.getNumProcFinished()+1);
+//
+//            int index = getLstActiveTypeProc().indexOf(typeProc);
+//            if (index!=-1) {
+//                int usedTypeActive = getLstActiveTypeProc().get(index).getUsedThread();
+//                
+//                activeTypeProc = new ActiveTypeProc();
+//                activeTypeProc.setTypeProc(typeProc);
+//                activeTypeProc.setUsedThread(usedTypeActive-1);
+//
+//                getLstActiveTypeProc().set(index, activeTypeProc);
+//            }
+//            
+//            index = getLstPoolProcess().indexOf(procID);
+//            if (index!=-1) {
+//                newPoolProcess.setStatus("Finished");
+//                getLstPoolProcess().set(index, newPoolProcess);
+//            } else {
+//                logger.error("El proceso: "+procID+" ya no está disponible...");
+//            }
+//        } catch (Exception e) {
+//            logger.error("Error en setStatusFinished: "+e.getMessage());
+//        }
+//    }
     
-    public synchronized void setStatusRunning(PoolProcess poolProcess) {
+    public String getDateNow() {
+        try {
+            //Extrae Fecha de Hoy
+            //
+            Date today;
+            SimpleDateFormat formatter;
+            formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            System.out.println(formatter.getTimeZone());
+            today = new Date();
+            return formatter.format(today);  
+        } catch (Exception e) {
+            return null;
+        }
+    }    
+    
+    public synchronized void setRunningPoolProcess(PoolProcess poolProcess) {
         try {
             PoolProcess newPoolProcess = poolProcess;
             String typeProc = poolProcess.getTypeProc();
             String procID = poolProcess.getProcID();
             
-            ActiveTypeProc activeTypeProc;
-            
-            serviceStatus.setNumProcRunning(serviceStatus.getNumProcRunning()+1);
-            serviceStatus.setNumProcSleeping(serviceStatus.getNumProcSleeping()-1);
-
-            int index = getLstActiveTypeProc().indexOf(typeProc);
-            if (index!=-1) {
-                int usedTypeActive = getLstActiveTypeProc().get(index).getUsedThread();
-                
-                activeTypeProc = new ActiveTypeProc();
-                activeTypeProc.setTypeProc(typeProc);
-                activeTypeProc.setUsedThread(usedTypeActive+1);
-
-                getLstActiveTypeProc().set(index, activeTypeProc);
+            if (!typeProc.equals("ETL")) {
+                boolean isFound=false;
+                int numItems = serviceStatus.getLstPoolProcess().size();
+                for (int i=0; i<numItems; i++) {
+                    if (    serviceStatus.getLstPoolProcess().get(i).getTypeProc().equals(typeProc)
+                            &&serviceStatus.getLstPoolProcess().get(i).getProcID().equals(procID)
+                            &&serviceStatus.getLstPoolProcess().get(i).getStatus().equals("Ready")
+                        ) {
+                        isFound=true;
+                        serviceStatus.getLstPoolProcess().get(i).setStatus("Running");
+                        serviceStatus.getLstPoolProcess().get(i).setUpdateTime(getDateNow());
+                        break;
+                    }
+                }
+                if (!isFound) {
+                    logger.warn("El proceso: "+typeProc+":"+procID+" no pudo ser actualizado a Running");
+                }
             } else {
-                activeTypeProc = new ActiveTypeProc();
-                activeTypeProc.setTypeProc(typeProc);
-                activeTypeProc.setUsedThread(1);
-
-                getLstActiveTypeProc().add(activeTypeProc);
-            }
-            
-            index = getLstPoolProcess().indexOf(procID);
-            if (index!=-1) {
-                newPoolProcess.setStatus("Running");
-                getLstPoolProcess().set(index, newPoolProcess);
-            } else {
-                logger.error("El proceso: "+procID+" ya no está disponible...");
+                boolean isFound=false;
+                int numItems = serviceStatus.getLstPoolProcess().size();
+                for (int i=0; i<numItems; i++) {
+                    if (    serviceStatus.getLstPoolProcess().get(i).getTypeProc().equals(typeProc)
+                            &&serviceStatus.getLstPoolProcess().get(i).getIntervalID().equals(poolProcess.getIntervalID())
+                        ) {
+                        isFound=true;
+                        serviceStatus.getLstPoolProcess().get(i).setStatus("Running");
+                        serviceStatus.getLstPoolProcess().get(i).setUpdateTime(getDateNow());
+                        break;
+                    }
+                }
+                if (!isFound) {
+                    logger.warn("El proceso: "+typeProc+":"+poolProcess.getIntervalID()+" no pudo ser actualizado a Running");
+                }
             }
         } catch (Exception e) {
-            logger.error("Error en setStatusRunning: "+e.getMessage());
+            logger.error("Error en setRunningPoolProcess: "+e.getMessage());
         }
     
     }
@@ -353,24 +335,21 @@ public class globalAreaData {
     }
     
     public int getFreeThreadProcess(String typeProc) {
-        int numFree = 0;
-        int numAssigned=0;
-        int numActive=0;
+        int maxThread=0;
+        int usedThread=0;
         try {
-            int numItems = lstAssignedTypeProc.size();
-            for (int i=0; i<numItems; i++) {
-                if (lstAssignedTypeProc.get(i).getTypeProc().equals(typeProc)) {
-                    numAssigned = lstAssignedTypeProc.get(i).getMaxThread();
-                    int numItemsActive = lstActiveTypeProc.size();
-                    for (int j=0; j<numItemsActive; j++) {
-                        if (lstActiveTypeProc.get(i).getTypeProc().equals(typeProc)) {
-                            numActive = lstActiveTypeProc.get(i).getUsedThread();
-                        }
-                    }
-                    break;
-                }
+            try {
+                maxThread = serviceStatus.getLstAssignedTypeProc().stream().filter(p -> p.getTypeProc().equals(typeProc)).collect(Collectors.toList()).get(0).getMaxThread();
+            } catch (Exception e) {
+                maxThread = 0;
             }
-            return (numAssigned-numActive);
+            
+            try {
+                usedThread = serviceStatus.getLstActiveTypeProc().stream().filter(p -> p.getTypeProc().equals(typeProc)).collect(Collectors.toList()).get(0).getUsedThread();
+            } catch (Exception e) {
+                usedThread = 0;
+            }
+            return (maxThread-usedThread);
         } catch (Exception e) {
             return 0;
         }
@@ -420,12 +399,12 @@ public class globalAreaData {
                 serviceStatus.setSrvHost(serviceInfo.getSrvHost());
                 serviceStatus.setSrvPort(serviceInfo.getSrvPort());
                 serviceStatus.setSrvStartTime(getFechaNow());
-                serviceStatus.setSrvLoadParam(true);
+                serviceStatus.setIsLoadParam(true);
                 
                 logger.info("Se ha iniciado correctamente la globalAreaData...");
                 
             } catch (IOException | NumberFormatException e) {
-                serviceStatus.setSrvLoadParam(false);
+                serviceStatus.setIsLoadParam(false);
                 logger.error(" Error general: "+e.getMessage());
             }
     }
