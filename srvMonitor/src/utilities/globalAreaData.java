@@ -299,6 +299,15 @@ public class globalAreaData {
                 serverInfo.setDbSqlDBInstance(fileConf.getProperty("dbSQLInstance"));
             }
 
+            if (serverInfo.getDbType().equals("mySQL")) {
+                //Recupera Paramteros ORA
+                serverInfo.setDbmyHost(fileConf.getProperty("dbmyHost"));
+                serverInfo.setDbmyPort(Integer.valueOf(fileConf.getProperty("dbmyPort")));
+                serverInfo.setDbmyUser(fileConf.getProperty("dbmyUser"));
+                serverInfo.setDbmyPass(fileConf.getProperty("dbmyPass"));
+                serverInfo.setDbmyDbName(fileConf.getProperty("dbmyDbName"));
+            }
+
             serverStatus.setSrvActive(true);
             serverStatus.setIsValMetadataConnect(false);
             serverStatus.setIsGetAgendaActive(false);

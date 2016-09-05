@@ -197,46 +197,46 @@ public class srvMonitor {
             //Levanta Thread para revision de Agendas y Procesos que deberan ejecutarse
             //
             
-            if (gDatos.getServerStatus().isIsValMetadataConnect()) {
-                //Levanta Thread Busca Agendas Activas
-                //
-                try {
-                    if (!gDatos.getServerStatus().isIsGetAgendaActive()) {
-                        thAgendas = new thGenActiveGroups(gDatos);  
-                        thAgendas.setName("thGetActiveGroups");
-                        gDatos.getServerStatus().setIsGetAgendaActive(true);
-                        thAgendas.start();
-                        logger.info(" Iniciando thGetActiveGroups....normal...");
-                    } 
-                } catch (Exception e) {
-                    gDatos.getServerStatus().setIsGetAgendaActive(false);
-                    //System.out.println("Error. "+e.getMessage());
-                    logger.error("Error al Iniciar Thread Agendas "+ thAgendas.getName());
-                }
-            } else {
-                logger.warn("No es posble conectarse a MetaData...");
-            }
-
-            //Levanta Thread para revision de Procesos de ETL que deberán ejecutarse
-            //
-            
 //            if (gDatos.getServerStatus().isIsValMetadataConnect()) {
+//                //Levanta Thread Busca Agendas Activas
+//                //
 //                try {
-//                    if (!gDatos.getServerStatus().isIsThreadETLActive()) {
-//                        thETL = new thGetETL(gDatos);  
-//                        thETL.setName("thGetETL");
-//                        gDatos.getServerStatus().setIsThreadETLActive(true);
-//                        thETL.start();
-//                        logger.info(" Iniciando thGetETL....normal...");
+//                    if (!gDatos.getServerStatus().isIsGetAgendaActive()) {
+//                        thAgendas = new thGenActiveGroups(gDatos);  
+//                        thAgendas.setName("thGetActiveGroups");
+//                        gDatos.getServerStatus().setIsGetAgendaActive(true);
+//                        thAgendas.start();
+//                        logger.info(" Iniciando thGetActiveGroups....normal...");
 //                    } 
 //                } catch (Exception e) {
-//                    gDatos.getServerStatus().setIsThreadETLActive(false);
+//                    gDatos.getServerStatus().setIsGetAgendaActive(false);
 //                    //System.out.println("Error. "+e.getMessage());
-//                    logger.error("Error al Iniciar Thread ETL "+ thETL.getName());
+//                    logger.error("Error al Iniciar Thread Agendas "+ thAgendas.getName());
 //                }
 //            } else {
 //                logger.warn("No es posble conectarse a MetaData...");
 //            }
+
+            //Levanta Thread para revision de Procesos de ETL que deberán ejecutarse
+            //
+            
+            if (gDatos.getServerStatus().isIsValMetadataConnect()) {
+                try {
+                    if (!gDatos.getServerStatus().isIsThreadETLActive()) {
+                        thETL = new thGetETL(gDatos);  
+                        thETL.setName("thGetETL");
+                        gDatos.getServerStatus().setIsThreadETLActive(true);
+                        thETL.start();
+                        logger.info(" Iniciando thGetETL....normal...");
+                    } 
+                } catch (Exception e) {
+                    gDatos.getServerStatus().setIsThreadETLActive(false);
+                    //System.out.println("Error. "+e.getMessage());
+                    logger.error("Error al Iniciar Thread ETL "+ thETL.getName());
+                }
+            } else {
+                logger.warn("No es posble conectarse a MetaData...");
+            }
         }
     }
 }

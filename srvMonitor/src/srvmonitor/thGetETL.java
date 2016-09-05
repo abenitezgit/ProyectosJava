@@ -9,7 +9,6 @@ import dataClass.ETL;
 import dataClass.EtlMatch;
 import dataClass.Interval;
 import dataClass.PoolProcess;
-import dataClass.PoolProcessHead;
 import dataClass.ServiceStatus;
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -24,7 +23,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import org.apache.log4j.Logger;
-import org.json.JSONObject;
 import utilities.globalAreaData;
 import utilities.srvRutinas;
 
@@ -73,14 +71,14 @@ public class thGetETL extends Thread{
                         "        dbD.DBDESC DDBDESC, dbD.DBNAME DDBNAME, dbD.DBTYPE DDBTYPE, dbD.DBPORT DDBPORT, dbD.DBINSTANCE DDBINSTANCE, dbD.DBFILECONF DDBCONF, dbD.DBJDBCSTRING DDBJDBC,\n" +
                         "        usrD.USERNAME DUSERNAME, usrD.USERPASS DUSERPASS, usrD.USERTYPE DUSERTYPE\n" +
                         "from\n" +
-                        "  process.tb_etlConf cfg,\n" +
-                        "  process.tb_servidor srv,\n" +
-                        "  process.tb_basedatos db,\n" +
-                        "  process.tb_cliente cli,\n" +
-                        "  PROCESS.TB_USERS usr,\n" +
-                        "  PROCESS.TB_SERVIDOR srvD,\n" +
-                        "  PROCESS.TB_BASEDATOS dbD,\n" +
-                        "  PROCESS.TB_USERS usrD\n" +
+                        "  tb_etlConf cfg,\n" +
+                        "  tb_servidor srv,\n" +
+                        "  tb_basedatos db,\n" +
+                        "  tb_cliente cli,\n" +
+                        "  TB_USERS usr,\n" +
+                        "  TB_SERVIDOR srvD,\n" +
+                        "  TB_BASEDATOS dbD,\n" +
+                        "  TB_USERS usrD\n" +
                         "where\n" +
                         "  cfg.ETLCLIID = cli.CLIID\n" +
                         "  And cfg.ETLSourceServerID = srv.SERVERID\n" +
@@ -224,7 +222,7 @@ public class thGetETL extends Thread{
                                         "  ETLORDER, ETLSOURCEFIELD, ETLSOURCELENGTH, ETLSOURCETYPE,\n" +
                                         "  ETLDESTFIELD, ETLDESTLENGTH, ETLDESTTYPE\n" +
                                         "from \n" +
-                                        "  process.tb_etlMatch\n" +
+                                        "  tb_etlMatch\n" +
                                         "where\n" +
                                         "  ETLID='"+ etl.getETLID()  +"'\n" +
                                         "  And ETLENABLE=1 order by ETLORDER";
@@ -308,7 +306,7 @@ public class thGetETL extends Thread{
         vSQL =  "select\n" +
                 "  ETLID, INTERVALID, FECINS, FECUPDATE, STATUS, USTATUS, NUMEXEC\n" +
                 "from\n" +
-                "  process.tb_etlinterval\n" +
+                "  tb_etlinterval\n" +
                 "where\n" +
                 "  status='FinishedOLD'\n" +
                 "order by\n" +

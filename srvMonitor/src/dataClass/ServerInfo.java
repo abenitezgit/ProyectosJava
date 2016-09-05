@@ -35,8 +35,11 @@ public class ServerInfo {
     String dbSqlPass;
     String dbSqlDBName;
     String dbSqlDBInstance;
-    
-    
+    String dbmyHost;
+    String dbmyUser;
+    String dbmyPass;
+    String dbmyDbName;
+    int dbmyPort;
     
     public ServerInfo() {
     }
@@ -47,6 +50,46 @@ public class ServerInfo {
         this.srvEnable = srvEnable;
     }
 
+    public String getDbmyHost() {
+        return dbmyHost;
+    }
+
+    public void setDbmyHost(String dbmyHost) {
+        this.dbmyHost = dbmyHost;
+    }
+
+    public String getDbmyUser() {
+        return dbmyUser;
+    }
+
+    public void setDbmyUser(String dbmyUser) {
+        this.dbmyUser = dbmyUser;
+    }
+
+    public String getDbmyPass() {
+        return dbmyPass;
+    }
+
+    public void setDbmyPass(String dbmyPass) {
+        this.dbmyPass = dbmyPass;
+    }
+
+    public String getDbmyDbName() {
+        return dbmyDbName;
+    }
+
+    public void setDbmyDbName(String dbmyDbName) {
+        this.dbmyDbName = dbmyDbName;
+    }
+
+    public int getDbmyPort() {
+        return dbmyPort;
+    }
+
+    public void setDbmyPort(int dbmyPort) {
+        this.dbmyPort = dbmyPort;
+    }
+    
     public int getAgeShowHour() {
         return ageShowHour;
     }
