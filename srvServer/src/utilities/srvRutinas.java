@@ -183,16 +183,16 @@ public class srvRutinas {
             
             logger.debug("Data recibida para updatePoolProcess: "+jData.toString());
             
-            PoolProcess poolProcess = new PoolProcess();
-            List<PoolProcess> lstPoolProcess = new ArrayList<>();
-            
             JSONArray jArray = jData.getJSONArray("poolProcess");
             
             int numItems = jArray.length();
-            
-            logger.info("Se han recibido: "+jArray.length()+" asignaciones de Ejecución de Procesos.");
-            
+
             if (numItems>0) {
+ 
+                PoolProcess poolProcess = new PoolProcess();
+                List<PoolProcess> lstPoolProcess = new ArrayList<>();
+
+                logger.info("Se han recibido: "+jArray.length()+" asignaciones de Ejecución de Procesos.");
             
                 //Para cada proceso recibido
                 //
@@ -257,9 +257,8 @@ public class srvRutinas {
                     } //Fin switch()
                     
                 } //Fin for()
-                
+                logger.info("Total de Ejecuciones de Procesos en lista PoolProcess: " + gDatos.getServiceStatus().getLstPoolProcess().size());
             }
-            logger.info("Total de Ejecuciones de Procesos en lista PoolProcess: " + gDatos.getServiceStatus().getLstPoolProcess().size());
             return sendOkTX();
         } catch (JSONException | IOException e) {
             logger.error("Error updatePoolProcess: "+e.getMessage());                                                                                                                                                                                                                                                                                                             return sendError(10, e.getMessage());
@@ -354,7 +353,7 @@ public class srvRutinas {
         }
     }
     
-    public void updateActiveProcess(String inputData) {
+    public void DELupdateActiveProcess(String inputData) {
         try {
             JSONObject ds = new JSONObject(inputData);
             JSONArray rows = ds.getJSONArray("params");
