@@ -49,11 +49,6 @@ public class thExecFTP extends Thread{
     }
     
     
-    private void connectFtp() {
-        
-    }
-    
-    
     class myFtpClass extends FTPClient {
         Ftp dftp = new Ftp();
         boolean isConnectedFtpSource;
