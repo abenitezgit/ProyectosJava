@@ -62,8 +62,11 @@ public class thRunProcess extends Thread {
             
             int numItemsPool = gDatos.getServiceStatus().getLstPoolProcess().size();
             
+            logger.info("Se han encontrado: "+numItemsPool+ " procesos en lista poolProcess()");
+            
             if (numItemsPool>0) {
                 updatePoolStatistics();
+                logger.info("Se han actualizado las estadisticas de ejecucion de procesos");
                 
                 int itemsAssigned = gDatos.getServiceStatus().getLstAssignedTypeProc().size();
                 if (itemsAssigned>0) {
@@ -86,14 +89,7 @@ public class thRunProcess extends Thread {
                     /**
                      * Visualiza lista de procesos Ready.
                      */
-                    ObjectMapper mapper = new ObjectMapper();
-                    mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
-
-                    try {
-                        logger.debug("Mapper lstReady: "+mapper.writeValueAsString(lstReadyProc));
-                    } catch (IOException ex) {
-                        java.util.logging.Logger.getLogger(thRunProcess.class.getName()).log(Level.SEVERE, null, ex);
-                    }
+                    logger.info("Se han encontrado: "+lstReadyProc.size()+ " procesos en estado Ready para ser ejecutados");
                     
                     /**
                      * Busca procesos para ejecutar si es que:
@@ -101,21 +97,22 @@ public class thRunProcess extends Thread {
                      * Hay Thread libres para el servicio
                      * Para cada tipoe de proceso existenn threads libres
                      */
-                    
-
 
                     if (!lstReadyProc.isEmpty()) {
                         if (gDatos.getFreeThreadServices()>0) {
                             int numReady = lstReadyProc.size();
-                            logger.debug("Procesos Ready: "+numReady);
-                            for (int i=0; i<numReady; i++) {
-                                if (gDatos.getFreeThreadProcess(lstReadyProc.get(i).getTypeProc())>0) {
-                                    switch (lstReadyProc.get(i).getTypeProc()) {
+                            
+                            /**
+                             * Se ejecutara siempre el primer proceso de la lista en Ready.
+                             */
+                            
+                                if (gDatos.getFreeThreadProcess(lstReadyProc.get(0).getTypeProc())>0) {
+                                    switch (lstReadyProc.get(0).getTypeProc()) {
                                         case "OSP":
-                                            Thread thOSP = new thExecOSP(gDatos, lstReadyProc.get(i));
+                                            Thread thOSP = new thExecOSP(gDatos, lstReadyProc.get(0));
                                             //thOSP.setName("thExecOSP-"+lstSleepingProc.get(i).getProcID());
                                             thOSP.setName("OSPThread");
-                                            gDatos.setRunningPoolProcess(lstReadyProc.get(i));
+                                            gDatos.setRunningPoolProcess(lstReadyProc.get(0));
                                             thOSP.start();
                                             break;
                                         case "OTX":
@@ -131,29 +128,29 @@ public class thRunProcess extends Thread {
 //                                            thLOR.start();
                                             break;
                                         case "FTP":
-                                            Thread thFTP = new thExecFTP(gDatos, lstReadyProc.get(i));
-                                            thFTP.setName("thExecFTP-"+lstReadyProc.get(i).getProcID());
-                                            gDatos.setRunningPoolProcess(lstReadyProc.get(i));
+                                            Thread thFTP = new thExecFTP(gDatos, lstReadyProc.get(0));
+                                            thFTP.setName("thExecFTP-"+lstReadyProc.get(0).getProcID());
+                                            gDatos.setRunningPoolProcess(lstReadyProc.get(0));
                                             thFTP.start();
                                             break;
                                         case "ETL":
-                                            Thread thETL = new thExecETL(gDatos, lstReadyProc.get(i));
-                                            thETL.setName("thExecETL-"+ lstReadyProc.get(i).getIntervalID());
-                                            gDatos.setRunningPoolProcess(lstReadyProc.get(i));
+                                            Thread thETL = new thExecETL(gDatos, lstReadyProc.get(0));
+                                            thETL.setName("thExecETL-"+ lstReadyProc.get(0).getIntervalID());
+                                            gDatos.setRunningPoolProcess(lstReadyProc.get(0));
+                                            logger.info("Iniciando thread: thExecETL-"+ lstReadyProc.get(0).getIntervalID());
                                             //gDatos.updateStatusPoolProcess("ETL", lstReadyProc.get(i).getProcID(), "Running", lstReadyProc.get(i).getIntervalID());
                                             thETL.start();
                                             break;
                                         default:
-                                            logger.info("No hay Rutinas de Ejecucion asociadas a este tipo de proceso: "+lstReadyProc.get(i).getTypeProc());
+                                            logger.info("No hay Rutinas de Ejecucion asociadas a este tipo de proceso: "+lstReadyProc.get(0).getTypeProc());
                                             break;
                                     }
                                 } else {
-                                    logger.warn("No hay Threads libres del proceso: "+ lstReadyProc.get(i).getTypeProc() + " para ejecutar");
+                                    logger.warn("No hay Threads libres del proceso: "+ lstReadyProc.get(0).getTypeProc() + " para ejecutar");
                                     logger.warn("Se marcaran los procesos con release para ser liberados");
                                     //gDatos.updateReleasePool(lstReadyProc.get(i).getTypeProc());
                                 }
                                 updatePoolStatistics();
-                            }
                         } else {
                             logger.warn("No hay Threads libres del Servicio para ejecutar");
                         }

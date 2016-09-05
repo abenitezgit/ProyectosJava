@@ -6,10 +6,13 @@
 package srvserver;
 
 import dataClass.PoolProcess;
+import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Level;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
+import utilities.dataAccess;
 import utilities.globalAreaData;
 import utilities.srvRutinas;
 
@@ -44,13 +47,49 @@ public class thExecETL extends Thread{
         
         @Override
         public void run() {
-            logger.info("ETL:"+pool.getProcID()+" "+pool.getIntervalID()+" executed...");
+            logger.info("Iniciando ejecución ETL:"+pool.getProcID()+" "+pool.getIntervalID());
             
-            gDatos.updateStatusPoolProcess("ETL", pool.getProcID(), "Finished", pool.getIntervalID());
+            if (isValidDataParam()) {
+                dataAccess sConn = new dataAccess(gDatos);
+                sConn.setDbType((String) pool.getParams().get("sDBType"));
+                sConn.setDbHost((String) pool.getParams().get("sIP"));
+                sConn.setDbPort((String) pool.getParams().get("sDBPort"));
+                sConn.setDbName((String) pool.getParams().get("sDbName"));
+                sConn.setDbUser((String) pool.getParams().get("sUserName"));
+                sConn.setDbPass((String) pool.getParams().get("sUserPass"));
+                
+                sConn.conectar();
+                
+                if (sConn.isConnected()) {
+                    System.out.println("Connected!!");
+                } else {
+                    System.out.println("NO Connected!!");
+                }
+                
+                gDatos.setFinishedPoolProcess(pool, "Success");
+            } else {
+                logger.error("Error en lectura de parámetros de entrada.");
+                gDatos.setFinishedPoolProcess(pool, "Error");
+            }
             
-            //Actualiza estado de termino del proceso
-            //
+            logger.info("Finalizando ejecución ETL:"+pool.getProcID()+" "+pool.getIntervalID());
 
         }
+        
+        public boolean isValidDataParam() {
+            boolean isValid = true;
+            
+            try {
+                if (pool.getGrpID()==null || pool.getProcID()==null || pool.getIntervalID()==null || pool.getNumSecExec()==null ||
+                    pool.getParams()==null) {
+                    isValid = false;
+                }
+                return isValid;
+            } catch (Exception e) {
+                return false;
+            }
+        }
+        
+        
     }
 }

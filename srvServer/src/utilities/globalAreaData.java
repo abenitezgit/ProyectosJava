@@ -224,6 +224,56 @@ public class globalAreaData {
             return null;
         }
     }    
+
+    public synchronized void setFinishedPoolProcess(PoolProcess poolProcess, String uStatus) {
+        try {
+            PoolProcess newPoolProcess = poolProcess;
+            String typeProc = poolProcess.getTypeProc();
+            String procID = poolProcess.getProcID();
+            
+            if (!typeProc.equals("ETL")) {
+                boolean isFound=false;
+                int numItems = serviceStatus.getLstPoolProcess().size();
+                for (int i=0; i<numItems; i++) {
+                    if (    serviceStatus.getLstPoolProcess().get(i).getTypeProc().equals(typeProc)
+                            &&serviceStatus.getLstPoolProcess().get(i).getProcID().equals(procID)
+                            &&serviceStatus.getLstPoolProcess().get(i).getStatus().equals("Running")
+                        ) {
+                        isFound=true;
+                        serviceStatus.getLstPoolProcess().get(i).setStatus("Finished");
+                        serviceStatus.getLstPoolProcess().get(i).setuStatus(uStatus);
+                        serviceStatus.getLstPoolProcess().get(i).setUpdateTime(getDateNow());
+                        serviceStatus.getLstPoolProcess().get(i).setEndTime(getDateNow());
+                        break;
+                    }
+                }
+                if (!isFound) {
+                    logger.warn("El proceso: "+typeProc+":"+procID+" no pudo ser actualizado a Running");
+                }
+            } else {
+                boolean isFound=false;
+                int numItems = serviceStatus.getLstPoolProcess().size();
+                for (int i=0; i<numItems; i++) {
+                    if (    serviceStatus.getLstPoolProcess().get(i).getTypeProc().equals(typeProc)
+                            &&serviceStatus.getLstPoolProcess().get(i).getIntervalID().equals(poolProcess.getIntervalID())
+                        ) {
+                        isFound=true;
+                        serviceStatus.getLstPoolProcess().get(i).setStatus("Finished");
+                        serviceStatus.getLstPoolProcess().get(i).setuStatus(uStatus);
+                        serviceStatus.getLstPoolProcess().get(i).setUpdateTime(getDateNow());
+                        serviceStatus.getLstPoolProcess().get(i).setEndTime(getDateNow());
+                        break;
+                    }
+                }
+                if (!isFound) {
+                    logger.warn("El proceso: "+typeProc+":"+poolProcess.getIntervalID()+" no pudo ser actualizado a Finished");
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error en setFinishedPoolProcess: "+e.getMessage());
+        }
+    
+    }
     
     public synchronized void setRunningPoolProcess(PoolProcess poolProcess) {
         try {
