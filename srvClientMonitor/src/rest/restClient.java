@@ -41,10 +41,10 @@ public class restClient {
         //HttpGet request = new HttpGet("http://hwk10.e-contact.cl:50111/templeton/v1/version/hadoop?user.name=hadoop");
         //HttpGet request = new HttpGet("http://hwk10.e-contact.cl:50111/templeton/v1/ddl/database?user.name=hive&like=*");
         //HttpGet request = new HttpGet("http://hwk10.e-contact.cl:50111/templeton/v1/ddl/database/hgrab?user.name=hive");
-        //HttpGet request = new HttpGet("http://hwk10.e-contact.cl:50111/templeton/v1/ddl/database/default?user.name=hbase&like=*");
+        HttpGet request = new HttpGet("http://hwk10.e-contact.cl:50111/templeton/v1/ddl/database/default?user.name=hbase&like=*");
         //HttpGet request = new HttpGet("http://hwk10.e-contact.cl:50111/templeton/v1/jobs/job_1471360327714_0013?user.name=hive");
         //HttpGet request = new HttpGet("http://hwk10.e-contact.cl:50111/templeton/v1/jobs?user.name=hive&showall=true");
-        HttpGet request = new HttpGet("http://hwk10.e-contact.cl:50111/templeton/v1/jobs?user.name=hive&fields=*");
+        //HttpGet request = new HttpGet("http://hwk10.e-contact.cl:50111/templeton/v1/jobs?user.name=hive&fields=*");
         
         
         HttpResponse response = client.execute(request);

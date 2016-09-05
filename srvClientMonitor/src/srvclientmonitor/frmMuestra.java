@@ -111,7 +111,7 @@ public class frmMuestra extends javax.swing.JFrame {
                 JSONArray jArray = jData2.getJSONArray("servicios");
                 System.out.println(jData2.toString());
                 System.out.println();
-                serviceStatus = (ServiceStatus) gSub.serializeJSonString(result.getJSONObject("data").getJSONArray("servicios").get(0).toString(), ServiceStatus.class);
+                serviceStatus = (ServiceStatus) gSub.serializeJSonStringToObject(result.getJSONObject("data").getJSONArray("servicios").get(0).toString(), ServiceStatus.class);
                 
                 DefaultListModel model = new DefaultListModel();
                 model.addElement(result.getJSONObject("data").getJSONArray("servicios").toString());

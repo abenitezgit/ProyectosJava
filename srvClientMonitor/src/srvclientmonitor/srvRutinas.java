@@ -46,7 +46,7 @@ public class srvRutinas {
         return mapper.writeValueAsString(object);
     }
     
-    public Object serializeJSonString (String parseJson, Class className) throws IOException {
+    public Object serializeJSonStringToObject (String parseJson, Class className) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         
         return mapper.readValue(parseJson, className);

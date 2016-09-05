@@ -45,6 +45,8 @@ public class globalAreaData {
     private String monPortBack;
     private String authKey;
     private String activePrimaryMonHost;
+    private String srvServer;
+    private String serverPort;
     
     private boolean statusMonActive;
     private String  statusMonStartDate;
@@ -69,6 +71,8 @@ public class globalAreaData {
             monPortBack = fileConf.getProperty("monPortBack");
             authKey = fileConf.getProperty("authKey");
             activePrimaryMonHost = fileConf.getProperty("activePrimaryMonHost");
+            srvServer = fileConf.getProperty("srvServer");
+            serverPort = fileConf.getProperty("serverPort");
             
         } catch (IOException | NumberFormatException e) {
             System.out.println("Error: "+e.getMessage());
