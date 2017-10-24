@@ -1,20 +1,67 @@
 package cap.utiles;
 
+import org.apache.log4j.Logger;
+
+import cap.model.Info;
+
 public class GlobalArea {
-	String pathConfig;
-	String fileConfig;
+	private String pathConfig;
+	private String fileConfig;
+	private String logConfig;
+	private Logger logger;
+	private String serviceName;
+	private Info info = new Info();
 	
 	//Constructor
-	public GlobalArea() {
+	public GlobalArea(String vServiceName) {
 		fileConfig = "capMonitor.properties";
+		logConfig = "log4j,properties";
+		setServiceName(vServiceName);
+		logger = Logger.getLogger(vServiceName);
 	}
 
 	//Getter and Setter
-	
+
 	public String getFileConfig() {
 		return fileConfig;
 	}
 	
+	public String getLogConfig() {
+		return logConfig;
+	}
+
+	public void setLogConfig(String logConfig) {
+		this.logConfig = logConfig;
+	}
+
+	public Logger getLogger() {
+		return logger;
+	}
+
+	public void setLogger(Logger logger) {
+		this.logger = logger;
+	}
+
+	public String getServiceName() {
+		return serviceName;
+	}
+
+	public void setServiceName(String serviceName) {
+		this.serviceName = serviceName;
+	}
+
+	public void setFileConfig(String fileConfig) {
+		this.fileConfig = fileConfig;
+	}
+
+	public Info getInfo() {
+		return info;
+	}
+
+	public void setInfo(Info info) {
+		this.info = info;
+	}
+
 	public String getPathConfig() {
 		return pathConfig;
 	}
