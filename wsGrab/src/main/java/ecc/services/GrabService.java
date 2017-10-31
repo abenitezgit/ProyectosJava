@@ -110,6 +110,7 @@ public class GrabService {
     	}
     }
 
+    
     public List<GrabMin> getGrabData(int tipoConsulta) throws Exception {
 	    	SolRDB solrConn = new SolRDB();
 	    	try {
@@ -185,6 +186,82 @@ public class GrabService {
     		throw new Exception(e.getMessage());
     	}
     }
+
+    public List<GrabMin> getGrabDataSinSkill(int tipoConsulta) throws Exception {
+    	SolRDB solrConn = new SolRDB();
+    	try {
+    	    
+    	    List<GrabMin> lstGrab = new ArrayList<>();
+    	    
+    	    solrConn.setConfig(gDatos.getFileConfig(), gDatos.getHbProperties());
+    	    solrConn.open();
+    	    
+    	    if (solrConn.isConnected()) {
+    	    	mylib.console("Conectado a solR");
+    	    	
+    	    	ModifiableSolrParams parameters = buildSolrFiltersSinSkill(tipoConsulta);
+    	    	mylib.console("Se recuperaron los filtros para solR");
+    	    	
+    	    	List<String> keys = new ArrayList<>();
+    	    	mylib.console("Recuperando Ids de grabaciones");
+    	    	keys = solrConn.getIds(parameters);
+    	    	solrConn.close();
+    	    	
+    	    	mylib.console("Se encontraron "+keys.size()+ " ids de grabaciones");
+    	    	
+    	    	for (String key : keys) {
+    	    		mylib.console("key: "+key);
+    	    	}
+    	    	
+    	    	if (keys.size()>0) {
+			//Consulta Datos a HBase
+			HBaseDB hbConn = new HBaseDB();
+			hbConn.setConfig(gDatos.getFileConfig(), gDatos.getHbProperties(),"grabaciones");
+			
+			Connection conn = ConnectionFactory.createConnection(hbConn.getHcfg());
+			
+			Table table = conn.getTable(TableName.valueOf("grabaciones"));
+			
+			mylib.console("Conectado a HBase");
+			
+			GrabMin grabMin;
+			
+			mylib.console("Recuperando rows desde Hbase");
+			for (String key : keys) {
+		    		mylib.console("get key: "+key);
+	            Get g = new Get(Bytes.toBytes(key));
+	            Result rs = table.get(g);
+	            
+	            grabMin = new GrabMin();
+	            String fName="";
+	            for (Cell cell : rs.listCells()) {
+	              setValueMin(new String(CellUtil.cloneQualifier(cell)), new String(CellUtil.cloneValue(cell)), grabMin, fName);
+	              String myString = new String(CellUtil.cloneQualifier(cell));
+	              if (myString.equals("17")) {
+	            	  	fName = new String(CellUtil.cloneValue(cell));
+	              }
+	            }
+	            
+	            String campo1="<a href='#' onclick='javascript:proxygrabaciones.Escuchargrab(\"" + grabMin.getConnid() + "\")'><img src='../images/sound.png' title='Escuchar'></a>";
+	            String campo2="<a href='#' onclick='javascript:proxygrabaciones.Descargagrab(\"" + grabMin.getConnid() + ";"+fName.substring(0, fName.length()-4)+".mp3\")'><img src='../images/disk.png' title='Descargar'></a>";
+	            grabMin.setCampo1(campo1);
+	            grabMin.setCampo2(campo2);
+	            
+	            lstGrab.add(grabMin);
+	    	    	}
+	    	    	mylib.console("Se recuperaron "+lstGrab.size()+ " rows desde HBase");
+	    	    	conn.close();
+    	    	}
+	    }
+		
+	    return lstGrab;
+	} catch (Exception e) {
+		if (solrConn.isConnected()) {
+			solrConn.close();
+		}
+		throw new Exception(e.getMessage());
+	}
+}
 
     private void setValueMin(String cq, String valor, GrabMin grab, String fName) {
         switch (cq) {
@@ -516,6 +593,34 @@ public class GrabService {
         }
     }
 
+    public int getTipoConsultaSinSkill() throws Exception {
+        try {
+            /**
+             * Se analizan las combinaciones de datos para establecer
+             * el tipo de consulta a realizar
+             * Setea la variable global dr (DataRequest)
+             * 
+             * Los tipos de resultados son (Todos con al menos un SKILL de consulta):
+             * return 1: Connid sin Skill ni fechas
+             * return 2: Agente sin Skill ni fechas
+             * return 98: Error: Debe ingresar un connid o agente
+             */
+        	
+        		if (dr.getConnid()!=null && !dr.getConnid().equals("")) {
+        			return 1;
+        		} else {
+        			if (dr.getAgente()!=null && !dr.getAgente().equals("")) {
+        				return 2;
+        			} else {
+        				return 98;
+        			}
+        		}
+        } catch (Exception e) {
+            mylib.console(1,"Error en getTipoConsulta ("+e.getMessage()+")");
+            throw new Exception(e.getMessage());
+        }
+    }
+
     public ModifiableSolrParams buildSolrFilters(int tipoConsulta) throws Exception {
         ModifiableSolrParams parameters = new ModifiableSolrParams();
         String q="*:*";
@@ -577,6 +682,38 @@ public class GrabService {
                 break;
             default:
             break;
+        }
+        
+        parameters.set("q", "*:*");
+        parameters.set("fq", q);
+        parameters.set("start", 0);
+        parameters.set("rows", dr.getLimit());
+        parameters.set("fl", "id");
+        
+        mylib.console("Filtro consulta q: "+q);
+        
+        return parameters;
+    }
+    
+    public ModifiableSolrParams buildSolrFiltersSinSkill(int tipoConsulta) throws Exception {
+        ModifiableSolrParams parameters = new ModifiableSolrParams();
+        String q="*:*";
+        
+        switch (tipoConsulta) {
+	        	case 1:
+	        		/**
+	        		 * Connid sin Skill y sin Fechas
+	        		 */
+	        		q = buildConnidSinSkill();
+	        		break;
+	        	case 2:
+	        		/**
+	        		 * Agente sin Skill y sin Fechas
+	        		 */
+	        		q = buildAgenteSinSkill();
+	        		break;
+            default:
+            		break;
         }
         
         parameters.set("q", "*:*");
@@ -666,6 +803,22 @@ public class GrabService {
         return filters;
     }
     
+    private String buildConnidSinSkill() {
+	    	String connid = dr.getConnid();
+    	
+        String filter2 = String.format("connid:%s", connid);
+
+        return filter2;
+    }
+    
+    private String buildAgenteSinSkill() {
+    		String agente = dr.getAgente();
+		
+	    String filter2 = String.format("agente:%s", agente);
+	
+	    return filter2;
+    }
+
     private String buildDnisFechasQuery() {
     	List<String> skills = dr.getLstSkill();
     	String fechaDesde = dr.getFechaDesde();
