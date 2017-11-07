@@ -1,0 +1,6 @@
+2017-11-07 17:00
+
+	Autor: ABT
+	Versión: 4.2.0
+	Cambios:
+		- Agrega class GrabResourceSinSkill para consultas de connid, agente y uniqueid sin Skill-Fecha

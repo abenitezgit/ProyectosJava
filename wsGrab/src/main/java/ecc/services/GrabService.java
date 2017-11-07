@@ -465,6 +465,7 @@ public class GrabService {
              * return 7: Dnis con rango de fechas
              * return 8: Dnis sin fechas
              * return 9: Busqueda masiva por fechas
+             * return 10: Busqueda Agente con Skill y Fechas
              * return 97: Error: Debe ingresar al menos un rango de fechas si es que no ha seleccionado ningun otro valor
              * return 98: Error: Debe ingresar al menos un SKILL
              * return 99: Error de Ejecución
@@ -513,7 +514,22 @@ public class GrabService {
                                             /**
                                              * Busqueda por Agente
                                              */
-                                            return 4;
+	                                        if (dr.getFechaDesde()!=null && !dr.getFechaDesde().equals("")) {
+	                                            /**
+	                                             * Busqueda de Agente por Fecha
+	                                             */
+	                                            if (dr.getFechaHasta()!=null && !dr.getFechaHasta().equals("")) {
+	                                                    return 10;
+	                                            } else {
+	                                                    dr.setFechaHasta(mylib.getDateNow("YYYYMMDDHHmmss"));
+	                                                    return 10;
+	                                            }
+		                                    } else {
+		                                            /**
+		                                             * Busqueda por Agente sin fecha
+		                                             */
+		                                            return 4;
+		                                    }
                                     } else {
                                             if (dr.getAni()!=null && !dr.getAni().equals("")) {
                                                     /**
@@ -612,7 +628,19 @@ public class GrabService {
         			if (dr.getAgente()!=null && !dr.getAgente().equals("")) {
         				return 2;
         			} else {
-        				return 98;
+        				if (dr.getAni()!=null && !dr.getAni().equals("")) {
+        					return 3;
+        				} else {
+        					if (dr.getDnis()!=null && !dr.getDnis().equals("")) {
+        						return 4;
+        					} else {
+        						if (dr.getUniqueid()!=null && !dr.getUniqueid().equals("")) {
+        							return 5;
+        						} else {
+        							return 98;
+        						}
+        					}
+        				}
         			}
         		}
         } catch (Exception e) {
@@ -674,13 +702,19 @@ public class GrabService {
         		 */
         		q = buildDnisIDQuery();
         		break;
-            case 9:
-            	/*
-            	 * Busquedas masivas por fechas
-            	 */
-                q = buildSkillFechasQuery();
-                break;
-            default:
+        case 9:
+	        	/*
+	        	 * Busquedas masivas por fechas
+	        	 */
+            q = buildSkillFechasQuery();
+            break;
+        case 10:
+	        	/*
+	        	 * Busquedas Agente con Skill y Fechas
+	        	 */
+	        q = buildAgenteFechasQuery();
+	        break;
+        default:
             break;
         }
         
@@ -711,6 +745,24 @@ public class GrabService {
 	        		 * Agente sin Skill y sin Fechas
 	        		 */
 	        		q = buildAgenteSinSkill();
+	        		break;
+	        	case 3:
+	        		/**
+	        		 * Ani sin Skill y sin Fechas
+	        		 */
+	        		q = buildAniSinSkill();
+	        		break;
+	        	case 4:
+	        		/**
+	        		 * Dnis sin Skill y sin Fechas
+	        		 */
+	        		q = buildDnisSinSkill();
+	        		break;
+	        	case 5:
+	        		/**
+	        		 * Dnis sin Skill y sin Fechas
+	        		 */
+	        		q = buildUniqueIDSinSkill();
 	        		break;
             default:
             		break;
@@ -803,6 +855,14 @@ public class GrabService {
         return filters;
     }
     
+    private String buildUniqueIDSinSkill() {
+    		String uniqueid = dr.getUniqueid();
+		
+	    String filter2 = String.format("uniqueid:%s", uniqueid);
+	
+	    return filter2;
+    }
+
     private String buildConnidSinSkill() {
 	    	String connid = dr.getConnid();
     	
@@ -817,6 +877,40 @@ public class GrabService {
 	    String filter2 = String.format("agente:%s", agente);
 	
 	    return filter2;
+    }
+
+    private String buildAniSinSkill() {
+    		String ani = dr.getAni();
+	
+    		String filter2 = String.format("ani:%s", ani);
+
+    		return filter2;
+    }
+
+    private String buildDnisSinSkill() {
+    		String dnis = dr.getDnis();
+
+		String filter2 = String.format("dnis:%s", dnis);
+
+		return filter2;
+    }
+
+    private String buildAgenteFechasQuery() {
+	    	List<String> skills = dr.getLstSkill();
+	    	String fechaDesde = dr.getFechaDesde();
+	    	String fechaHasta = dr.getFechaHasta();
+	    	String agente = dr.getAgente();
+	    	
+	    	List<String> newList = new ArrayList<>();
+	    	for (String sk : skills) {
+	    		newList.add(String.format("id:[%s+%s+ TO %s+%s+]", 
+	    				sk, fechaDesde, 
+	    				sk, fechaHasta));
+	    	}
+	    	String filter1 = StringUtils.join(newList, " OR ");
+	    	String filter2 = String.format("agente:%s", agente);
+	    	String filters = String.format("(%s) AND (%s)", filter1, filter2);
+	    	return filters;
     }
 
     private String buildDnisFechasQuery() {

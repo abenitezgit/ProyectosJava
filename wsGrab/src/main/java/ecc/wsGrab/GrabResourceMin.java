@@ -85,6 +85,9 @@ public class GrabResourceMin {
                 case 9:
                     mylib.console("Filtro de Consulta: Busqueda masiva por fechas");
                     break;
+                case 10:
+                    mylib.console("Filtro de Consulta: Agente por fechas");
+                    break;
                 case 97:
                     mylib.console(1, "Error Filtro de Consulta: Debe ingresar al menos un rango de fechas si es que no ha seleccionado ningun otro valor");
                     dResponse.setStatus(97);
