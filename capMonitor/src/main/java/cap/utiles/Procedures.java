@@ -10,11 +10,4 @@ public class Procedures {
 		gDatos = m;
 	}
 	
-	public void getParamFileConfig() throws Exception {
-		try {
-			
-		} catch (Exception e) {
-			throw new Exception("Error getParamFileConfig: "+e.getMessage());
-		}
-	}
 }

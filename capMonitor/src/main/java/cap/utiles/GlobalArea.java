@@ -1,8 +1,12 @@
 package cap.utiles;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.log4j.Logger;
 
 import cap.model.Info;
+import cap.model.Module;
 
 public class GlobalArea {
 	private String pathConfig;
@@ -11,21 +15,30 @@ public class GlobalArea {
 	private Logger logger;
 	private String serviceName;
 	private Info info = new Info();
+	private Map<String, Module> mapModule = new HashMap<>();
 	
 	//Constructor
 	public GlobalArea(String vServiceName) {
 		fileConfig = "capMonitor.properties";
-		logConfig = "log4j,properties";
+		logConfig = "log4j.properties";
 		setServiceName(vServiceName);
 		logger = Logger.getLogger(vServiceName);
 	}
 
 	//Getter and Setter
-
+	
 	public String getFileConfig() {
 		return fileConfig;
 	}
 	
+	public Map<String, Module> getMapModule() {
+		return mapModule;
+	}
+
+	public void setMapModule(Map<String, Module> mapModule) {
+		this.mapModule = mapModule;
+	}
+
 	public String getLogConfig() {
 		return logConfig;
 	}
@@ -71,5 +84,6 @@ public class GlobalArea {
 	}
 
 	//Metodos públicos
+	
 	
 }

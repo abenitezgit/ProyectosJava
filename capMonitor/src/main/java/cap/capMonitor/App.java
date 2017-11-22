@@ -7,6 +7,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.PropertyConfigurator;
 
 import cap.model.Info;
+import cap.service.ThMain;
 import cap.utiles.GlobalArea;
 import utiles.common.rutinas.Rutinas;
 
@@ -75,6 +76,10 @@ public class App {
     		//Abriendo archivo de Config
     		String pathFileConfig = path+"/"+gDatos.getFileConfig();
     		String pathLogConfig = path+"/"+gDatos.getLogConfig();
+    		
+    		mylib.console("pathFileConfig: "+pathFileConfig);
+    		mylib.console("pathLogConfig: "+pathLogConfig);
+    		
 		if (mylib.fileExist(pathFileConfig)) {
 			//Abriendo archivo de configuracion
 			Properties conf = new Properties();
@@ -108,6 +113,12 @@ public class App {
 			info.setTxpIns(Integer.valueOf(conf.getProperty("txpIns")));
 			info.setTxpMain(Integer.valueOf(conf.getProperty("txpMain")));
 			info.setTxpSync(Integer.valueOf(conf.getProperty("txpSync")));
+			info.setMonID(conf.getProperty("monID"));
+			info.setSmonID(conf.getProperty("SmonID"));
+			info.setMonRol(conf.getProperty("monRol"));
+			info.setDbTimeOut(Integer.valueOf(conf.getProperty("dbTimeOut")));
+			
+			gDatos.setInfo(info);
 			
 			//Habilitando Logger
 			errCode=97;
