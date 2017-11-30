@@ -19,6 +19,7 @@ public class Info {
 	String dbUser;
 	String dbPass;
 	int dbTimeOut;
+	String dbType;
 	String apiIP;
 	String apiPort;
 	String apiURLBase;
@@ -45,6 +46,12 @@ public class Info {
 	
 	public String getMonHostName() {
 		return monHostName;
+	}
+	public String getDbType() {
+		return dbType;
+	}
+	public void setDbType(String dbType) {
+		this.dbType = dbType;
 	}
 	public int getDbTimeOut() {
 		return dbTimeOut;

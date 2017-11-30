@@ -13,7 +13,7 @@ import org.apache.log4j.PropertyConfigurator;
 
 import cap.model.Module;
 import cap.utiles.GlobalArea;
-import dataAccess.MySQLDB;
+import cap.utiles.MetaData;
 import utiles.common.rutinas.Rutinas;
 
 public class ThMain extends Thread{
@@ -98,51 +98,76 @@ public class ThMain extends Thread{
 	        		 * Valida el tipo de ROL del capMonitor para determinar
 	        		 * los servicios internos que debe levantar
 	        		 */
+	        		logger.info("Validando Rol del Servicio en Metadata...");
 	        		String monRole = validaMonRole();
 	        		
 	        		if (!mylib.isNullOrEmpty(monRole)) {
 	        			logger.info("Rol del Servicio: "+monRole);
+	        			gDatos.getInfo().setMonRol(monRole);
+	        		}
+	        		
+	        		if (!monRole.equals("NOROLE") && !mylib.isNullOrEmpty(monRole)) {
+	        			
+		        		/**
+		        		 * Levanta Listener
+		        		 */
+		        		threadName = "thListener";
+	                try {
+	                    if (!mapThread.get(threadName)) {
+	                    	logger.info("Iniciando Thread "+threadName);
+//	                        thListener = new ThListener(gDatos);
+//		                        thListener.setName(threadName);
+//		                        thListener.start();
+	                    } 
+	                } catch (Exception e) {
+	                    mapThread.replace(threadName, false);
+	                    logger.error("Error al Iniciar Thread: "+threadName+" ("+e.getMessage()+")");
+	                    if (thListener.isAlive()) {
+	                    	thListener.destroy();
+	                    }
+	                }
+	        			
+	        			switch(monRole) {
+		        			case "PRIMARY":
+		        				
+			    	        		/**
+			    	        		 * Levanta srvProcess
+			    	        		 */
+		                    threadName = "thProcess";
+		                    try {
+		                        if (!mapThread.get(threadName)) {
+		                        	logger.info("Iniciando Thread "+threadName);
+//		                        	thProcess = new ThProcess(gDatos);
+//		    	                    	thProcess.setName(threadName);
+//		    	                    	thProcess.start();
+		                        } 
+		                    } catch (Exception e) {
+		                        mapThread.replace(threadName, false);
+		                        logger.error("Error al Iniciar Thread: "+threadName+" ("+e.getMessage()+")");
+		                        if (thProcess.isAlive()) {
+		                        	thProcess.destroy();
+		                        }
+		                    }
+
+		        				
+		        				break;
+		        			case "SECONDARY":
+		        				break;
+		        			default:
+		        				break;
+	        			}
+	        			
+	        		} else {
+	        			logger.warn("Servicio no puede ser iniciado como cap-Monitor");
+	        		}
+	        		
+	        		if (monRole.equals("PRIMARY")) {
+	        			
 	        		}
 	        		
 	        		
-	        		/**
-	        		 * Levanta Listener
-	        		 */
-	        		threadName = "thListener";
-                try {
-                    if (!mapThread.get(threadName)) {
-                    	logger.info("Iniciando Thread "+threadName);
-//                        thListener = new ThListener(gDatos);
-//	                        thListener.setName(threadName);
-//	                        thListener.start();
-                    } 
-                } catch (Exception e) {
-                    mapThread.replace(threadName, false);
-                    logger.error("Error al Iniciar Thread: "+threadName+" ("+e.getMessage()+")");
-                    if (thListener.isAlive()) {
-                    	thListener.destroy();
-                    }
-                }
 	        		
 	
-	        		/**
-	        		 * Levanta srvProcess
-	        		 */
-                threadName = "thProcess";
-                try {
-                    if (!mapThread.get(threadName)) {
-                    	logger.info("Iniciando Thread "+threadName);
-//                    	thProcess = new ThProcess(gDatos);
-//	                    	thProcess.setName(threadName);
-//	                    	thProcess.start();
-                    } 
-                } catch (Exception e) {
-                    mapThread.replace(threadName, false);
-                    logger.error("Error al Iniciar Thread: "+threadName+" ("+e.getMessage()+")");
-                    if (thProcess.isAlive()) {
-                    	thProcess.destroy();
-                    }
-                }
 	
 	        		/**
 	        		 * Levanta ThDBAccess
@@ -181,14 +206,16 @@ public class ThMain extends Thread{
         
         private String validaMonRole() {
         		try {
-        			String role= "";
+        			/**
+        			 * Valida en metadata si rol asignado corresponde al id del servicio
+        			 * tabla: tb_monService
+        			 * Retorna: PRIMARY, SECONDARY, NOROLE
+        			 */
         			
-        			MySQLDB dbConn = new MySQLDB(gDatos.getInfo().getDbHostName(), 
-        										gDatos.getInfo().getDbName(),
-        										String.valueOf(gDatos.getInfo().getDbPort()),
-        										gDatos.getInfo().getDbUser(),
-        										gDatos.getInfo().getDbPass(),
-        										gDatos.getInfo().getDbTimeOut());
+        			
+        			String role= "";
+        			MetaData dbConn = new MetaData(gDatos);
+        			
         			dbConn.open();
         			
         			if (dbConn.isConnected()) {
