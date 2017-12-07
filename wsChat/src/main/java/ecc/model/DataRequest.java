@@ -16,11 +16,25 @@ public class DataRequest {
 	String hour;
 	String minute;
 	String second;
+	String room;
+	String serviceID;
 	
 	//Getter and Setter
 	
 	public String getChatID() {
 		return chatID;
+	}
+	public String getRoom() {
+		return room;
+	}
+	public void setRoom(String room) {
+		this.room = room;
+	}
+	public String getServiceID() {
+		return serviceID;
+	}
+	public void setServiceID(String serviceID) {
+		this.serviceID = serviceID;
 	}
 	public String getSecond() {
 		return second;

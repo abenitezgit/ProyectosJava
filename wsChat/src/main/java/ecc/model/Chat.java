@@ -10,11 +10,25 @@ public class Chat {
 	String fileName;
 	String fileExt;
 	String fileBin;
+	String room;
+	String serviceID;
 	
 	//Getter and Setter
 	
 	public String getChatID() {
 		return chatID;
+	}
+	public String getRoom() {
+		return room;
+	}
+	public void setRoom(String room) {
+		this.room = room;
+	}
+	public String getServiceID() {
+		return serviceID;
+	}
+	public void setServiceID(String serviceID) {
+		this.serviceID = serviceID;
 	}
 	public void setChatID(String chatID) {
 		this.chatID = chatID;

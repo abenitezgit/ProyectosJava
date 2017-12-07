@@ -33,7 +33,7 @@ public class ChatResource {
 	}
 	
 	@POST
-	@Path("select")
+	@Path("selectInt")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response chatSelect(String dataInput) {
 		ResponseBuilder response;
@@ -41,7 +41,7 @@ public class ChatResource {
 			//Instancia Clase Servicio
 			ChatService srvChat = new ChatService();
 			
-			mylib.console("Iniciando Select chatData via POST");
+			mylib.console("Iniciando Select chatint via POST");
 			mylib.console("DataInput: "+dataInput);
 			
 			//Respuesta Default
@@ -53,7 +53,7 @@ public class ChatResource {
 			
 			List<Chat> lstChat = new ArrayList<>();
 			
-			lstChat = srvChat.getChatData(1);
+			lstChat = srvChat.getChatData("collchatint","chatint",1);
 			
 			String strResponse = mylib.serializeObjectToJSon(lstChat, false);
 			
@@ -69,7 +69,7 @@ public class ChatResource {
 	}
 	
 	@POST
-	@Path("put")
+	@Path("putInt")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response chatMain(String dataInput) {
 		ResponseBuilder response;
@@ -77,7 +77,7 @@ public class ChatResource {
 			//Instancia Clase Servicio
 			ChatService srvChat = new ChatService();
 			
-			mylib.console("Iniciando put chatData via POST");
+			mylib.console("Iniciando put chatint via POST");
 			mylib.console("DataInput: "+dataInput);
 			
 			//Respuesta Default
@@ -88,7 +88,7 @@ public class ChatResource {
 			srvChat.initComponents(dataInput);
 
 			mylib.console("Insertando en hbase...");
-    			int result = srvChat.executeUpdate();
+    			int result = srvChat.executeUpdate("chatint");
     			
     			if (result==0) {
         			pResponse.setStatus(0);
@@ -113,4 +113,85 @@ public class ChatResource {
 	}
 
 
+	@POST
+	@Path("putConv")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response chatConv(String dataInput) {
+		ResponseBuilder response;
+		try {
+			//Instancia Clase Servicio
+			ChatService srvChat = new ChatService();
+			
+			mylib.console("Iniciando put chatconv via POST");
+			mylib.console("DataInput: "+dataInput);
+			
+			//Respuesta Default
+			pResponse.setStatus(99);
+			pResponse.setMessage("Error general");
+			
+			mylib.console("Inicializando componentes...");
+			srvChat.initComponents(dataInput);
+
+			mylib.console("Insertando en hbase...");
+    			int result = srvChat.executeUpdate("chatconv");
+    			
+    			if (result==0) {
+        			pResponse.setStatus(0);
+        			pResponse.setMessage("Put Exitoso");
+    				mylib.console("Inserción exitosa!");
+    			} else {
+        			pResponse.setStatus(98);
+        			pResponse.setMessage("Error insertando en hbase");
+    				mylib.console(1,"Inserción exitosa!");
+    			}
+        			
+            String strResponse = mylib.serializeObjectToJSon(pResponse, false);
+            mylib.console("Enviando respuesta...");
+			response = Response.ok().entity(strResponse);
+			
+			return response.build();
+		} catch (Exception e) {
+			mylib.console(1,"Error proceso general.."+e.getMessage());
+			response = Response.status(500).entity("Error proceso general: "+e.getMessage());
+			return response.build();
+		}
+	}
+
+	@POST
+	@Path("selectConv")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response chatSelectConv(String dataInput) {
+		ResponseBuilder response;
+		try {
+			//Instancia Clase Servicio
+			ChatService srvChat = new ChatService();
+			
+			mylib.console("Iniciando Select chatconv via POST");
+			mylib.console("DataInput: "+dataInput);
+			
+			//Respuesta Default
+			pResponse.setStatus(99);
+			pResponse.setMessage("Error general");
+			
+			mylib.console("Inicializando componentes...");
+			srvChat.initSelectComponents(dataInput);
+			
+			List<Chat> lstChat = new ArrayList<>();
+			
+			lstChat = srvChat.getChatData("collchatconv","chatconv",1);
+			
+			String strResponse = mylib.serializeObjectToJSon(lstChat, false);
+			
+			mylib.console("Enviando respuesta...");
+			response = Response.ok().entity(strResponse);
+			
+			return response.build();
+		} catch (Exception e) {
+			mylib.console(1,"Error proceso general.."+e.getMessage());
+			response = Response.status(500).entity("Error proceso general: "+e.getMessage());
+			return response.build();
+		}
+	}
+
+	
 }

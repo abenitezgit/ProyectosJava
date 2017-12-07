@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.TableName;
@@ -137,19 +136,25 @@ public class ChatService {
         	case "14":
         		chat.setFileBin(valor);
         		break;
+        	case "15":
+        		chat.setRoom(valor);
+        		break;
+        	case "16":
+        		chat.setServiceID(valor);
+        		break;
         default:
             break;
         }
     }
     
-    public List<Chat> getChatData(int tipoConsulta) throws Exception {
+    public List<Chat> getChatData(String collection, String tbName, int tipoConsulta) throws Exception {
     	SolRDB solrConn = new SolRDB();
     	try {
     	    
     	    List<Chat> lstChat = new ArrayList<>();
     	    
     	    solrConn.setConfig(gDatos.getFileConfig(), gDatos.getHbProperties());
-    	    solrConn.setSolrCollection("collchat");
+    	    solrConn.setSolrCollection(collection);
     	    solrConn.open();
     	    
     	    if (solrConn.isConnected()) {
@@ -172,11 +177,11 @@ public class ChatService {
     	    	if (keys.size()>0) {
 			//Consulta Datos a HBase
 			HBaseDB hbConn = new HBaseDB();
-			hbConn.setConfig(gDatos.getFileConfig(), gDatos.getHbProperties(),"chatdata");
+			hbConn.setConfig(gDatos.getFileConfig(), gDatos.getHbProperties(),tbName);
 			
 			Connection conn = ConnectionFactory.createConnection(hbConn.getHcfg());
 			
-			Table table = conn.getTable(TableName.valueOf("chatdata"));
+			Table table = conn.getTable(TableName.valueOf(tbName));
 			
 			mylib.console("Conectado a HBase");
 			
@@ -210,13 +215,13 @@ public class ChatService {
 }
 
     
-    public Map<String, Map<String,String>> getChat() throws Exception {
+    public Map<String, Map<String,String>> getChat(String tbName) throws Exception {
     		try {
     			Map<String, Map<String,String>> mapRows = new TreeMap<>();
     			
     			HBaseDB conn = new HBaseDB();
     			
-    			conn.setConfig("/usr/local/hadoop/conf/hadoop.properties", "ecchdp1","chatdata");
+    			conn.setConfig("/usr/local/hadoop/conf/hadoop.properties", "ecchdp1",tbName);
 
     			String key = sr.getChatID();
     			mylib.console("Buscando chatID: "+key);
@@ -256,11 +261,11 @@ public class ChatService {
     		}
     }
     
-    public int executeUpdate() throws Exception {
+    public int executeUpdate(String tbName) throws Exception {
     		try {
     			HBaseDB conn = new HBaseDB();
     			
-    			conn.setConfig("/usr/local/hadoop/conf/hadoop.properties", "ecchdp1","chatdata");
+    			conn.setConfig("/usr/local/hadoop/conf/hadoop.properties", "ecchdp1",tbName);
 
     			Map<String,List<colModel>> row = new HashMap<>();
     			
@@ -365,7 +370,19 @@ public class ChatService {
     			cm.setColumn("14");
     			cm.setValue(dr.getFileBin());
     			col.add(cm);
-    			
+
+    			cm = new colModel();
+    			cm.setFamily("cf1");
+    			cm.setColumn("15");
+    			cm.setValue(dr.getRoom());
+    			col.add(cm);
+
+    			cm = new colModel();
+    			cm.setFamily("cf1");
+    			cm.setColumn("16");
+    			cm.setValue(dr.getServiceID());
+    			col.add(cm);
+
     			String year = String.format("%04d", Integer.valueOf(dr.getYear()));
     			String month = String.format("%02d", Integer.valueOf(dr.getMonth()));
     			String day = String.format("%02d", Integer.valueOf(dr.getDay()));
