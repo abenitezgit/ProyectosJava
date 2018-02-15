@@ -1,6 +1,6 @@
 package cap.model;
 
-public class Info {
+public class InfoConfig {
 	//Parametros del servicio Monitor
 	String monRol;
 	String monID;
@@ -27,7 +27,7 @@ public class Info {
 	//Parametros de control de tiempos de ejecucion
 	int txpMain;
 	int txpSync;
-	int txpIns;
+	int txpProcess;
 	int txpDB;
 	
 	//Parametros de recuperacion de agendas
@@ -40,7 +40,6 @@ public class Info {
 	//Parametros de archivos de properties y log
 	String pathProperties;
 	String fileProperties;
-	String logProperties;
 	
 	//Getter and Setter
 	
@@ -182,11 +181,11 @@ public class Info {
 	public void setTxpSync(int txpSync) {
 		this.txpSync = txpSync;
 	}
-	public int getTxpIns() {
-		return txpIns;
+	public int getTxpProcess() {
+		return txpProcess;
 	}
-	public void setTxpIns(int txpIns) {
-		this.txpIns = txpIns;
+	public void setTxpProcess(int txpProcess) {
+		this.txpProcess = txpProcess;
 	}
 	public int getTxpDB() {
 		return txpDB;
@@ -223,12 +222,6 @@ public class Info {
 	}
 	public void setFileProperties(String fileProperties) {
 		this.fileProperties = fileProperties;
-	}
-	public String getLogProperties() {
-		return logProperties;
-	}
-	public void setLogProperties(String logProperties) {
-		this.logProperties = logProperties;
 	}
 	
 }

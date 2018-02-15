@@ -2,13 +2,17 @@ package cap.capMonitor;
 
 import java.io.FileInputStream;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.log4j.Logger;
 
-import cap.model.Info;
+import cap.model.InfoConfig;
 import cap.service.ThMain;
-import cap.utiles.GlobalArea;
+import cap.service.ThMain;
+import cap.utiles.GlobalParams;
 import utiles.common.rutinas.Rutinas;
 
 /**
@@ -16,69 +20,64 @@ import utiles.common.rutinas.Rutinas;
  *
  */
 public class App {
-	final static String serviceName = "capMonitor";
-	static GlobalArea gDatos = new GlobalArea(serviceName);
+	static Logger logger = Logger.getLogger("App");
+	static GlobalParams gParams = new GlobalParams();
 	static Rutinas mylib = new Rutinas();
+	static ScheduledExecutorService executorThMain = Executors.newSingleThreadScheduledExecutor();
 	
     public static void main( String[] args ) {
         try {
-        	mylib.console("Iniciando Servcio "+serviceName);
-        	mylib.console("Recuperando Parámetros Globales...");
-        	
-        	//Recupera archivo de configuracion ingresado por parametros
-        	///usr/local/srvProject/conf/srvService/srvService.properties
-        	gDatos.setPathConfig(System.getProperty("path"));
-        	
-        	if (!mylib.isNullOrEmpty(gDatos.getPathConfig())) {
-        		//Recupera valores de archivo de configuracion
-        		switch(initComponents(gDatos.getPathConfig())) {
-        		case 0:
-        			mylib.console("Parametros leidos correctamente!!");
-        			
-				//Inician Thread ThMain
-				Thread thMain = new ThMain(gDatos);
-				thMain.setName("thMain");
-				thMain.start();
-				
-				mylib.console("Se ha iniciado correctamente el Thread ThMain");
-        			
-        			break;
-        		case 97:
-            		mylib.console(1,"No se pudo leer log4j properties");
-            		mylib.console(1,"Abortanto "+serviceName);
-        			break;
-        		case 98:
-            		mylib.console(1,"No se pudo leer parametros de configuración");
-            		mylib.console(1,"Abortanto "+serviceName);
-        			break;
-        		case 99:
-            		mylib.console(1,"No se puede abrir archivo de config");
-            		mylib.console(1,"Abortanto "+serviceName);
-        			break;
-        		}
-        		
-        	} else {
-        		mylib.console(1,"Debe ingresar ubicacion de archivo properties");
-        		mylib.console(1,"Abortanto "+serviceName);
-        	}
-        	
+	        	logger.info("Iniciando Servcio capMonitor");
+	        	logger.info("Recuperando Parámetros Globales...");
+	        	
+	        	//Recupera archivo de configuracion ingresado por parametros
+	        	gParams.setPathConfig(System.getProperty("path"));
+	        	gParams.setFileConfig(System.getProperty("fileConfig"));
+	        	
+	        	logger.info("PathConfig:  "+gParams.getPathConfig());
+	        	logger.info("FileConfig: "+gParams.getFileConfig());
+	        	
+	        	if (!mylib.isNullOrEmpty(gParams.getPathConfig()) && !mylib.isNullOrEmpty(gParams.getFileConfig())) {
+	        		//Recupera valores de archivo de configuracion
+	        		switch(initComponents()) {
+	        		case 0:
+	        			logger.info("Parametros leidos correctamente!!");
+	        			logger.info("Iniciando Modulo Controlador Principal");
+	        			
+        				Runnable thMain = new ThMain(gParams);
+        				executorThMain.scheduleWithFixedDelay(thMain, 1000, gParams.getInfo().getTxpMain(), TimeUnit.MILLISECONDS);
+					
+					logger.info("Se ha iniciado correctamente el Thread ThMain");
+	        			
+	        			break;
+	        		case 98:
+	            		logger.error("No se pudo leer parametros de configuración");
+	            		logger.error("Abortanto servicio!");
+	        			break;
+	        		case 99:
+	        			logger.error("No se puede abrir archivo de config");
+	        			logger.error("Abortanto servicio!");
+	        			break;
+	        		}
+	        		
+	        	} else {
+	        		logger.error("Debe ingresar ubicacion de archivo properties");
+	        		logger.error("Abortanto servicio!");
+	        	}
+	        	logger.info("Finalizando exitosamente el Startup");
         } catch (Exception e) {
-	        	mylib.console(1,"Error Iniciando Servicio "+serviceName+": "+e.getMessage());
-	        	mylib.console(1,"Abortanto "+serviceName);
+        		logger.error("Error Iniciando Servicio capMonitor: "+e.getMessage());
+        		logger.error("Abortanto servicio!");
         }
     }
     
-    private static int initComponents(String path) {
+    private static int initComponents() {
 	    	int errCode=99;
 	    	try {
-	    		Info  info = new Info();
+	    		InfoConfig  info = new InfoConfig();
 	    		
 	    		//Abriendo archivo de Config
-	    		String pathFileConfig = path+"/"+gDatos.getFileConfig();
-	    		String pathLogConfig = path+"/"+gDatos.getLogConfig();
-	    		
-	    		mylib.console("pathFileConfig: "+pathFileConfig);
-	    		mylib.console("pathLogConfig: "+pathLogConfig);
+	    		String pathFileConfig = gParams.getPathConfig()+"/"+gParams.getFileConfig();
 	    		
 			if (mylib.fileExist(pathFileConfig)) {
 				//Abriendo archivo de configuracion
@@ -100,17 +99,16 @@ public class App {
 				info.setDbPass(conf.getProperty("dbPass"));
 				info.setDbPort(Integer.valueOf(conf.getProperty("dbPort")));
 				info.setDbUser(conf.getProperty("dbUser"));
-				info.setFileProperties(gDatos.getFileConfig());
-				info.setLogProperties(gDatos.getLogConfig());
+				info.setFileProperties(gParams.getFileConfig());
 				info.setMonHostName(conf.getProperty("monHostName"));
 				info.setMonIP(conf.getProperty("monIP"));
 				info.setMonPort(Integer.valueOf(conf.getProperty("monPort")));
-				info.setPathProperties(gDatos.getPathConfig());
-				info.setSmonHostName(conf.getProperty("SmonHostName"));
-				info.setSmonIP(conf.getProperty("SmonIP"));
-				info.setSmonPort(Integer.valueOf(conf.getProperty("SmonPort")));
+				info.setPathProperties(gParams.getPathConfig());
+				info.setSmonHostName(conf.getProperty("smonHostName"));
+				info.setSmonIP(conf.getProperty("smonIP"));
+				info.setSmonPort(Integer.valueOf(conf.getProperty("smonPort")));
 				info.setTxpDB(Integer.valueOf(conf.getProperty("txpDB")));
-				info.setTxpIns(Integer.valueOf(conf.getProperty("txpIns")));
+				info.setTxpProcess(Integer.valueOf(conf.getProperty("txpProcess")));
 				info.setTxpMain(Integer.valueOf(conf.getProperty("txpMain")));
 				info.setTxpSync(Integer.valueOf(conf.getProperty("txpSync")));
 				info.setMonID(conf.getProperty("monID"));
@@ -118,30 +116,15 @@ public class App {
 				info.setDbTimeOut(Integer.valueOf(conf.getProperty("dbTimeOut")));
 				info.setDbType(conf.getProperty("dbType"));
 				
-				gDatos.setInfo(info);
+				gParams.setInfo(info);
+				gParams.setMainAvtive(true);
 				
-				//Habilitando Logger
-				errCode=97;
-				if (mylib.fileExist(pathLogConfig)) {
-					PropertyConfigurator.configure(pathLogConfig);
-					gDatos.getLogger().setLevel(Level.DEBUG);
-	//					logger.info("Logger SET Level: "+mylib.getLoggerLevel(logger));
-	//					logger.trace("Logger Trace Enable");
-	//					logger.debug("Logger DEBUG Enable");
-	//					logger.info("Logger INFO Enable");
-					
-					
-					//Habilita ejecución de Threads
-	//				gDatos.setEnableThMain(true);
-	//				gDatos.setEnableThExec(true);
-					
-					errCode=0;
-				}
+				errCode=0;
 			} 
 	    		
 	    		return errCode;
 	    	} catch (Exception e) {
-	    		mylib.console(1,"Error en initComponents: "+e.getMessage());
+	    		logger.error("initComponents: "+e.getMessage());
 	    		return errCode;
 	    	}
     }

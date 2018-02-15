@@ -6,6 +6,11 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry excluding="**" kind="src" output="target/classes" path="src/main/resources">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="src" output="target/test-classes" path="src/test/java">
 		<attributes>
 			<attribute name="optional" value="true"/>
@@ -18,6 +23,6 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/Users/admin/Documents/Developer/javaLibraries/common_libs/common_rutinas_v2-5.jar"/>
+	<classpathentry kind="lib" path="/Users/admin/Documents/Developer/javaLibraries/common_libs/common_rutinas_v3.1.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
