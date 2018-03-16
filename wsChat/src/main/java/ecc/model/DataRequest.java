@@ -18,11 +18,19 @@ public class DataRequest {
 	String second;
 	String room;
 	String serviceID;
+	String chatType;
 	
 	//Getter and Setter
 	
+	
 	public String getChatID() {
 		return chatID;
+	}
+	public String getChatType() {
+		return chatType;
+	}
+	public void setChatType(String chatType) {
+		this.chatType = chatType;
 	}
 	public String getRoom() {
 		return room;

@@ -2,20 +2,24 @@ package ecc.model;
 
 
 public class DataResponse {
-	int status;
+	int codeStatus;
+	String status;
 	String message;
-	int numFound;
-	int limit;
 	
 	/*
 	 * Getter and setter
 	 */
 	
-	
-	public int getStatus() {
+	public int getCodeStatus() {
+		return codeStatus;
+	}
+	public void setCodeStatus(int codeStatus) {
+		this.codeStatus = codeStatus;
+	}
+	public String getStatus() {
 		return status;
 	}
-	public void setStatus(int status) {
+	public void setStatus(String status) {
 		this.status = status;
 	}
 	public String getMessage() {
@@ -24,16 +28,5 @@ public class DataResponse {
 	public void setMessage(String message) {
 		this.message = message;
 	}
-	public int getNumFound() {
-		return numFound;
-	}
-	public void setNumFound(int numFound) {
-		this.numFound = numFound;
-	}
-	public int getLimit() {
-		return limit;
-	}
-	public void setLimit(int limit) {
-		this.limit = limit;
-	}
+	
 }

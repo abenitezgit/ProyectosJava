@@ -1,7 +1,6 @@
 package ecc.utiles;
 
 import ecc.model.DataRequest;
-import utiles.common.rutinas.Rutinas;
 
 public class GlobalArea {
 	String fileConfig;
@@ -9,7 +8,6 @@ public class GlobalArea {
 	String hbProperties;
 	String solrCollection;
 	DataRequest dr = new DataRequest();
-	Rutinas mylib = new Rutinas();
 	boolean flagInitComponents;
 	
 	//Getter and Setter

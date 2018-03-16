@@ -17,22 +17,30 @@ import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.log4j.Logger;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
-import dataAccess.HBaseDB;
-import dataAccess.SolRDB;
+import com.api.HBaseAPI;
+import com.api.SolrAPI;
+import com.api.colModel;
+import com.rutinas.Rutinas;
+
 import ecc.model.Chat;
 import ecc.model.DataRequest;
+import ecc.model.Info;
 import ecc.model.SelectRequest;
-import ecc.utiles.GlobalArea;
-import model.colModel;
-import utiles.common.rutinas.Rutinas;
+import ecc.utiles.GlobalParams;
 
 public class ChatService {
-	GlobalArea gDatos = new GlobalArea();
+	Logger logger = Logger.getLogger("wsChat");
 	Rutinas mylib = new Rutinas();
+	GlobalParams gParams;
 	DataRequest dr = new DataRequest();
 	SelectRequest sr = new SelectRequest();
+	
+	public ChatService(GlobalParams m) {
+		gParams = m;
+	}
 
     public void fillDataRequest(String dataInput) throws Exception {
         dr = (DataRequest) mylib.serializeJSonStringToObject(dataInput, DataRequest.class);
@@ -73,20 +81,14 @@ public class ChatService {
             throw new Exception(e.getMessage());
         }
     }
-    
-    public ModifiableSolrParams buildSolrFilters(int tipoConsulta) throws Exception {
+
+    public ModifiableSolrParams buildSolrFiltersText(int chatType) throws Exception {
         ModifiableSolrParams parameters = new ModifiableSolrParams();
         String q="*:*";
         String fq="*:*";
         
-        switch (tipoConsulta) {
-        	case 1:
-        		/**
-        		 * Consulta todas las interaccion de un Chat
-        		 */
-        		fq = buildChatIDQuery();
-        		break;
-        }
+    		String filter1 = buildChatTextQuery(chatType);
+    		String filter2 = 
         
         parameters.set("q", q);
         parameters.set("fq", fq);
@@ -94,23 +96,79 @@ public class ChatService {
         parameters.set("rows", 500);
         parameters.set("fl", "id");
         
-        mylib.console("Filtro consulta q: "+q);
-        mylib.console("Filtro consulta fq: "+fq);
+        logger.info("Filtro consulta q: "+q);
+        logger.info("Filtro consulta fq: "+fq);
         
         return parameters;
     }
         
-    private String buildChatIDQuery() {
-
-        String filter1 = String.format("chatID:%s", sr.getChatID());
+    public ModifiableSolrParams buildSolrFilters(int chatType) throws Exception {
+        ModifiableSolrParams parameters = new ModifiableSolrParams();
+        String q="*:*";
+        String fq="*:*";
         
-        return filter1;
+    		fq = buildChatIDQuery(chatType);
+        
+        parameters.set("q", q);
+        parameters.set("fq", fq);
+        parameters.set("start", 0);
+        parameters.set("rows", 500);
+        parameters.set("fl", "id");
+        
+        logger.info("Filtro consulta q: "+q);
+        logger.info("Filtro consulta fq: "+fq);
+        
+        return parameters;
+    }
+
+    private String buildChatTextQuery(int chatType) {
+
+        String filter1 = String.format("mensaje:%s", gParams.getDr().getChatID());
+        String filter2 = "";
+        switch(chatType) {
+	        case 1:
+	        		filter2 = "chatType:1";
+	        		break;
+	        case 2:
+	        		filter2 = "chatType:2";
+	        		break;
+	        case 3:
+	        		filter2 = "chatType:3";
+	        		break;
+	        case 4:
+	        		filter2 = "chatType:4";
+	        		break;
+        }
+        
+        return filter1 + " AND " + filter2;
+    }
+
+    private String buildChatIDQuery(int chatType) {
+
+        String filter1 = String.format("chatID:%s", gParams.getDr().getChatID());
+        String filter2 = "";
+        switch(chatType) {
+	        case 1:
+	        		filter2 = "chatType:1";
+	        		break;
+	        case 2:
+	        		filter2 = "chatType:2";
+	        		break;
+	        case 3:
+	        		filter2 = "chatType:3";
+	        		break;
+	        case 4:
+	        		filter2 = "chatType:4";
+	        		break;
+        }
+        
+        return filter1 + " AND " + filter2;
     }
 
     private void setValue(String cq, String valor, Chat chat) {
         switch (cq) {
         	case "01":
-        		chat.setFecha(valor);
+        		chat.setFecha(mylib.getDateString(valor, "yyyy-MM-dd HH:mm:ss","dd-MM-yyyy HH:mm:ss"));
         		break;
         	case "02":
         		chat.setMensaje(valor);
@@ -142,54 +200,80 @@ public class ChatService {
         	case "16":
         		chat.setServiceID(valor);
         		break;
+        	case "17":
+        		chat.setChatType(valor);
+        		break;
         default:
             break;
         }
     }
     
-    public List<Chat> getChatData(String collection, String tbName, int tipoConsulta) throws Exception {
-    	SolRDB solrConn = new SolRDB();
+    public List<Chat> getChatText(String collection, String tbName, int chatType) throws Exception {
+    		try {
+    			SolrAPI solrConn = new SolrAPI();
+        	    solrConn.setCollectionBase(collection);
+        	    solrConn.connect(gParams.getInfo().getZkSolr());
+        	    
+        	    List<Chat> lstChats = new ArrayList<>();
+        	    
+        	    if (solrConn.connected()) {
+	        	    	logger.info("Conectado a solR");
+	        	    	
+	        	    	ModifiableSolrParams parameters = buildSolrFilters(chatType);
+	        	    	logger.info("Se recuperaron los filtros para solR");
+        	    }
+
+    			
+    			return lstChats;
+    			
+    		} catch (Exception e) {
+    			throw new Exception(e.getMessage());
+    		}
+    }
+    
+    public List<Chat> getChatData(String collection, String tbName, int chatType) throws Exception {
+    	SolrAPI solrConn = new SolrAPI();
     	try {
     	    
     	    List<Chat> lstChat = new ArrayList<>();
     	    
-    	    solrConn.setConfig(gDatos.getFileConfig(), gDatos.getHbProperties());
-    	    solrConn.setSolrCollection(collection);
-    	    solrConn.open();
+    	    solrConn.setCollectionBase(collection);
+    	    solrConn.connect(gParams.getInfo().getZkSolr());
     	    
-    	    if (solrConn.isConnected()) {
-    	    	mylib.console("Conectado a solR");
+    	    
+    	    if (solrConn.connected()) {
+    	    	logger.info("Conectado a solR");
     	    	
-    	    	ModifiableSolrParams parameters = buildSolrFilters(1);
-    	    	mylib.console("Se recuperaron los filtros para solR");
+    	    	ModifiableSolrParams parameters = buildSolrFilters(chatType);
+    	    	logger.info("Se recuperaron los filtros para solR");
     	    	
     	    	List<String> keys = new ArrayList<>();
-    	    	mylib.console("Recuperando Ids de grabaciones");
+    	    	logger.info("Recuperando Ids de grabaciones");
     	    	keys = solrConn.getIds(parameters);
     	    	solrConn.close();
     	    	
-    	    	mylib.console("Se encontraron "+keys.size()+ " interacciones de chat");
+    	    	logger.info("Se encontraron "+keys.size()+ " interacciones de chat");
     	    	
     	    	for (String key : keys) {
-    	    		mylib.console("key: "+key);
+    	    		logger.debug("key: "+key);
     	    	}
     	    	
     	    	if (keys.size()>0) {
 			//Consulta Datos a HBase
-			HBaseDB hbConn = new HBaseDB();
-			hbConn.setConfig(gDatos.getFileConfig(), gDatos.getHbProperties(),tbName);
+			HBaseAPI hbConn = new HBaseAPI();
+			hbConn.setConfig(gParams.getInfo().getConfigPath()+"/"+gParams.getInfo().getConfigFile(), gParams.getInfo().getCloudName(),tbName);
 			
 			Connection conn = ConnectionFactory.createConnection(hbConn.getHcfg());
 			
 			Table table = conn.getTable(TableName.valueOf(tbName));
 			
-			mylib.console("Conectado a HBase");
+			logger.info("Conectado a HBase");
 			
 			Chat chat;
 			
-			mylib.console("Recuperando rows desde Hbase");
+			logger.info("Recuperando rows desde Hbase");
 			for (String key : keys) {
-		    		mylib.console("get key: "+key);
+				logger.debug("get key: "+key);
 	            Get g = new Get(Bytes.toBytes(key));
 	            Result rs = table.get(g);
 	            
@@ -200,38 +284,110 @@ public class ChatService {
 	            
 	            lstChat.add(chat);
 	    	    	}
-	    	    	mylib.console("Se recuperaron "+lstChat.size()+ " interacciones desde HBase");
+			logger.info("Se recuperaron "+lstChat.size()+ " interacciones desde HBase");
 	    	    	conn.close();
     	    	}
 	    }
 		
 	    return lstChat;
 	} catch (Exception e) {
-		if (solrConn.isConnected()) {
-			solrConn.close();
-		}
-		throw new Exception(e.getMessage());
+		throw new Exception("getChatData: "+e.getMessage());
 	}
 }
+
+    public Chat getLastChatData(String collection, String tbName, int chatType) throws Exception {
+	    	SolrAPI solrConn = new SolrAPI();
+	    	try {
+	    	    Chat returnChat = new Chat();
+	    	    List<Chat> lstChat = new ArrayList<>();
+	    	    
+	    	    solrConn.setCollectionBase(collection);
+	    	    solrConn.connect(gParams.getInfo().getZkSolr());
+	    	    
+	    	    
+	    	    if (solrConn.connected()) {
+		    	    	logger.info("Conectado a solR");
+		    	    	
+		    	    	ModifiableSolrParams parameters = buildSolrFilters(chatType);
+		    	    	logger.info("Se recuperaron los filtros para solR");
+		    	    	
+		    	    	List<String> keys = new ArrayList<>();
+		    	    	logger.info("Recuperando Ids de grabaciones");
+		    	    	keys = solrConn.getIds(parameters);
+		    	    	solrConn.close();
+		    	    	
+		    	    	//Asigna resultados a un maptree para ordenarlo
+		    	    	Map<String, String> mapKey = new TreeMap<>();
+		    	    	String lastKey="";
+		    	    	for(int i=0; i<keys.size(); i++) {
+		    	    		lastKey=keys.get(i);
+		    	    		mapKey.put(keys.get(i), "");
+		    	    	}
+		    	    	
+		    	    	keys.clear();
+		    	    	keys.add(lastKey);
+		    	    	
+		    	    	logger.info("Se encontraron "+keys.size()+ " interacciones de chat");
+		    	    	
+		    	    	for (String key : keys) {
+		    	    		logger.debug("key: "+key);
+		    	    	}
+		    	    	
+		    	    	if (keys.size()>0) {
+					//Consulta Datos a HBase
+					HBaseAPI hbConn = new HBaseAPI();
+					hbConn.setConfig(gParams.getInfo().getConfigPath()+"/"+gParams.getInfo().getConfigFile(), gParams.getInfo().getCloudName(),tbName);
+					
+					Connection conn = ConnectionFactory.createConnection(hbConn.getHcfg());
+					
+					Table table = conn.getTable(TableName.valueOf(tbName));
+					
+					logger.info("Conectado a HBase");
+					
+					Chat chat;
+					
+					logger.info("Recuperando rows desde Hbase");
+					for (String key : keys) {
+						logger.debug("get key: "+key);
+			            Get g = new Get(Bytes.toBytes(key));
+			            Result rs = table.get(g);
+			            
+			            chat = new Chat();
+			            for (Cell cell : rs.listCells()) {
+			              setValue(new String(CellUtil.cloneQualifier(cell)), new String(CellUtil.cloneValue(cell)), chat);
+			            }
+			            
+			            lstChat.add(chat);
+			            returnChat = chat;
+			    	    	}
+					logger.info("Se recuperaron "+lstChat.size()+ " interacciones desde HBase");
+			    	    	conn.close();
+		    	    	}
+		    }
+			
+		    return returnChat;
+		} catch (Exception e) {
+			throw new Exception("getLastChatData: "+e.getMessage());
+		}
+    }
 
     
     public Map<String, Map<String,String>> getChat(String tbName) throws Exception {
     		try {
     			Map<String, Map<String,String>> mapRows = new TreeMap<>();
     			
-    			HBaseDB conn = new HBaseDB();
+    			HBaseAPI conn = new HBaseAPI();
     			
     			conn.setConfig("/usr/local/hadoop/conf/hadoop.properties", "ecchdp1",tbName);
 
     			String key = sr.getChatID();
-    			mylib.console("Buscando chatID: "+key);
+    			logger.info("Buscando chatID: "+key);
     			mapRows = conn.getRow(key);
     			
     			return mapRows;
     			
     		} catch (Exception e) {
-    			mylib.console(1,"Error getChat: "+e.getMessage());
-    			throw new Exception(e.getMessage());
+    			throw new Exception("getChat: "+e.getMessage());
     		}
     }
 
@@ -256,40 +412,43 @@ public class ChatService {
     			dr.setMinute(String.valueOf(cal.get(Calendar.MINUTE)));
     			dr.setSecond(String.valueOf(cal.get(Calendar.SECOND)));
     		} catch (Exception e) {
-    			mylib.console(1,"Error validaDataInput: "+e.getMessage());
     			throw new Exception(e.getMessage());
     		}
     }
     
-    public int executeUpdate(String tbName) throws Exception {
+    public int executeUpdate(int chatType) throws Exception {
     		try {
-    			HBaseDB conn = new HBaseDB();
+    			Info info = gParams.getInfo();
+    			HBaseAPI conn = new HBaseAPI();
     			
-    			conn.setConfig("/usr/local/hadoop/conf/hadoop.properties", "ecchdp1",tbName);
+    			conn.setConfig(info.getConfigPath()+"/"+info.getConfigFile(), info.getCloudName(), "chatint");
 
     			Map<String,List<colModel>> row = new HashMap<>();
     			
-    			row = genMapRow();
+    			row = genMapRow(chatType);
     			
     			conn.putRow(row);
     			
     			return 0;
     			
     		} catch (Exception e) {
-    			mylib.console(1,"Error executeUpdate: "+e.getMessage());
-    			throw new Exception(e.getMessage());
+    			throw new Exception("executeUpdate: "+e.getMessage());
     		}
     }
     
-    private Map<String, List<colModel>> genMapRow() throws Exception {
+    private Map<String, List<colModel>> genMapRow(int chatType) throws Exception {
     		try {
     			colModel cm = new colModel();
     			List<colModel> col = new ArrayList<>();
     			Map<String, List<colModel>> row = new HashMap<>();
+    			DataRequest dr = gParams.getDr();
+    			
+    			logger.info("FecIni: "+dr.getFecha());
+    			logger.info("FecFin: "+mylib.getDateString(dr.getFecha(), "dd-MM-yyyy HH:mm:ss","yyyy-MM-dd HH:mm:ss"));
     			
     			cm.setFamily("cf1");
     			cm.setColumn("01");
-    			cm.setValue(dr.getFecha());
+    			cm.setValue(mylib.getDateString(dr.getFecha(), "dd-MM-yyyy HH:mm:ss","yyyy-MM-dd HH:mm:ss"));
     			
     			col.add(cm);
     			
@@ -383,6 +542,12 @@ public class ChatService {
     			cm.setValue(dr.getServiceID());
     			col.add(cm);
 
+    			cm = new colModel();
+    			cm.setFamily("cf1");
+    			cm.setColumn("17");  //chatType
+    			cm.setValue(String.valueOf(chatType));
+    			col.add(cm);
+
     			String year = String.format("%04d", Integer.valueOf(dr.getYear()));
     			String month = String.format("%02d", Integer.valueOf(dr.getMonth()));
     			String day = String.format("%02d", Integer.valueOf(dr.getDay()));
@@ -396,8 +561,7 @@ public class ChatService {
     			
     			return row;
     		} catch (Exception e) {
-    			mylib.console(1,"Error genMapRow: "+e.getMessage());
-    			throw new Exception(e.getMessage());
+    			throw new Exception("genMapRow: "+e.getMessage());
     		}
     }
 	
