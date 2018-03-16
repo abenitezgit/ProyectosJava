@@ -11,18 +11,25 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
+import org.apache.log4j.Logger;
+
+import com.rutinas.Rutinas;
+
 import ecc.model.DataResponse;
 import ecc.model.DataResponseMin;
 import ecc.model.GrabMin;
 import ecc.services.GrabService;
-import utiles.common.rutinas.Rutinas;
+import ecc.utiles.GlobalArea;
 
 
 @Path("grabobject")
 public class GrabResourceSinSkill {
+	Logger logger = Logger.getLogger("wsGrab");
+	GlobalArea gDatos = new GlobalArea();
 	Rutinas mylib = new Rutinas();
 	DataResponse dResponse = new DataResponse();
 	DataResponseMin dResponseMin = new DataResponseMin();
+	GrabService srvGrab = new GrabService(gDatos);
 	List<GrabMin> lstGrab = new ArrayList<>();
 	boolean flagFiltros = true;
 	
@@ -40,47 +47,50 @@ public class GrabResourceSinSkill {
 		ResponseBuilder response;
 		try {
 			//Instancia Clase Servicio
-			GrabService srvGrab = new GrabService();
 			
-			mylib.console("Iniciando extraccion de grabaciones via POST");
-			mylib.console("DataInput: "+dataInput);
+			
+			logger.info("Iniciando extraccion de grabaciones via POST");
+			logger.info("DataInput: "+dataInput);
 			
 			//Respuesta Default
 			dResponse.setStatus(99);
 			dResponse.setMessage("Error general");
 			
-			mylib.console("Inicializando componentes...");
+			logger.info("Inicializando componentes...");
 			srvGrab.initComponents(dataInput);
 
             /**
              * Resuelve el tipo de filtro de consulta
              */
-            mylib.console("Analizando tipo de filtro de consulta");
+			logger.info("Analizando tipo de filtro de consulta");
             int tipoConsulta = srvGrab.getTipoConsultaSinSkill();
             switch (tipoConsulta) {
                 case 1:
-                    mylib.console("Filtro de Consulta: ConnID sin Skill y sin Fechas");
+                	logger.info("Filtro de Consulta: ConnID sin Skill y sin Fechas");
                     break;
                 case 2:
-                    mylib.console("Filtro de Consulta: Agenfe sin Skill y sin Fechas");
+                	logger.info("Filtro de Consulta: Agenfe sin Skill y sin Fechas");
                     break;
                 case 3:
-                    mylib.console("Filtro de Consulta: Ani sin Skill y sin Fechas");
+                	logger.info("Filtro de Consulta: Ani sin Skill y sin Fechas");
                     break;
                 case 4:
-                    mylib.console("Filtro de Consulta: Dnis sin Skill y sin Fechas");
+                	logger.info("Filtro de Consulta: Dnis sin Skill y sin Fechas");
                     break;
                 case 5:
-                    mylib.console("Filtro de Consulta: UniqueID sin Skill y sin Fechas");
+                	logger.info("Filtro de Consulta: UniqueID sin Skill y sin Fechas");
+                    break;
+                case 6:
+                	logger.info("Filtro de Consulta: InteractionID sin Skill y sin Fechas");
                     break;
                 case 98:
-                    mylib.console(1, "Error Filtro de Consulta: Debe ingresar al menos un ConnID o un Agente");
+                	logger.error("Error Filtro de Consulta: Debe ingresar al menos un ConnID o un Agente");
                     dResponse.setStatus(98);
                     dResponse.setMessage("Error Filtro de Consulta: Debe ingresar al menos un ConnID o un Agente");
                     flagFiltros=false;
                     break;
                 default:
-                    mylib.console(1, "Error Filtro de Consulta: Error de parametros de entrada");
+                	logger.error("Error Filtro de Consulta: Error de parametros de entrada");
                     dResponse.setStatus(94);
                     dResponse.setMessage("Error Filtro de Consulta: Error de parametros de entrada");
                     flagFiltros=false;
@@ -88,13 +98,13 @@ public class GrabResourceSinSkill {
             }
             
             if (flagFiltros) {
-	            	mylib.console("Realizando busqueda de grabaciones...");
+            	logger.info("Realizando busqueda de grabaciones...");
 	            	lstGrab = srvGrab.getGrabDataSinSkill(tipoConsulta);
-	            	mylib.console("Se encontraron "+lstGrab.size()+" grabaciones");
+	            	logger.info("Se encontraron "+lstGrab.size()+" grabaciones");
 	            	if (lstGrab.size()==0) {
 	            		dResponse.setStatus(0);
 	            		dResponse.setMessage("No se encontraron grabaciones");
-	            		mylib.console(2,"No se encontraron grabaciones");
+	            		logger.warn("No se encontraron grabaciones");
 	            	} else {
 		            	dResponse.setStatus(0);
 						dResponse.setMessage("SUCCESS");
@@ -109,12 +119,12 @@ public class GrabResourceSinSkill {
 			
             dResponseMin.setData(lstGrab);
             String strResponse = mylib.serializeObjectToJSon(dResponseMin, false);
-            mylib.console("Enviando respuesta...");
+            logger.info("Enviando respuesta...");
             response = Response.ok().entity(strResponse);
 			
 			return response.build();
 		} catch (Exception e) {
-			mylib.console(1,"Error proceso general.."+e.getMessage());
+			logger.error("Error proceso general.."+e.getMessage());
 			response = Response.status(500).entity("Error proceso general: "+e.getMessage());
 			return response.build();
 		}

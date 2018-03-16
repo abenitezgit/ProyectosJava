@@ -3,6 +3,7 @@ package ecc.model;
 public class GrabMin {
 	String campo1;
 	String campo2;
+	String campo3;
 	String Ani;
 	String Dnis;
 	String Connid;
@@ -13,6 +14,13 @@ public class GrabMin {
 	String Skill;
 	String Agente;
 	
+	
+	public String getCampo3() {
+		return campo3;
+	}
+	public void setCampo3(String campo3) {
+		this.campo3 = campo3;
+	}
 	public String getCampo1() {
 		return campo1;
 	}

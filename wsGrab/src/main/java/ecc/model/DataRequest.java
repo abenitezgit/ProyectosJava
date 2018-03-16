@@ -12,13 +12,55 @@ public class DataRequest {
 	String connid;
 	String uniqueid;
 	String agente;
+	String interactionid;
+	String rutagente;
+	String codigoservicio;
+	String tipointeract;
+	String fname;
+	String zone;
 	int limit;   //Limite de registros a retornar 0: unlimited
 	List<String> lstSkill = new ArrayList<>();
 	
 	//Getter ans Setter
-	
+
 	public String getConnid() {
 		return connid;
+	}
+	public String getRutagente() {
+		return rutagente;
+	}
+	public void setRutagente(String rutagente) {
+		this.rutagente = rutagente;
+	}
+	public String getCodigoservicio() {
+		return codigoservicio;
+	}
+	public void setCodigoservicio(String codigoservicio) {
+		this.codigoservicio = codigoservicio;
+	}
+	public String getTipointeract() {
+		return tipointeract;
+	}
+	public void setTipointeract(String tipointeract) {
+		this.tipointeract = tipointeract;
+	}
+	public String getFname() {
+		return fname;
+	}
+	public void setFname(String fname) {
+		this.fname = fname;
+	}
+	public String getZone() {
+		return zone;
+	}
+	public void setZone(String zone) {
+		this.zone = zone;
+	}
+	public String getInteractionid() {
+		return interactionid;
+	}
+	public void setInteractionid(String interactionid) {
+		this.interactionid = interactionid;
 	}
 	public String getUniqueid() {
 		return uniqueid;

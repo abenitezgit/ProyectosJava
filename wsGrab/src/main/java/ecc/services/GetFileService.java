@@ -3,18 +3,27 @@ package ecc.services;
 import java.io.FileInputStream;
 import java.util.Properties;
 
+import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
+import com.api.FtpAPI;
+import com.rutinas.Rutinas;
+
 import ecc.utiles.GlobalArea;
-import utiles.common.rutinas.FTPClass;
-import utiles.common.rutinas.Rutinas;
 
 public class GetFileService {
-	GlobalArea gDatos = new GlobalArea();
+	Logger logger = Logger.getLogger("wsGrab");
+	GlobalArea gDatos;
 	Rutinas mylib = new Rutinas();
 	
+	
+	public GetFileService(GlobalArea m) {
+		gDatos = m;
+	}
+	
+	
 	//Clases especificas
-	FTPClass ftp = new FTPClass();
+	FtpAPI ftp = new FtpAPI();
 	
 	//Parametros de Acceso
 	private String HostIP;
@@ -26,20 +35,39 @@ public class GetFileService {
 	private String zone;
 	private String audioPathFile;
 	private String downFileName;
-	private String connid;
+	private String ID;
+	private String rstorage;
+	private String ftpPath;
 	
 	//Getter and Setter
 
+	
 	public String getHostIP() {
 		return HostIP;
 	}
 
-	public String getConnid() {
-		return connid;
+	public String getFtpPath() {
+		return ftpPath;
 	}
 
-	public void setConnid(String connid) {
-		this.connid = connid;
+	public void setFtpPath(String ftpPath) {
+		this.ftpPath = ftpPath;
+	}
+
+	public String getRstorage() {
+		return rstorage;
+	}
+
+	public void setRstorage(String rstorage) {
+		this.rstorage = rstorage;
+	}
+
+	public String getID() {
+		return ID;
+	}
+
+	public void setID(String ID) {
+		this.ID = ID;
 	}
 
 	public String getZone() {
@@ -101,8 +129,9 @@ public class GetFileService {
 			JSONObject jo = new JSONObject(dataInput);
 			zone = jo.getString("zone");
 			audioPathFile = jo.getString("audioPathFile");
-			connid = jo.getString("connid");
-			downFileName = connid + ".wav";
+			ID = jo.getString("ID");
+			downFileName = ID + ".wav";
+			rstorage = jo.getString("rstorage");
 		} catch (Exception e) {
 			throw new Exception("Error parseaDataInput: "+e.getMessage());
 		}
@@ -111,13 +140,26 @@ public class GetFileService {
 	public void getDataConfig(String zone) throws Exception {
 		try {
 			String Zone = "Zon"+zone;
+			String rs = "rs1";
+			switch(rstorage) {
+				case "1":
+					rs = "rs1";
+					break;
+				case "2":
+					rs = "rs2";
+					break;
+			}
 			Properties fileProperties = new Properties();
 			
 			fileProperties.load(new FileInputStream(gDatos.getFileConfig()));
-			HostIP = fileProperties.getProperty(gDatos.getHbProperties()+".ftp"+Zone+".server");
-			userName = fileProperties.getProperty(gDatos.getHbProperties()+".ftp"+Zone+".user");
-			userPass = fileProperties.getProperty(gDatos.getHbProperties()+".ftp"+Zone+".pass");
+			HostIP = fileProperties.getProperty(gDatos.getHbProperties()+".ftp"+Zone+"."+rs+".server");
+			userName = fileProperties.getProperty(gDatos.getHbProperties()+".ftp"+Zone+"."+rs+".user");
+			userPass = fileProperties.getProperty(gDatos.getHbProperties()+".ftp"+Zone+"."+rs+".pass");
 			workFolder = fileProperties.getProperty(gDatos.getHbProperties()+".ftp"+Zone+".workFolder");
+			ftpPath = fileProperties.getProperty(gDatos.getHbProperties()+".ftp"+Zone+"."+rs+".path");
+			if (ftpPath.equals("/")) {
+				ftpPath="";
+			}
 
 		} catch (Exception e) {
 			throw new Exception("Error getDataConfig: "+e.getMessage());
@@ -131,20 +173,21 @@ public class GetFileService {
 			ftp.setUserPass(userPass);
 			ftp.setConnectTimeout(3000);
 			
-			mylib.console("Conectandose a Sitio FTP");
-			mylib.console("FTP Server	: "+HostIP);
-			mylib.console("FTP User		: "+userName);
-			mylib.console("FTP Pass		: "+userPass);
+			logger.info("Conectandose a Sitio FTP");
+			logger.info("Resource Storage: "+rstorage);
+			logger.info("FTP Server	: "+HostIP);
+			logger.info("FTP User		: "+userName);
+			logger.info("FTP Pass		: "+userPass);
 			
 			ftp.connect();
 			
 			if (ftp.isConnect()) {
-				mylib.console("Conectado a Sitio FTP");
-				mylib.console("Extrayendo grabación");
+				logger.info("Conectado a Sitio FTP");
+				logger.info("Extrayendo grabación: "+ftpPath+audioPathFile);
 				
 				String localPathFile = workFolder+"/"+downFileName;
-				if (ftp.download(audioPathFile, localPathFile)) {
-					mylib.console("Audio recuperado conerrectamente!!!");
+				if (ftp.download(ftpPath+audioPathFile, localPathFile)) {
+					logger.info("Audio recuperado conerrectamente!!!");
 				} else {
 					throw new Exception("Audio no pudo ser recuperado");
 				}

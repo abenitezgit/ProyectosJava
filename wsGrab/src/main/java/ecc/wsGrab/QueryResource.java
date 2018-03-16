@@ -10,12 +10,15 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.rutinas.Rutinas;
+
 import ecc.model.Grabacion;
 import ecc.services.QueryService;
-import utiles.common.rutinas.Rutinas;
+import ecc.utiles.GlobalArea;
 
 @Path("query")
 public class QueryResource {
+	GlobalArea gDatos = new GlobalArea();
 	Rutinas mylib = new Rutinas();
 	
 	@GET
@@ -23,7 +26,7 @@ public class QueryResource {
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response getRow(@PathParam("connid") String connid) {
 		try {
-			QueryService qSrv = new QueryService();
+			QueryService qSrv = new QueryService(gDatos);
 			Map<String, Grabacion> mapGrab = new HashMap<>();
 			mapGrab = qSrv.getRow(connid);
 			

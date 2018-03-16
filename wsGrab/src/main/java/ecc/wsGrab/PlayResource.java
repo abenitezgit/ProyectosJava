@@ -25,8 +25,9 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONObject;
 
+import com.rutinas.Rutinas;
+
 import ecc.services.ExtractService;
-import utiles.common.rutinas.Rutinas;
 
 @Path("playAudio")
 public class PlayResource {

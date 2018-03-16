@@ -15,20 +15,27 @@ import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.log4j.Logger;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
-import dataAccess.HBaseDB;
-import dataAccess.SolRDB;
+import com.api.HBaseAPI;
+import com.api.SolrAPI;
+import com.rutinas.Rutinas;
+
 import ecc.model.DataRequest;
 import ecc.model.GrabMin;
 import ecc.model.Grabacion;
 import ecc.utiles.GlobalArea;
-import utiles.common.rutinas.Rutinas;
 
 public class GrabService {
-	GlobalArea gDatos = new GlobalArea();
+	Logger logger = Logger.getLogger("wsGrab");
+	GlobalArea gDatos;
 	Rutinas mylib = new Rutinas();
 	DataRequest dr = new DataRequest();
+	
+	public GrabService(GlobalArea m) {
+		gDatos = m;
+	}
 
 	public void initComponent() throws Exception {
 		
@@ -40,228 +47,224 @@ public class GrabService {
 	}
 	
     public void fillDataRequest(String dataInput) throws Exception {
-        dr = (DataRequest) mylib.serializeJSonStringToObject(dataInput, DataRequest.class);
+    		try {
+    			dr = (DataRequest) mylib.serializeJSonStringToObject(dataInput, DataRequest.class);
+    			gDatos.setDr(dr);
+    		} catch (Exception e) {
+    			throw new Exception(e.getMessage());
+    		}
     }
     
     public Map<String, Grabacion> getGrabaciones(int tipoConsulta) throws Exception {
-    	SolRDB solrConn = new SolRDB();
-    	try {
-    	    
-    	    Map<String, Grabacion> mapGrab = new HashMap<>();
-    	    
-    	    solrConn.setConfig(gDatos.getFileConfig(), gDatos.getHbProperties());
-    	    solrConn.open();
-    	    
-    	    if (solrConn.isConnected()) {
-    	    	mylib.console("Conectado a solR");
-    	    	
-    	    	ModifiableSolrParams parameters = buildSolrFilters(tipoConsulta);
-    	    	mylib.console("Se recuperaron los filtros para solR");
-    	    	
-    	    	List<String> keys = new ArrayList<>();
-    	    	mylib.console("Recuperando Ids de grabaciones");
-    	    	keys = solrConn.getIds(parameters);
-    	    	solrConn.close();
-    	    	
-    	    	mylib.console("Se encontraron "+keys.size()+ " ids de grabaciones");
-    	    	
-    	    	for (String key : keys) {
-    	    		mylib.console("key: "+key);
-    	    	}
-    	    	
-    	    	if (keys.size()>0) {
-    	            //Consulta Datos a HBase
-    	            HBaseDB hbConn = new HBaseDB();
-    	            hbConn.setConfig(gDatos.getFileConfig(), gDatos.getHbProperties(),"grabaciones");
-    	            
-    	            Connection conn = ConnectionFactory.createConnection(hbConn.getHcfg());
-    	            
-    	            Table table = conn.getTable(TableName.valueOf("grabaciones"));
-    	            
-    	            mylib.console("Conectado a HBase");
-    	            
-    	            Grabacion grabacion;
-    	    	
-    	            mylib.console("Recuperando rows desde Hbase");
-	    	    	for (String key : keys) {
-	    	    		mylib.console("get key: "+key);
-	    	            Get g = new Get(Bytes.toBytes(key));
-	    	            Result rs = table.get(g);
-	    	            
-	    	            grabacion = new Grabacion();
-	    	            
-	    	            for (Cell cell : rs.listCells()) {
-	    	              setValue(new String(CellUtil.cloneQualifier(cell)), new String(CellUtil.cloneValue(cell)), grabacion);
-	    	            }
-	    	            
-	    	            mapGrab.put(key, grabacion);
-	    	    	}
-	    	    	mylib.console("Se recuperaron "+mapGrab.size()+ " rows desde HBase");
-	    	    	conn.close();
-    	    	}
-    	    }
-    		
-    	    return mapGrab;
-    	} catch (Exception e) {
-    		if (solrConn.isConnected()) {
-    			solrConn.close();
-    		}
-    		throw new Exception(e.getMessage());
-    	}
+	    	SolrAPI solrConn = new SolrAPI();
+	    	try {
+	    	    
+	    	    Map<String, Grabacion> mapGrab = new HashMap<>();
+	    	    
+	    	    solrConn.connect("cloudera4:2181,cloudera5:2181", "collgrabdata");
+	    	    
+	    	    if (solrConn.connected()) {
+		    	    	logger.info("Conectado a solR");
+		    	    	
+		    	    	ModifiableSolrParams parameters = buildSolrFilters(tipoConsulta);
+		    	    	logger.info("Se recuperaron los filtros para solR");
+		    	    	
+		    	    	List<String> keys = new ArrayList<>();
+		    	    	logger.info("Recuperando Ids de grabaciones");
+		    	    	keys = solrConn.getIds(parameters);
+		    	    	solrConn.close();
+		    	    	
+		    	    	logger.info("Se encontraron "+keys.size()+ " ids de grabaciones");
+		    	    	
+		    	    	if (keys.size()>0) {
+		    	            //Consulta Datos a HBase
+		    	            HBaseAPI hbConn = new HBaseAPI();
+		    	            hbConn.setConfig(gDatos.getFileConfig(), gDatos.getHbProperties(),"grabaciones");
+		    	            
+		    	            Connection conn = ConnectionFactory.createConnection(hbConn.getHcfg());
+		    	            
+		    	            Table table = conn.getTable(TableName.valueOf("grabaciones"));
+		    	            
+		    	            logger.info("Conectado a HBase");
+		    	            
+		    	            Grabacion grabacion;
+		    	    	
+		    	            logger.info("Recuperando rows desde Hbase");
+				    	    	for (String key : keys) {
+			    	            Get g = new Get(Bytes.toBytes(key));
+			    	            Result rs = table.get(g);
+			    	            
+			    	            grabacion = new Grabacion();
+			    	            
+			    	            for (Cell cell : rs.listCells()) {
+			    	              setValue(new String(CellUtil.cloneQualifier(cell)), new String(CellUtil.cloneValue(cell)), grabacion);
+			    	            }
+			    	            
+			    	            mapGrab.put(key, grabacion);
+				    	    	}
+				    	    	logger.info("Se recuperaron "+mapGrab.size()+ " rows desde HBase");
+				    	    	conn.close();
+		    	    	}
+	    	    }
+	    		
+	    	    return mapGrab;
+	    	} catch (Exception e) {
+	    		throw new Exception(e.getMessage());
+	    	} finally {
+	    		try {
+	    			solrConn.close();
+	    		} catch (Exception e) {}
+	    	}
     }
 
     
-    public List<GrabMin> getGrabData(int tipoConsulta) throws Exception {
-	    	SolRDB solrConn = new SolRDB();
+    public List<GrabMin> getGrabData() throws Exception {
+	    	SolrAPI solrConn = new SolrAPI();
 	    	try {
 	    	    
 	    	    List<GrabMin> lstGrab = new ArrayList<>();
 	    	    
-	    	    solrConn.setConfig(gDatos.getFileConfig(), gDatos.getHbProperties());
-	    	    solrConn.open();
+	    	    solrConn.connect("cloudera4:2181,cloudera5:2181", "collgrabdata");
 	    	    
-	    	    if (solrConn.isConnected()) {
-	    	    	mylib.console("Conectado a solR");
-	    	    	
-	    	    	ModifiableSolrParams parameters = buildSolrFilters(tipoConsulta);
-	    	    	mylib.console("Se recuperaron los filtros para solR");
-	    	    	
-	    	    	List<String> keys = new ArrayList<>();
-	    	    	mylib.console("Recuperando Ids de grabaciones");
-	    	    	keys = solrConn.getIds(parameters);
-	    	    	solrConn.close();
-	    	    	
-	    	    	mylib.console("Se encontraron "+keys.size()+ " ids de grabaciones");
-	    	    	
-	    	    	for (String key : keys) {
-	    	    		mylib.console("key: "+key);
-	    	    	}
-	    	    	
-	    	    	if (keys.size()>0) {
-				//Consulta Datos a HBase
-				HBaseDB hbConn = new HBaseDB();
-				hbConn.setConfig(gDatos.getFileConfig(), gDatos.getHbProperties(),"grabaciones");
-				
-				Connection conn = ConnectionFactory.createConnection(hbConn.getHcfg());
-				
-				Table table = conn.getTable(TableName.valueOf("grabaciones"));
-				
-				mylib.console("Conectado a HBase");
-				
-				GrabMin grabMin;
-				
-				mylib.console("Recuperando rows desde Hbase");
-				for (String key : keys) {
-			    		mylib.console("get key: "+key);
-		            Get g = new Get(Bytes.toBytes(key));
-		            Result rs = table.get(g);
-		            
-		            grabMin = new GrabMin();
-		            String fName="";
-		            for (Cell cell : rs.listCells()) {
-		              setValueMin(new String(CellUtil.cloneQualifier(cell)), new String(CellUtil.cloneValue(cell)), grabMin, fName);
-		              String myString = new String(CellUtil.cloneQualifier(cell));
-		              if (myString.equals("17")) {
-		            	  	fName = new String(CellUtil.cloneValue(cell));
-		              }
-		            }
-		            
-		            String campo1="<a href='#' onclick='javascript:proxygrabaciones.Escuchargrab(\"" + grabMin.getConnid() + "\")'><img src='../images/sound.png' title='Escuchar'></a>";
-		            String campo2="<a href='#' onclick='javascript:proxygrabaciones.Descargagrab(\"" + grabMin.getConnid() + ";"+fName.substring(0, fName.length()-4)+".mp3\")'><img src='../images/disk.png' title='Descargar'></a>";
-		            grabMin.setCampo1(campo1);
-		            grabMin.setCampo2(campo2);
-		            
-		            lstGrab.add(grabMin);
+	    	    if (solrConn.connected()) {
+		    	    	logger.info("Conectado a solR");
+		    	    	
+		    	    	
+		    	    	ModifiableSolrParams parameters = buildSolrFilters(gDatos.getSolRfqFilters());
+		    	    	logger.info("Se recuperaron los filtros para solR");
+		    	    	
+		    	    	List<String> keys = new ArrayList<>();
+		    	    	logger.info("Recuperando Ids de grabaciones");
+		    	    	
+		    	    	keys = solrConn.getIds(parameters);
+		    	    	solrConn.close();
+		    	    	
+		    	    	logger.info("Se encontraron "+keys.size()+ " ids de grabaciones");
+		    	    	
+		    	    	if (keys.size()>0) {
+					//Consulta Datos a HBase
+					HBaseAPI hbConn = new HBaseAPI();
+					hbConn.setConfig(gDatos.getFileConfig(), gDatos.getHbProperties(),"grabaciones");
+					
+					Connection conn = ConnectionFactory.createConnection(hbConn.getHcfg());
+					
+					Table table = conn.getTable(TableName.valueOf("grabaciones"));
+					
+					logger.info("Conectado a HBase");
+					
+					GrabMin grabMin;
+					
+					logger.info("Recuperando rows desde Hbase");
+					for (String key : keys) {
+			            Get g = new Get(Bytes.toBytes(key));
+			            Result rs = table.get(g);
+			            
+			            grabMin = new GrabMin();
+			            String fName="";
+			            for (Cell cell : rs.listCells()) {
+			              setValueMin(new String(CellUtil.cloneQualifier(cell)), new String(CellUtil.cloneValue(cell)), grabMin, fName);
+			              String myString = new String(CellUtil.cloneQualifier(cell));
+			              if (myString.equals("17")) {
+			            	  	fName = new String(CellUtil.cloneValue(cell));
+			              }
+			            }
+			            
+			            String campo1="<a href='#' onclick='javascript:proxygrabaciones.Escuchargrab(\"" + key + "\")'><img src='../images/sound.png' title='Escuchar'></a>";
+			            String campo2="<a href='#' onclick='javascript:proxygrabaciones.Descargagrab(\"" + key + ";"+fName.substring(0, fName.length()-4)+".mp3\")'><img src='../images/disk.png' title='Descargar'></a>";
+			            String campo3="<a href='#' onclick='javascript:proxygrabaciones.Interaccion(\"" + grabMin.getInteraction_id() + "\")'><img src='../images/arrow_join.png' title='Interacciones'></a>";
+			            grabMin.setCampo1(campo1);
+			            grabMin.setCampo2(campo2);
+			            grabMin.setCampo3(campo3);
+			            
+			            lstGrab.add(grabMin);
+			    	    	}
+					logger.info("Se recuperaron "+lstGrab.size()+ " rows desde HBase");
+			    	    	conn.close();
 		    	    	}
-		    	    	mylib.console("Se recuperaron "+lstGrab.size()+ " rows desde HBase");
-		    	    	conn.close();
-	    	    	}
-    	    }
+	    	    }
     		
-    	    return lstGrab;
-    	} catch (Exception e) {
-    		if (solrConn.isConnected()) {
-    			solrConn.close();
-    		}
-    		throw new Exception(e.getMessage());
-    	}
+	    	    return lstGrab;
+	    	} catch (Exception e) {
+	    		throw new Exception(e.getMessage());
+	    	} finally {
+	    		try {
+	    			solrConn.close();
+	    		} catch (Exception e) {}
+	    	}
     }
 
     public List<GrabMin> getGrabDataSinSkill(int tipoConsulta) throws Exception {
-    	SolRDB solrConn = new SolRDB();
-    	try {
-    	    
-    	    List<GrabMin> lstGrab = new ArrayList<>();
-    	    
-    	    solrConn.setConfig(gDatos.getFileConfig(), gDatos.getHbProperties());
-    	    solrConn.open();
-    	    
-    	    if (solrConn.isConnected()) {
-    	    	mylib.console("Conectado a solR");
-    	    	
-    	    	ModifiableSolrParams parameters = buildSolrFiltersSinSkill(tipoConsulta);
-    	    	mylib.console("Se recuperaron los filtros para solR");
-    	    	
-    	    	List<String> keys = new ArrayList<>();
-    	    	mylib.console("Recuperando Ids de grabaciones");
-    	    	keys = solrConn.getIds(parameters);
-    	    	solrConn.close();
-    	    	
-    	    	mylib.console("Se encontraron "+keys.size()+ " ids de grabaciones");
-    	    	
-    	    	for (String key : keys) {
-    	    		mylib.console("key: "+key);
-    	    	}
-    	    	
-    	    	if (keys.size()>0) {
-			//Consulta Datos a HBase
-			HBaseDB hbConn = new HBaseDB();
-			hbConn.setConfig(gDatos.getFileConfig(), gDatos.getHbProperties(),"grabaciones");
+	    	SolrAPI solrConn = new SolrAPI();
+	    	try {
+	    	    
+	    	    List<GrabMin> lstGrab = new ArrayList<>();
+	    	    
+	    	    solrConn.connect("cloudera4:2181,cloudera5:2181", "collgrabdata");
+	    	    
+	    	    if (solrConn.connected()) {
+		    	    	logger.info("Conectado a solR");
+		    	    	
+		    	    	ModifiableSolrParams parameters = buildSolrFiltersSinSkill(tipoConsulta);
+		    	    	logger.info("Se recuperaron los filtros para solR");
+		    	    	
+		    	    	List<String> keys = new ArrayList<>();
+		    	    	logger.info("Recuperando Ids de grabaciones");
+		    	    	keys = solrConn.getIds(parameters);
+		    	    	solrConn.close();
+		    	    	
+		    	    	logger.info("Se encontraron "+keys.size()+ " ids de grabaciones");
+		    	    	
+		    	    	if (keys.size()>0) {
+					//Consulta Datos a HBase
+					HBaseAPI hbConn = new HBaseAPI();
+					hbConn.setConfig(gDatos.getFileConfig(), gDatos.getHbProperties(),"grabaciones");
+					
+					Connection conn = ConnectionFactory.createConnection(hbConn.getHcfg());
+					
+					Table table = conn.getTable(TableName.valueOf("grabaciones"));
+					
+					logger.info("Conectado a HBase");
+					
+					GrabMin grabMin;
+					
+					logger.info("Recuperando rows desde Hbase");
+					for (String key : keys) {
+			            Get g = new Get(Bytes.toBytes(key));
+			            Result rs = table.get(g);
+			            
+			            grabMin = new GrabMin();
+			            String fName="";
+			            for (Cell cell : rs.listCells()) {
+			              setValueMin(new String(CellUtil.cloneQualifier(cell)), new String(CellUtil.cloneValue(cell)), grabMin, fName);
+			              String myString = new String(CellUtil.cloneQualifier(cell));
+			              if (myString.equals("17")) {
+			            	  	fName = new String(CellUtil.cloneValue(cell));
+			              }
+			            }
+			            
+			            String campo1="<a href='#' onclick='javascript:proxygrabaciones.Escuchargrab(\"" + key + "\")'><img src='../images/sound.png' title='Escuchar'></a>";
+			            String campo2="<a href='#' onclick='javascript:proxygrabaciones.Descargagrab(\"" + key + ";"+fName.substring(0, fName.length()-4)+".mp3\")'><img src='../images/disk.png' title='Descargar'></a>";
+			            String campo3="<a href='#' onclick='javascript:proxygrabaciones.Interaccion(\"" + grabMin.getInteraction_id() + "\")'><img src='../images/arrow_join.png' title='Interacciones'></a>";
+			            grabMin.setCampo1(campo1);
+			            grabMin.setCampo2(campo2);
+			            grabMin.setCampo3(campo3);
+			            
+			            lstGrab.add(grabMin);
+			    	    	}
+					logger.info("Se recuperaron "+lstGrab.size()+ " rows desde HBase");
+			    	    	conn.close();
+		    	    	}
+		    }
 			
-			Connection conn = ConnectionFactory.createConnection(hbConn.getHcfg());
-			
-			Table table = conn.getTable(TableName.valueOf("grabaciones"));
-			
-			mylib.console("Conectado a HBase");
-			
-			GrabMin grabMin;
-			
-			mylib.console("Recuperando rows desde Hbase");
-			for (String key : keys) {
-		    		mylib.console("get key: "+key);
-	            Get g = new Get(Bytes.toBytes(key));
-	            Result rs = table.get(g);
-	            
-	            grabMin = new GrabMin();
-	            String fName="";
-	            for (Cell cell : rs.listCells()) {
-	              setValueMin(new String(CellUtil.cloneQualifier(cell)), new String(CellUtil.cloneValue(cell)), grabMin, fName);
-	              String myString = new String(CellUtil.cloneQualifier(cell));
-	              if (myString.equals("17")) {
-	            	  	fName = new String(CellUtil.cloneValue(cell));
-	              }
-	            }
-	            
-	            String campo1="<a href='#' onclick='javascript:proxygrabaciones.Escuchargrab(\"" + grabMin.getConnid() + "\")'><img src='../images/sound.png' title='Escuchar'></a>";
-	            String campo2="<a href='#' onclick='javascript:proxygrabaciones.Descargagrab(\"" + grabMin.getConnid() + ";"+fName.substring(0, fName.length()-4)+".mp3\")'><img src='../images/disk.png' title='Descargar'></a>";
-	            grabMin.setCampo1(campo1);
-	            grabMin.setCampo2(campo2);
-	            
-	            lstGrab.add(grabMin);
-	    	    	}
-	    	    	mylib.console("Se recuperaron "+lstGrab.size()+ " rows desde HBase");
-	    	    	conn.close();
-    	    	}
-	    }
-		
-	    return lstGrab;
-	} catch (Exception e) {
-		if (solrConn.isConnected()) {
-			solrConn.close();
+		    return lstGrab;
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		} finally {
+			try {
+				solrConn.close();
+			} catch (Exception e) {}
 		}
-		throw new Exception(e.getMessage());
 	}
-}
 
     private void setValueMin(String cq, String valor, GrabMin grab, String fName) {
         switch (cq) {
@@ -312,8 +315,8 @@ public class GrabService {
         		grab.setNumerodiscado(valor);
         		break;
         	case "04":
-	            grab.setConnid(valor);
-	            break;
+            grab.setConnid(valor);
+            break;
         	case "05":
         		grab.setUniqueid(valor);
         		break;
@@ -324,8 +327,8 @@ public class GrabService {
         		grab.setEndtime(valor);
         		break;
         	case "08":
-	            grab.setFecha(valor);
-	            break;
+            grab.setFecha(valor);
+            break;
         	case "09":
         		grab.setDurationtotal(valor);
         		break;
@@ -350,9 +353,9 @@ public class GrabService {
         	case "16":
         		grab.setPathRecorder(valor);
         		break;
-            case "17":
-                grab.setNamerecorder(valor);
-                break;
+        case "17":
+            grab.setNamerecorder(valor);
+            break;
         	case "18":
         		grab.setRecordnum(valor);
         		break;
@@ -386,53 +389,53 @@ public class GrabService {
         	case "28":
         		grab.setTtr(valor);
         		break;
-            case "29":
-                grab.setUrl(valor);
-                break;
-            case "30":
-            	grab.setTipo_interaction(valor);
-            	break;
-            case "31":
-            	grab.setSkill(valor);
-            	break;
-            case "32":
-            	grab.setTipo_recurso(valor);
-            	break;
-            case "33":
-            	grab.setNombre_recurso(valor);
-            	break;
-            case "34":
-            	grab.setRut(valor);
-            	break;
-            case "35":
-            	grab.setNombre(valor);
-            	break;
-            case "36":
-            	grab.setGestion(valor);
-            	break;
-            case "37":
-            	grab.setRol_recurso(valor);
-            	break;
-            case "38":
-            	grab.setAgente(valor);
-            	break;
-            case "39":
-            	grab.setIdcdr(valor);
-            	break;
-            case "40":
-            	grab.setInfogestion(valor);
-            	break;
-            case "41":
-            	grab.setBkpftp(valor);
-            	break;
-            case "42":
-            	grab.setPathrecorder2(valor);
-            	break;
-            case "43":
-            	grab.setZone(valor);
-            	break;
-            default:
-                break;
+        case "29":
+            grab.setUrl(valor);
+            break;
+        case "30":
+	        	grab.setTipo_interaction(valor);
+	        	break;
+        case "31":
+	        	grab.setSkill(valor);
+	        	break;
+        case "32":
+	        	grab.setTipo_recurso(valor);
+	        	break;
+        case "33":
+	        	grab.setNombre_recurso(valor);
+	        	break;
+        case "34":
+	        	grab.setRut(valor);
+	        	break;
+        case "35":
+	        	grab.setNombre(valor);
+	        	break;
+        case "36":
+	        	grab.setGestion(valor);
+	        	break;
+        case "37":
+	        	grab.setRol_recurso(valor);
+	        	break;
+        case "38":
+	        	grab.setAgente(valor);
+	        	break;
+        case "39":
+	        	grab.setIdcdr(valor);
+	        	break;
+        case "40":
+	        	grab.setInfogestion(valor);
+	        	break;
+        case "41":
+	        	grab.setBkpftp(valor);
+	        	break;
+        case "42":
+	        	grab.setPathrecorder2(valor);
+	        	break;
+        case "43":
+	        	grab.setZone(valor);
+	        	break;
+        default:
+            break;
         }
     }
     
@@ -442,6 +445,7 @@ public class GrabService {
              * fill Global DataRequest
              */
             fillDataRequest(dataInput);
+            logger.info("Componentes inicializados!");
             
         } catch (Exception e) {
             throw new Exception(e.getMessage());
@@ -600,11 +604,11 @@ public class GrabService {
                     }
 
             } else {
-                    mylib.console(1,"Debe ingresar al menos un Skill ");
+            			logger.error("Debe ingresar al menos un Skill ");
                     return 98;
             }
         } catch (Exception e) {
-            mylib.console(1,"Error en getTipoConsulta ("+e.getMessage()+")");
+        	logger.error("Error en getTipoConsulta ("+e.getMessage()+")");
             throw new Exception(e.getMessage());
         }
     }
@@ -637,16 +641,42 @@ public class GrabService {
         						if (dr.getUniqueid()!=null && !dr.getUniqueid().equals("")) {
         							return 5;
         						} else {
-        							return 98;
+        							if (dr.getInteractionid()!=null && !dr.getInteractionid().equals("")) {
+        								return 6;
+        							} else {
+        								return 98;
+        							}
         						}
         					}
         				}
         			}
         		}
         } catch (Exception e) {
-            mylib.console(1,"Error en getTipoConsulta ("+e.getMessage()+")");
+        		logger.error("Error en getTipoConsulta ("+e.getMessage()+")");
             throw new Exception(e.getMessage());
         }
+    }
+    
+    public ModifiableSolrParams buildSolrFilters(String fq) throws Exception {
+    		try {
+	        ModifiableSolrParams parameters = new ModifiableSolrParams();
+	        String q="*:*";
+	        
+	        parameters.set("q", q);
+	        parameters.set("fq", fq);
+	        parameters.set("start", 0);
+	        parameters.set("rows", gDatos.getDr().getLimit());
+	        parameters.set("fl", "id");
+	        parameters.set("wt", "json");
+	        
+	        logger.info("Filtro fq recibido: "+fq);
+	        logger.info("Filtro consulta solR generado: "+parameters.toString());
+	        
+	        return parameters;
+    		} catch (Exception e) {
+    			logger.error("buildSolrFilters: "+e.getMessage());
+    			throw new Exception(e.getMessage());
+    		}
     }
 
     public ModifiableSolrParams buildSolrFilters(int tipoConsulta) throws Exception {
@@ -723,8 +753,10 @@ public class GrabService {
         parameters.set("start", 0);
         parameters.set("rows", dr.getLimit());
         parameters.set("fl", "id");
+        parameters.set("wt", "json");
         
-        mylib.console("Filtro consulta q: "+q);
+        logger.info("Filtro consulta parameters: "+parameters.toString());
+        logger.info("Filtro consulta fq: "+q);
         
         return parameters;
     }
@@ -764,6 +796,12 @@ public class GrabService {
 	        		 */
 	        		q = buildUniqueIDSinSkill();
 	        		break;
+	        	case 6:
+	        		/**
+	        		 * InteractionID sin Skill y sin Fechas
+	        		 */
+	        		q = buildInteractionIDSinSkill();
+	        		break;
             default:
             		break;
         }
@@ -774,7 +812,8 @@ public class GrabService {
         parameters.set("rows", dr.getLimit());
         parameters.set("fl", "id");
         
-        mylib.console("Filtro consulta q: "+q);
+        logger.info("Filtro consulta parameters: "+parameters.toString());
+        logger.info("Filtro consulta q: "+q);
         
         return parameters;
     }
@@ -861,6 +900,14 @@ public class GrabService {
 	    String filter2 = String.format("uniqueid:%s", uniqueid);
 	
 	    return filter2;
+    }
+
+    private String buildInteractionIDSinSkill() {
+		String interactionid = dr.getInteractionid();
+	
+		String filter2 = String.format("interactionid:%s", interactionid);
+
+		return filter2;
     }
 
     private String buildConnidSinSkill() {

@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.TableName;
@@ -14,26 +15,120 @@ import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.json.JSONObject;
 
-import dataAccess.HBaseDB;
-import dataAccess.SolRDB;
+import com.api.HBaseAPI;
+import com.api.SolrAPI;
+import com.rutinas.Rutinas;
+
 import ecc.model.Grabacion;
+import ecc.model.UriGrab;
 import ecc.utiles.GlobalArea;
-import utiles.common.rutinas.Rutinas;
 
 public class QueryService {
-	GlobalArea gDatos = new GlobalArea();
+	GlobalArea gDatos;
 	Rutinas mylib = new Rutinas();
 	
-	public Map<String, Grabacion> getRow(String connid) throws Exception {
+	public QueryService(GlobalArea m) {
+		gDatos = m;
+	}
+	
+	public String getUrisGrab(List<String> interactionIds) throws Exception {
+		SolrAPI solrConn = new SolrAPI();
 		try {
-			SolRDB solrConn = new SolRDB();
+			UriGrab uriGrab = new UriGrab();
+			
+			solrConn.connect("cloudera4:2181,cloudera5:2181", "collgrabdata");
+			
+			if (solrConn.connected()) {
+				List<String> filterInterac = new ArrayList<>();
+				
+				for (String interaction : interactionIds) {
+					filterInterac.add("interactionid:"+interaction);
+				}
+				
+				String fqFilter = StringUtils.join(filterInterac, " OR ");
+				
+				Map<String, String> filters = new HashMap<>();
+				filters.put("q", "*:*");
+				filters.put("fq", fqFilter);
+				filters.put("rows", "10000");
+				filters.put("fl", "id, interactionid, connid, fecgrab, tiponteract");
+				filters.put("key", "id");
+
+				Map<String, String> mapIds = new HashMap<>();
+				mapIds = solrConn.getRows(filters);
+				
+				if (mapIds.size()>0) {
+					
+					List<String> uris = new ArrayList<>();
+					for (Map.Entry<String, String> entry : mapIds.entrySet()) {
+						JSONObject jo = new JSONObject(entry.getValue());
+						uris.add("http://10.240.8.15:8080/wsGrab/webapi/getWav/"+jo.getString("id"));
+					}
+					uriGrab.setNumGrab(mapIds.size());
+					uriGrab.setUrlGrab(uris);
+				} else {
+					uriGrab.setNumGrab(0);
+				}
+			}
+
+			return mylib.serializeObjectToJSon(uriGrab, false);
+		} catch (Exception e) {
+			throw new Exception("getUrisGrab: "+e.getMessage());
+		} finally {
+			try {
+				solrConn.close();
+			} catch (Exception e) {}
+		}
+	}
+	
+	public List<String> getInteractionIDs(String connID) throws Exception {
+		SolrAPI solrConn = new SolrAPI();
+		try {
+			List<String> interactionIds = new ArrayList<>();
+			
+			solrConn.connect("cloudera4:2181,cloudera5:2181", "collgrabdata");
+			
+			if (solrConn.connected()) {
+				Map<String, String> filters = new HashMap<>();
+				filters.put("q", "*:*");
+				filters.put("fq", "connid:"+connID);
+				filters.put("rows", "10000");
+				filters.put("fl", "interactionid");
+				filters.put("key", "id");
+
+				Map<String, String> mapIds = new HashMap<>();
+				mapIds = solrConn.getRows(filters);
+				
+				if (mapIds.size()>0) {
+					for (Map.Entry<String, String> entry : mapIds.entrySet()) {
+						JSONObject jo = new JSONObject(entry.getValue());
+						interactionIds.add(jo.getString("interactionid"));
+					}
+				}
+			}
+			
+			return interactionIds;
+		} catch (Exception e) {
+			throw new Exception("getInteractionIDs: "+e.getMessage());
+		} finally {
+			try {
+				solrConn.close();
+			} catch (Exception e) {}
+		}
+	}
+
+	
+	public Map<String, Grabacion> getRow(String connid) throws Exception {
+		SolrAPI solrConn = new SolrAPI();
+		try {
+			
 			Map<String, Grabacion> mapGrab = new HashMap<>();
 			
-			solrConn.setConfig(gDatos.getFileConfig(), gDatos.getHbProperties());
-			solrConn.open();
+			solrConn.connect("cloudera4:2181,cloudera5:2181", "collgrabdata");
 			
-			if (solrConn.isConnected()) {
+			if (solrConn.connected()) {
 				
 				//Aplica filtros de consulta
 				Map<String,String> filters = new HashMap<>();
@@ -48,7 +143,7 @@ public class QueryService {
 				
 				if (!keys.isEmpty()) {
 					//Consulta Datos a HBase
-					HBaseDB hbConn = new HBaseDB();
+					HBaseAPI hbConn = new HBaseAPI();
 					hbConn.setConfig(gDatos.getFileConfig(), gDatos.getHbProperties(),"grabaciones");
 					
 					Connection conn = ConnectionFactory.createConnection(hbConn.getHcfg());
@@ -69,12 +164,15 @@ public class QueryService {
 					table.close();
 					conn.close();
 				}
-				solrConn.close();
 			} 
 			
 			return mapGrab;
 		} catch (Exception e) {
 			throw new Exception(e.getMessage());
+		} finally {
+			try {
+				solrConn.close();
+			} catch (Exception e) {}
 		}
 	}
 	
