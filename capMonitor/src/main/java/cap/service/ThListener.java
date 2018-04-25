@@ -10,10 +10,10 @@ import java.net.Socket;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
+import com.rutinas.Rutinas;
 
 import cap.utiles.GlobalParams;
 import cap.utiles.FlowControl;
-import utiles.common.rutinas.Rutinas;
 
 public class ThListener implements Runnable{
 	static Logger logger = Logger.getLogger("thListener");

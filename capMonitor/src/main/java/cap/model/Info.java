@@ -1,6 +1,6 @@
 package cap.model;
 
-public class InfoConfig {
+public class Info {
 	//Parametros del servicio Monitor
 	String monRol;
 	String monID;

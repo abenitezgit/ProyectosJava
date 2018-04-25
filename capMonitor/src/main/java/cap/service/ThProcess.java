@@ -1,10 +1,10 @@
 package cap.service;
 
-
 import org.apache.log4j.Logger;
 
+import com.rutinas.Rutinas;
+
 import cap.utiles.GlobalParams;
-import utiles.common.rutinas.Rutinas;
 
 public class ThProcess implements Runnable{
 	static Logger logger = Logger.getLogger("ThProcess");

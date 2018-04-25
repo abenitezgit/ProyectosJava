@@ -6,7 +6,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import org.apache.log4j.Logger;
 
-import cap.model.InfoConfig;
+import cap.model.Info;
 import cap.model.ProcControl;
 import cap.model.Service;
 import cap.model.Task;
@@ -15,7 +15,7 @@ public class GlobalParams {
 	private String pathConfig;
 	private String fileConfig;
 	private Logger logger;
-	private InfoConfig info = new InfoConfig();
+	private Info info = new Info();
 	
 	//Process Control
 	private Map<String, Boolean> mapEnableThreadControl = new HashMap<>();
@@ -29,7 +29,6 @@ public class GlobalParams {
 	private boolean dbValid;
 
 	//Getter and Setter
-
 	
 	public String getPathConfig() {
 		return pathConfig;
@@ -91,10 +90,10 @@ public class GlobalParams {
 	public void setLogger(Logger logger) {
 		this.logger = logger;
 	}
-	public InfoConfig getInfo() {
+	public Info getInfo() {
 		return info;
 	}
-	public void setInfo(InfoConfig info) {
+	public void setInfo(Info info) {
 		this.info = info;
 	}
 	

@@ -8,22 +8,23 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import com.api.MysqlAPI;
+import com.rutinas.Rutinas;
+
 import cap.model.Mov;
 import cap.model.MovMatch;
 import cap.model.PGPending;
 import cap.utiles.GlobalParams;
-import dataAccess.MySQLDB;
-import utiles.common.rutinas.Rutinas;
 
 public class DataAccess {
 	Logger logger = Logger.getLogger("DataAccess");
 	Rutinas mylib = new Rutinas();
 	GlobalParams gParams;
-	MySQLDB dbConn;
+	MysqlAPI dbConn;
 	
 	public DataAccess(GlobalParams m) {
 		gParams = m;
-		dbConn = new MySQLDB(gParams.getInfo().getDbHostName(), gParams.getInfo().getDbName(), String.valueOf(gParams.getInfo().getDbPort()),gParams.getInfo().getDbUser(),gParams.getInfo().getDbPass(),gParams.getInfo().getDbTimeOut());
+		dbConn = new MysqlAPI(gParams.getInfo().getDbHostName(), gParams.getInfo().getDbName(), String.valueOf(gParams.getInfo().getDbPort()),gParams.getInfo().getDbUser(),gParams.getInfo().getDbPass(),gParams.getInfo().getDbTimeOut());
 	}
 	
 	/**

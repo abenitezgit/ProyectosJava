@@ -10,10 +10,11 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import com.rutinas.Rutinas;
+
 import cap.model.PGPending;
 import cap.model.ProcControl;
 import cap.model.Service;
-import utiles.common.rutinas.Rutinas;
 
 public class FlowControl {
 	Logger logger = Logger.getLogger("FlowControl");

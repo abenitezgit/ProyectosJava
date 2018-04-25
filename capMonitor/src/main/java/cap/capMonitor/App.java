@@ -2,25 +2,24 @@ package cap.capMonitor;
 
 import java.io.FileInputStream;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
-import cap.model.InfoConfig;
-import cap.service.ThMain;
+import com.rutinas.Rutinas;
+
+import cap.model.Info;
 import cap.service.ThMain;
 import cap.utiles.GlobalParams;
-import utiles.common.rutinas.Rutinas;
 
 /**
  * srvService
  *
  */
 public class App {
-	static Logger logger = Logger.getLogger("App");
+	static Logger logger = Logger.getLogger("capMonitor");
 	static GlobalParams gParams = new GlobalParams();
 	static Rutinas mylib = new Rutinas();
 	static ScheduledExecutorService executorThMain = Executors.newSingleThreadScheduledExecutor();
@@ -47,7 +46,7 @@ public class App {
         				Runnable thMain = new ThMain(gParams);
         				executorThMain.scheduleWithFixedDelay(thMain, 1000, gParams.getInfo().getTxpMain(), TimeUnit.MILLISECONDS);
 					
-					logger.info("Se ha iniciado correctamente el Thread ThMain");
+        				logger.info("Se ha iniciado correctamente el Thread ThMain");
 	        			
 	        			break;
 	        		case 98:
@@ -74,7 +73,7 @@ public class App {
     private static int initComponents() {
 	    	int errCode=99;
 	    	try {
-	    		InfoConfig  info = new InfoConfig();
+	    		Info  info = new Info();
 	    		
 	    		//Abriendo archivo de Config
 	    		String pathFileConfig = gParams.getPathConfig()+"/"+gParams.getFileConfig();
