@@ -88,7 +88,7 @@ public class ChatService {
         String fq="*:*";
         
     		String filter1 = buildChatTextQuery(chatType);
-    		String filter2 = 
+    		//String filter2 = 
         
         parameters.set("q", q);
         parameters.set("fq", fq);
