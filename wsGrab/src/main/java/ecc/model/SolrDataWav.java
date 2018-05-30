@@ -1,15 +1,18 @@
 package ecc.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class SolrDataWav {
 	String id;
 	String ftpdir;
 	String fname;
 	int zone;
-	List<String> rstorage = new ArrayList<>();
+	int rstorage;
 	
+	public int getRstorage() {
+		return rstorage;
+	}
+	public void setRstorage(int rstorage) {
+		this.rstorage = rstorage;
+	}
 	public String getFtpdir() {
 		return ftpdir;
 	}
@@ -33,11 +36,5 @@ public class SolrDataWav {
 	}
 	public void setZone(int zone) {
 		this.zone = zone;
-	}
-	public List<String> getRstorage() {
-		return rstorage;
-	}
-	public void setRstorage(List<String> rstorage) {
-		this.rstorage = rstorage;
 	}
 }

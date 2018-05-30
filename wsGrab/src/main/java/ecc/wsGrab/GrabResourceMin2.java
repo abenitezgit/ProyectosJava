@@ -36,7 +36,7 @@ public class GrabResourceMin2 {
 	GrabService srvGrab;
 	
 	//Declaracion de Variables
-	
+	//Lista para Retornar Grabaciones encontradas
 	List<GrabMin> lstGrab = new ArrayList<>();
 	
 	//Constructor
@@ -87,7 +87,6 @@ public class GrabResourceMin2 {
 			logger.info("Iniciando extraccion de grabaciones via POST");
 			logger.info("DataInput: "+dataInput);
 			
-			
 			/**
 			 * Recibe los datos de entrada y los mapea en una clase DataRequest()
 			 */
@@ -96,6 +95,15 @@ public class GrabResourceMin2 {
 				srvGrab.fillDataRequest(dataInput);
 			} catch (Exception e) {
 				return  Response.status(500).entity("Datos de entrada no son validos: "+e.getMessage()).build();
+			}
+			
+			/**
+			 * Inicializando componentes -  cargando parametros
+			 */
+			try {
+				srvGrab.initComponent();
+			} catch (Exception e) {
+				return  Response.status(500).entity("Error cargando archivo de parametros: "+e.getMessage()).build();
 			}
 			
             /**

@@ -50,31 +50,19 @@ public class ExtractService {
 
 	//Public methods
 	
-	public String getUploadFolder(int zone) throws Exception {
-		try {
-			Properties fileProperties = new Properties();
-			
-			fileProperties.load(new FileInputStream(gDatos.getFileConfig()));
-			String workFolder = fileProperties.getProperty(gDatos.getHbProperties()+".ftpZon"+zone+".uploadFolder"); 
-			
-			return workFolder;
-			
-		} catch (Exception e) {
-			throw new Exception("Error getUploadFolder: "+e.getMessage());
+	public String getUploadFolder(int zone) {
+		if (zone==1) {
+			return gDatos.getInfoZon1().getUploadFolder();
+		} else {
+			return gDatos.getInfoZon2().getUploadFolder();
 		}
 	}
 	
-	public String getUrlAudio() throws Exception {
-		try {
-			Properties fileProperties = new Properties();
-			
-			fileProperties.load(new FileInputStream(gDatos.getFileConfig()));
-			String urlAudio = fileProperties.getProperty(gDatos.getHbProperties()+".urlAudioZon"+zone); 
-			
-			return urlAudio;
-			
-		} catch (Exception e) {
-			throw new Exception("Error getZoneLocal: "+e.getMessage());
+	public String getUrlAudio() {
+		if (zone==1) {
+			return gDatos.getInfoZon1().getUrlDecode();
+		} else {
+			return gDatos.getInfoZon2().getUrlDecode();
 		}
 	}
 	
@@ -82,7 +70,7 @@ public class ExtractService {
 		SolrAPI solrConn = new SolrAPI();
 		try {
 			mylib.console("Iniciando conexión a solR...");
-			solrConn.connect("cloudera4:2181,cloudera5:2181", "collgrabdata");
+			solrConn.connect(gDatos.getZkHost(), gDatos.getCollectionBase());
 			
 			if (solrConn.connected()) {
 				mylib.console("Conexión establecido a solR...");
@@ -104,19 +92,10 @@ public class ExtractService {
 				for (Entry<String, String> entry : mapRow.entrySet()) {
 					mylib.console("Encontrado id: "+entry.getKey()+ " value: "+entry.getValue());
 					JSONObject joValue = new JSONObject(entry.getValue());
-					ftpDir = (String) joValue.getString("ftpdir");
-					fname = (String) joValue.getString("fname");
-					try {
-						zone = Integer.valueOf(joValue.getString("zone"));
-						if (zone!=1 && zone!=2) {
-							mylib.console("Asignacion de zone default 1 (ECC)");
-							zone = 1;
-						}
-					} catch (Exception e) {
-						mylib.console("Asignacion de zone por exception en 1");
-						zone = 1;
-					}
-					break;
+					ftpDir = joValue.getString("ftpdir");
+					fname = joValue.getString("fname");
+					zone = joValue.getInt("zone");
+					break; //solo importa recuperar el primer registro
 				}
 			}
 		} catch (Exception e) {

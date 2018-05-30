@@ -25,6 +25,7 @@ import org.json.JSONObject;
 import com.rutinas.Rutinas;
 
 import ecc.services.ExtractDataService;
+import ecc.services.GrabService;
 import ecc.utiles.GlobalArea;
 
 import org.apache.log4j.Logger;
@@ -34,7 +35,12 @@ public class ExtractDataID {
 	Logger logger = Logger.getLogger("wsGrab");
 	GlobalArea gDatos = new GlobalArea();
 	ExtractDataService eds = new ExtractDataService(gDatos);
+	GrabService srvGrab;
 	Rutinas mylib = new Rutinas();
+	
+	public ExtractDataID() {
+		srvGrab = new GrabService(gDatos);
+	}
 	
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
@@ -51,6 +57,10 @@ public class ExtractDataID {
 	public Response getWav(@PathParam("ID") String ID) {
 		try {
 			logger.info("Iniciando extraccion grabacion para el ID: "+ID);
+			
+			logger.info("Inicializando componentes");
+			srvGrab.initComponent();
+			
 			logger.info("Recuperando datos del Connid...");
 			
 			//Conecta a SOLR para extraer información requerida
@@ -60,13 +70,13 @@ public class ExtractDataID {
 			int zone = eds.getZone();
 			String urlAudio = eds.getUrlAudio();
 			String audioPathFile = eds.getFtpDir()+eds.getFname();
-			String rstorage = eds.getRstorage();
+			int rstorage = eds.getRstorage();
 			
 			//Visualiza datos recuperados
 			logger.info("Zona Ubicacion Audios: "+zone);
 			logger.info("urlGetDecodedAudio: "+urlAudio);
 			logger.info("AudioPathFile: "+audioPathFile);
-			logger.info("Zone: "+zone);
+			logger.info("rstorage: "+rstorage);
 			
 			//Ejecuta Nueva API getDecodedFile
 			logger.info("Ejecutando API Rest getDecodedFile URL: "+urlAudio);
@@ -75,7 +85,7 @@ public class ExtractDataID {
 			HttpPost postRequest = new HttpPost(urlAudio);
 
 			JSONObject json = new JSONObject();
-			json.put("zone", String.valueOf(zone));
+			json.put("zone", zone);
 			json.put("audioPathFile", audioPathFile);
 			json.put("ID", ID);
 			json.put("rstorage", rstorage);

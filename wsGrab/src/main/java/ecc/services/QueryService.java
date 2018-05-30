@@ -9,8 +9,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Table;
@@ -38,7 +36,7 @@ public class QueryService {
 		try {
 			UriGrab uriGrab = new UriGrab();
 			
-			solrConn.connect("cloudera4:2181,cloudera5:2181", "collgrabdata");
+			solrConn.connect(gDatos.getZkHost(), gDatos.getCollectionBase());
 			
 			if (solrConn.connected()) {
 				List<String> filterInterac = new ArrayList<>();
@@ -88,7 +86,7 @@ public class QueryService {
 		try {
 			List<String> interactionIds = new ArrayList<>();
 			
-			solrConn.connect("cloudera4:2181,cloudera5:2181", "collgrabdata");
+			solrConn.connect(gDatos.getZkHost(), gDatos.getCollectionBase());
 			
 			if (solrConn.connected()) {
 				Map<String, String> filters = new HashMap<>();
@@ -122,11 +120,12 @@ public class QueryService {
 	
 	public Map<String, Grabacion> getRow(String connid) throws Exception {
 		SolrAPI solrConn = new SolrAPI();
+		HBaseAPI hbConn = new HBaseAPI();
 		try {
 			
 			Map<String, Grabacion> mapGrab = new HashMap<>();
 			
-			solrConn.connect("cloudera4:2181,cloudera5:2181", "collgrabdata");
+			solrConn.connect(gDatos.getZkHost(), gDatos.getCollectionBase());
 			
 			if (solrConn.connected()) {
 				
@@ -143,12 +142,10 @@ public class QueryService {
 				
 				if (!keys.isEmpty()) {
 					//Consulta Datos a HBase
-					HBaseAPI hbConn = new HBaseAPI();
-					hbConn.setConfig(gDatos.getFileConfig(), gDatos.getHbProperties(),"grabaciones");
 					
-					Connection conn = ConnectionFactory.createConnection(hbConn.getHcfg());
+					hbConn.setConfig(gDatos.getFileConfig(), gDatos.getClusterName(),gDatos.getHbTableName());
 					
-					Table table = conn.getTable(TableName.valueOf("grabaciones"));
+					Table table = hbConn.getConnection().getTable(TableName.valueOf(gDatos.getHbTableName()));
 					
 					Get g = new Get(Bytes.toBytes(keys.get(0)));
 					Result rs = table.get(g);
@@ -162,7 +159,6 @@ public class QueryService {
 					mapGrab.put(keys.get(0), grabacion);
 					
 					table.close();
-					conn.close();
 				}
 			} 
 			
@@ -172,6 +168,9 @@ public class QueryService {
 		} finally {
 			try {
 				solrConn.close();
+			} catch (Exception e) {}
+			try {
+				hbConn.close();
 			} catch (Exception e) {}
 		}
 	}

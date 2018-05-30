@@ -20,11 +20,18 @@ public class DataRequest {
 	String zone;
 	int limit;   //Limite de registros a retornar 0: unlimited
 	List<String> lstSkill = new ArrayList<>();
+	String fono;
 	
 	//Getter ans Setter
-
+	
 	public String getConnid() {
 		return connid;
+	}
+	public String getFono() {
+		return fono;
+	}
+	public void setFono(String fono) {
+		this.fono = fono;
 	}
 	public String getRutagente() {
 		return rutagente;

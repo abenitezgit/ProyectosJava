@@ -7,8 +7,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Map.Entry;
 
-import org.json.JSONObject;
-
 import com.api.SolrAPI;
 import com.rutinas.Rutinas;
 
@@ -32,19 +30,20 @@ public class ExtractDataService {
 	private String ftpDir;
 	private String fname;
 	private int zone;
-	private String rstorage;
+	private int rstorage;
+	private int dfstorage;
 	
 	//Getter and Setter
-	
+
 	public String getFtpDir() {
 		return ftpDir;
 	}
 
-	public String getRstorage() {
+	public int getRstorage() {
 		return rstorage;
 	}
 
-	public void setRstorage(String rstorage) {
+	public void setRstorage(int rstorage) {
 		this.rstorage = rstorage;
 	}
 
@@ -72,13 +71,11 @@ public class ExtractDataService {
 	
 	public String getUploadFolder(int zone) throws Exception {
 		try {
-			Properties fileProperties = new Properties();
-			
-			fileProperties.load(new FileInputStream(gDatos.getFileConfig()));
-			String workFolder = fileProperties.getProperty(gDatos.getHbProperties()+".ftpZon"+zone+".uploadFolder"); 
-			
-			return workFolder;
-			
+			if (zone==1) {
+				return gDatos.getInfoZon1().getUploadFolder();
+			} else {
+				return gDatos.getInfoZon2().getUploadFolder();
+			}
 		} catch (Exception e) {
 			throw new Exception("Error getUploadFolder: "+e.getMessage());
 		}
@@ -86,13 +83,11 @@ public class ExtractDataService {
 	
 	public String getUrlAudio() throws Exception {
 		try {
-			Properties fileProperties = new Properties();
-			
-			fileProperties.load(new FileInputStream(gDatos.getFileConfig()));
-			String urlAudio = fileProperties.getProperty(gDatos.getHbProperties()+".urlAudioZon"+zone); 
-			
-			return urlAudio;
-			
+			if (zone==1) {
+				return gDatos.getInfoZon1().getUrlDecode();
+			} else {
+				return gDatos.getInfoZon2().getUrlDecode();
+			}
 		} catch (Exception e) {
 			throw new Exception("Error getZoneLocal: "+e.getMessage());
 		}
@@ -102,7 +97,9 @@ public class ExtractDataService {
 		SolrAPI solrConn = new SolrAPI();
 		try {
 			logger.info("Iniciando conexión a solR...");
-			solrConn.connect("cloudera4:2181,cloudera5:2181", "collgrabdata");
+			logger.info("zkHost: "+gDatos.getZkHost());
+			logger.info("Collection: "+gDatos.getCollectionBase());
+			solrConn.connect(gDatos.getZkHost(), gDatos.getCollectionBase());
 			
 			if (solrConn.connected()) {
 				logger.info("Conexion establecida a solR ");
@@ -130,22 +127,23 @@ public class ExtractDataService {
 					
 					ftpDir = mylib.nvlString(solrdata.getFtpdir());
 					fname = mylib.nvlString(solrdata.getFname());
-					if (solrdata.getRstorage().size()==1) {
-						rstorage = solrdata.getRstorage().get(0);
-					} else {
-						rstorage = "1";
-					}
+					rstorage = solrdata.getRstorage();
 					zone = solrdata.getZone();
-					try {
-						if (zone!=1 && zone!=2) {
-							logger.info("Asignacion de zone default 1 (ECC)");
-							zone = 1;
-						}
-					} catch (Exception e) {
-						logger.error("Asignacion de zone por exception en 1");
+					
+					if (zone==0) {
 						zone = 1;
 					}
 					
+					if (zone==1) {
+						dfstorage = gDatos.getInfoZon1().getDfStorage();
+					} else {
+						dfstorage = gDatos.getInfoZon2().getDfStorage();
+					}
+					
+					if (rstorage==0) {
+						 rstorage = dfstorage;
+					} 
+										
 					break;
 				}
 			}

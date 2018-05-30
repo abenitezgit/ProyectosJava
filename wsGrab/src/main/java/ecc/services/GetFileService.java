@@ -1,7 +1,5 @@
 package ecc.services;
 
-import java.io.FileInputStream;
-import java.util.Properties;
 
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
@@ -9,6 +7,7 @@ import org.json.JSONObject;
 import com.api.FtpAPI;
 import com.rutinas.Rutinas;
 
+import ecc.model.RStorage;
 import ecc.utiles.GlobalArea;
 
 public class GetFileService {
@@ -26,24 +25,35 @@ public class GetFileService {
 	FtpAPI ftp = new FtpAPI();
 	
 	//Parametros de Acceso
-	private String HostIP;
+	private String hostIP;
 	private String userName;
 	private String userPass;
 	private String workFolder;
 	
 	//Parametros de Ingreso
-	private String zone;
+	private int zone;
 	private String audioPathFile;
 	private String downFileName;
 	private String ID;
-	private String rstorage;
+	private int rstorage;
 	private String ftpPath;
 	
 	//Getter and Setter
-
 	
-	public String getHostIP() {
-		return HostIP;
+	public int getZone() {
+		return zone;
+	}
+
+	public void setZone(int zone) {
+		this.zone = zone;
+	}
+
+	public int getRstorage() {
+		return rstorage;
+	}
+
+	public void setRstorage(int rstorage) {
+		this.rstorage = rstorage;
 	}
 
 	public String getFtpPath() {
@@ -54,28 +64,12 @@ public class GetFileService {
 		this.ftpPath = ftpPath;
 	}
 
-	public String getRstorage() {
-		return rstorage;
-	}
-
-	public void setRstorage(String rstorage) {
-		this.rstorage = rstorage;
-	}
-
 	public String getID() {
 		return ID;
 	}
 
 	public void setID(String ID) {
 		this.ID = ID;
-	}
-
-	public String getZone() {
-		return zone;
-	}
-
-	public void setZone(String zone) {
-		this.zone = zone;
 	}
 
 	public String getAudioPathFile() {
@@ -92,10 +86,6 @@ public class GetFileService {
 
 	public void setDownFileName(String downFileName) {
 		this.downFileName = downFileName;
-	}
-
-	public void setHostIP(String hostIP) {
-		HostIP = hostIP;
 	}
 
 	public String getUserName() {
@@ -127,36 +117,34 @@ public class GetFileService {
 	public void paseaDataInput(String dataInput) throws Exception {
 		try {
 			JSONObject jo = new JSONObject(dataInput);
-			zone = jo.getString("zone");
+			zone = jo.getInt("zone");
 			audioPathFile = jo.getString("audioPathFile");
 			ID = jo.getString("ID");
 			downFileName = ID + ".wav";
-			rstorage = jo.getString("rstorage");
+			rstorage = jo.getInt("rstorage");
 		} catch (Exception e) {
 			throw new Exception("Error parseaDataInput: "+e.getMessage());
 		}
 	}
 	
-	public void getDataConfig(String zone) throws Exception {
+	public void getDataConfig(int zone, int rstorage) throws Exception {
 		try {
-			String Zone = "Zon"+zone;
-			String rs = "rs1";
-			switch(rstorage) {
-				case "1":
-					rs = "rs1";
-					break;
-				case "2":
-					rs = "rs2";
-					break;
+			RStorage rs = new RStorage();
+			if (gDatos.getMapStorage().containsKey(String.valueOf(rstorage))) {
+				rs = gDatos.getMapStorage().get(String.valueOf(rstorage));
 			}
-			Properties fileProperties = new Properties();
 			
-			fileProperties.load(new FileInputStream(gDatos.getFileConfig()));
-			HostIP = fileProperties.getProperty(gDatos.getHbProperties()+".ftp"+Zone+"."+rs+".server");
-			userName = fileProperties.getProperty(gDatos.getHbProperties()+".ftp"+Zone+"."+rs+".user");
-			userPass = fileProperties.getProperty(gDatos.getHbProperties()+".ftp"+Zone+"."+rs+".pass");
-			workFolder = fileProperties.getProperty(gDatos.getHbProperties()+".ftp"+Zone+".workFolder");
-			ftpPath = fileProperties.getProperty(gDatos.getHbProperties()+".ftp"+Zone+"."+rs+".path");
+			hostIP = rs.getServer();
+			userName = rs.getUser();
+			userPass = rs.getPass();
+			ftpPath = rs.getPath();
+			
+			if (zone==1) {
+				workFolder = gDatos.getInfoZon1().getWorkFolder();
+			} else {
+				workFolder = gDatos.getInfoZon2().getWorkFolder();
+			}
+			
 			if (ftpPath.equals("/")) {
 				ftpPath="";
 			}
@@ -168,14 +156,14 @@ public class GetFileService {
 	
 	public void getAudioFTP() throws Exception {
 		try {
-			ftp.setHostIP(HostIP);
+			ftp.setHostIP(hostIP);
 			ftp.setUserName(userName);
 			ftp.setUserPass(userPass);
 			ftp.setConnectTimeout(3000);
 			
 			logger.info("Conectandose a Sitio FTP");
 			logger.info("Resource Storage: "+rstorage);
-			logger.info("FTP Server	: "+HostIP);
+			logger.info("FTP Server		: "+hostIP);
 			logger.info("FTP User		: "+userName);
 			logger.info("FTP Pass		: "+userPass);
 			

@@ -20,54 +20,58 @@ public class MappingServiceImpl implements MappingService{
 	public void setOpcionMapping() throws Exception {
 		try {
 			/**
-			0:	ani				: 100000000000001	100000000001101	100000000001111 100000000000011
-			1:	dnis				: 010000000000001	010000000001101	010000000001111 010000000000011
-			2:	connid			: 001000000000001	001000000001101	001000000001111 001000000000011
-			3:	agente			: 000100000000001	000100000001101	000100000001111 000100000000011
-			4:	uniqueid			: 000010000000001	000010000001101	000010000001111 000010000000011
-			5:	codigoservicio	: 000001000000001	000001000001101	000001000001111 000001000000011
-			6:	interactionid	: 000000100000001	000000100001101	000000100001111 000000100000011
-			7:	fname			: 000000010000001
-			8:	zone				: 000000001000001	000000001001101	000000001001111 000000001000011
-			9:	rutagente		: 000000000100001	000000000101101	000000000101111 000000000100011
-			10:	tipointeract		: 000000000011101	000000000011111	000000000010011
+			0:	ani				: 1000000000000010	1000000000011010 	1000000000011110 1000000000000110
+			1:	dnis				: 0100000000000010	0100000000011010 	0100000000011110 0100000000000110
+			2:	connid			: 0010000000000010	0010000000011010 	0010000000011110 0010000000000110
+			3:	agente			: 0001000000000010	0001000000011010 	0001000000011110 0001000000000110
+			4:	uniqueid			: 0000100000000010	0000100000011010 	0000100000011110 0000100000000110
+			5:	codigoservicio	: 0000010000000010	0000010000011010 	0000010000011110 0000010000000110
+			6:	interactionid	: 0000001000000010	0000001000011010 	0000001000011110 0000001000000110
+			7:	fname			: 0000000100000010
+			8:	zone				: 0000000010000010	0000000010011010	 0000000010011110 0000000010000110
+			9:	rutagente		: 0000000001000010	0000000001011010	 0000000001011110 0000000001000110
+			10:	tipointeract		: 0000000000111010	0000000000111110	 0000000000100110
 			11: fechaDesde		: 
 			12: fechaHasta		:
-			13: skill 			: 000000000001111
+			13: skill 			: 0000000000011110
 			14: Limite 			: Obligaciom
+			15: Fono				: 0000000000000011  0000000000011111 0000000000000111
 			**/ 
 			
-			gParams.getMapOpcion().put("100000000000001", "0:Ani");
-			gParams.getMapOpcion().put("100000000001111", "2:Ani & Fechas & Skill");
-			gParams.getMapOpcion().put("100000000000011", "3:Ani & Skill");
-			gParams.getMapOpcion().put("010000000000001", "4:Dnis");
-			gParams.getMapOpcion().put("010000000001111", "6:Dnis & Fechas & Skill");
-			gParams.getMapOpcion().put("010000000000011", "7:Dnis & Skill");
-			gParams.getMapOpcion().put("001000000000001", "8:ConnID");
-			gParams.getMapOpcion().put("001000000001111", "10:ConnID & Fechas & Skill");
-			gParams.getMapOpcion().put("001000000000011", "11:ConnID & Skill");
-			gParams.getMapOpcion().put("000100000000001", "12:Agente");
-			gParams.getMapOpcion().put("000100000001111", "14:Agente & Fechas & Skill");
-			gParams.getMapOpcion().put("000100000000011", "15:Agente & Skill");
-			gParams.getMapOpcion().put("000010000000001", "16:UniqueID");
-			gParams.getMapOpcion().put("000010000001111", "18:UniqueID & Fechas & Skill");
-			gParams.getMapOpcion().put("000010000000011", "19:UniqueID & Skill");
-			gParams.getMapOpcion().put("000001000000001", "20:CodigoServicio");
-			gParams.getMapOpcion().put("000001000001111", "22:CodigoServicio & Fechas & Skill");
-			gParams.getMapOpcion().put("000001000000011", "23:CodigoServicio & Skill");
-			gParams.getMapOpcion().put("000000100000001", "24:InteractionID");
-			gParams.getMapOpcion().put("000000100001111", "26:InteractionID & Fechas & Skill");
-			gParams.getMapOpcion().put("000000100000011", "27:InteractionID & Skill");
-			gParams.getMapOpcion().put("000000010000001", "28:Nombre Grabacion");
-			gParams.getMapOpcion().put("000000001000001", "29:Zone");
-			gParams.getMapOpcion().put("000000001001111", "31:Zone & Fechas & Skill");
-			gParams.getMapOpcion().put("000000001000011", "32:Zone & Skill");
-			gParams.getMapOpcion().put("000000000100001", "33:RutAgente");
-			gParams.getMapOpcion().put("000000000101111", "35:RutAgente & Fechas & Skill");
-			gParams.getMapOpcion().put("000000000100011", "36:RutAgente & Skill");
-			gParams.getMapOpcion().put("000000000011111", "38:TipoInteraction & Fechas & Skill");
-			gParams.getMapOpcion().put("000000000010011", "39:TipoInteraction & Skill");
-			gParams.getMapOpcion().put("000000000001111", "40:Skill & Fechas");
+			gParams.getMapOpcion().put("1000000000000010", "0:Ani");
+			gParams.getMapOpcion().put("1000000000011110", "2:Ani & Fechas & Skill");
+			gParams.getMapOpcion().put("1000000000000110", "3:Ani & Skill");
+			gParams.getMapOpcion().put("0100000000000010", "4:Dnis");
+			gParams.getMapOpcion().put("0100000000011110", "6:Dnis & Fechas & Skill");
+			gParams.getMapOpcion().put("0100000000000110", "7:Dnis & Skill");
+			gParams.getMapOpcion().put("0010000000000010", "8:ConnID");
+			gParams.getMapOpcion().put("0010000000011110", "10:ConnID & Fechas & Skill");
+			gParams.getMapOpcion().put("0010000000000110", "11:ConnID & Skill");
+			gParams.getMapOpcion().put("0001000000000010", "12:Agente");
+			gParams.getMapOpcion().put("0001000000011110", "14:Agente & Fechas & Skill");
+			gParams.getMapOpcion().put("0001000000000110", "15:Agente & Skill");
+			gParams.getMapOpcion().put("0000100000000010", "16:UniqueID");
+			gParams.getMapOpcion().put("0000100000011110", "18:UniqueID & Fechas & Skill");
+			gParams.getMapOpcion().put("0000100000000110", "19:UniqueID & Skill");
+			gParams.getMapOpcion().put("0000010000000010", "20:CodigoServicio");
+			gParams.getMapOpcion().put("0000010000011110", "22:CodigoServicio & Fechas & Skill");
+			gParams.getMapOpcion().put("0000010000000110", "23:CodigoServicio & Skill");
+			gParams.getMapOpcion().put("0000001000000010", "24:InteractionID");
+			gParams.getMapOpcion().put("0000001000011110", "26:InteractionID & Fechas & Skill");
+			gParams.getMapOpcion().put("0000001000000110", "27:InteractionID & Skill");
+			gParams.getMapOpcion().put("0000000100000010", "28:Nombre Grabacion");
+			gParams.getMapOpcion().put("0000000010000010", "29:Zone");
+			gParams.getMapOpcion().put("0000000010011110", "31:Zone & Fechas & Skill");
+			gParams.getMapOpcion().put("0000000010000110", "32:Zone & Skill");
+			gParams.getMapOpcion().put("0000000001000010", "33:RutAgente");
+			gParams.getMapOpcion().put("0000000001011110", "35:RutAgente & Fechas & Skill");
+			gParams.getMapOpcion().put("0000000001000110", "36:RutAgente & Skill");
+			gParams.getMapOpcion().put("0000000000111110", "38:TipoInteraction & Fechas & Skill");
+			gParams.getMapOpcion().put("0000000000100110", "39:TipoInteraction & Skill");
+			gParams.getMapOpcion().put("0000000000011110", "40:Skill & Fechas");
+			gParams.getMapOpcion().put("0000000000000011", "41:Fono");
+			gParams.getMapOpcion().put("0000000000011111", "42:Fono & Fechas & Skill");
+			gParams.getMapOpcion().put("0000000000000111", "43:Fono & Skill");
 			
 		} catch (Exception e) {
 			throw new Exception(e.getMessage());
@@ -101,6 +105,7 @@ public class MappingServiceImpl implements MappingService{
 			12: fechaHasta
 			13: skill
 			14: Limite
+			15: Fono
 			**/ 
 
 			List<String> f = new ArrayList<>();
@@ -110,11 +115,11 @@ public class MappingServiceImpl implements MappingService{
 			Character[] charObjectArray = ArrayUtils.toObject(charArray);
 			
 			if (charObjectArray[0].toString().equals("1")) {
-				f.add("ani:"+gParams.getDr().getAni());
+				f.add("ani:\""+gParams.getDr().getAni()+"\"");
 			}
 			
 			if (charObjectArray[1].toString().equals("1")) {
-				f.add("dnis:"+gParams.getDr().getDnis());
+				f.add("dnis:\""+gParams.getDr().getDnis()+"\"");
 			}
 			
 			if (charObjectArray[2].toString().equals("1")) {
@@ -175,13 +180,14 @@ public class MappingServiceImpl implements MappingService{
 			    f.add("("+strList+")");
 			}
 
+			if (charObjectArray[15].toString().equals("1")) {
+				f.add("(ani:\""+gParams.getDr().getFono()+"\" OR dnis:\""+gParams.getDr().getFono()+"\")");
+			}
+
 			gParams.setSolRfqFilters(StringUtils.join(f, " AND "));
 			
 		} catch (Exception e) {
 			throw new Exception(e.getMessage());
 		}
-		
 	}
-
-
 }

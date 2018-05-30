@@ -18,14 +18,21 @@ import com.api.ConvertToMP3;
 import com.rutinas.Rutinas;
 
 import ecc.services.GetFileService;
+import ecc.services.GrabService;
 import ecc.utiles.GlobalArea;
 
 @Path("getDecodedFile")
 public class GetFileResource {
 	Logger logger = Logger.getLogger("wsGrab");
 	GlobalArea gDatos = new GlobalArea();
-	GetFileService srv = new GetFileService(gDatos);
+	GetFileService srv;
+	GrabService srvGrab;
 	Rutinas mylib = new Rutinas();
+	
+	public GetFileResource( ) {
+		srvGrab = new GrabService(gDatos);
+		srv = new GetFileService(gDatos);
+	}
 	
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
@@ -44,6 +51,9 @@ public class GetFileResource {
 			
 			srv.paseaDataInput(dataInput);
 			
+			logger.info("Inicianlizando componentes");
+			srvGrab.initComponent();
+			
 			//Inicia Proceso de Recuperacion del archivo de audio
 			logger.info("Iniciando Servicio getDecodedFile");
 			logger.info("Zona a Acceder: "+srv.getZone());
@@ -52,13 +62,13 @@ public class GetFileResource {
 			
 			//Recuperadno valores de archivo de condiguración
 			logger.info("Recuperando parametros de archivo de configuracion");
-			srv.getDataConfig(srv.getZone());
+			srv.getDataConfig(srv.getZone(), srv.getRstorage());
 			
 			//Via FTP recupera el archivo de audio
 			logger.info("Recupera Audio desde Sitio FTP");
 			srv.getAudioFTP();
 			
-			//Genera consercion del audio a MP3
+			//Genera convercion del audio a MP3
 			String fileSource = srv.getDownFileName();  //connid.wav
 			
 			StringTokenizer tokens = new StringTokenizer(srv.getID(),"+");

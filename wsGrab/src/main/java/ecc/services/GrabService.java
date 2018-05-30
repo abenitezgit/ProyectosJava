@@ -1,16 +1,16 @@
 package ecc.services;
 
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Table;
@@ -25,6 +25,9 @@ import com.rutinas.Rutinas;
 import ecc.model.DataRequest;
 import ecc.model.GrabMin;
 import ecc.model.Grabacion;
+import ecc.model.InfoZon1;
+import ecc.model.InfoZon2;
+import ecc.model.RStorage;
 import ecc.utiles.GlobalArea;
 
 public class GrabService {
@@ -38,8 +41,88 @@ public class GrabService {
 	}
 
 	public void initComponent() throws Exception {
-		
-		throw new Exception("Error inicializando componentes");
+		try {
+			if (mylib.fileExist(gDatos.getFileConfig())) {
+				//Abriendo archivo de configuracion
+				Properties conf = new Properties();
+				conf.load(new FileInputStream(gDatos.getFileConfig()));
+
+				//Recuperando datos de parametros
+				InfoZon1 infoZon1 = new InfoZon1();
+				InfoZon2 infoZon2 = new InfoZon2();
+				
+				//Usando varables definidas en constructor de globalArea
+				String clusterName = gDatos.getClusterName();
+				String appName = gDatos.getAppName();
+				
+				//Definiendo keys para buscar variables
+				String keyBase = clusterName+"."+appName+".";
+				String keyZon1 = keyBase+"Zon1.";
+				String keyZon2 = keyBase+"Zon2.";
+				
+				//Recuperando datos globales
+				gDatos.setZkHost(conf.getProperty(clusterName+".zkHost"));
+				gDatos.setCollectionBase(conf.getProperty(keyBase+"collectionBase"));
+				gDatos.setHbTableName(conf.getProperty(keyBase+"hbTableName"));
+				
+				//Recupera datos para Zon1
+				
+				infoZon1.setDaysBack(Integer.valueOf(conf.getProperty(keyZon1+"daysBack")));
+				infoZon1.setDbHost(conf.getProperty(keyZon1+"dbHost"));
+				infoZon1.setDbName(conf.getProperty(keyZon1+"dbName"));
+				infoZon1.setDbPass(conf.getProperty(keyZon1+"dbPass"));
+				infoZon1.setDbPort(Integer.valueOf(conf.getProperty(keyZon1+"dbPort")));
+				infoZon1.setDbUser(conf.getProperty(keyZon1+"dbUser"));
+				infoZon1.setUploadFolder(conf.getProperty(keyZon1+"uploadFolder"));
+				infoZon1.setUrlDecode(conf.getProperty(keyZon1+"urlDecode"));
+				infoZon1.setValLoad(Integer.valueOf(conf.getProperty(keyZon1+"valLoad")));
+				infoZon1.setValUpd(Integer.valueOf(conf.getProperty(keyZon1+"valUpd")));
+				infoZon1.setWorkFolder(conf.getProperty(keyZon1+"workFolder"));
+				infoZon1.setDfStorage(Integer.valueOf(conf.getProperty(keyZon1+"dfStorage")));
+				
+				//Recupera datos para Zon1
+				
+				infoZon2.setDaysBack(Integer.valueOf(conf.getProperty(keyZon2+"daysBack")));
+				infoZon2.setDbHost(conf.getProperty(keyZon2+"dbHost"));
+				infoZon2.setDbName(conf.getProperty(keyZon2+"dbName"));
+				infoZon2.setDbPass(conf.getProperty(keyZon2+"dbPass"));
+				infoZon2.setDbPort(Integer.valueOf(conf.getProperty(keyZon2+"dbPort")));
+				infoZon2.setDbUser(conf.getProperty(keyZon2+"dbUser"));
+				infoZon2.setUploadFolder(conf.getProperty(keyZon2+"uploadFolder"));
+				infoZon2.setUrlDecode(conf.getProperty(keyZon2+"urlDecode"));
+				infoZon2.setValLoad(Integer.valueOf(conf.getProperty(keyZon2+"valLoad")));
+				infoZon2.setValUpd(Integer.valueOf(conf.getProperty(keyZon2+"valUpd")));
+				infoZon2.setWorkFolder(conf.getProperty(keyZon2+"workFolder"));
+				infoZon2.setDfStorage(Integer.valueOf(conf.getProperty(keyZon2+"dfStorage")));
+				
+				gDatos.setInfoZon1(infoZon1);
+				gDatos.setInfoZon2(infoZon2);
+				
+				//Recupera los Storage definidos
+				int numStorage = Integer.valueOf(conf.getProperty(keyBase+"numStorage"));
+				Map<String,RStorage> mapStorage = new HashMap<>();
+				RStorage rs = new RStorage();
+				for (int i=1; i<=numStorage; i++) {
+					rs = new RStorage();
+					rs.setId(i);
+					String strRs = "rs"+String.valueOf(i)+".";
+					rs.setPass(conf.getProperty(keyBase+strRs+"pass"));
+					rs.setPath(conf.getProperty(keyBase+strRs+"path"));
+					rs.setServer(conf.getProperty(keyBase+strRs+"server"));
+					rs.setUser(conf.getProperty(keyBase+strRs+"user"));
+					mapStorage.put(String.valueOf(i), rs);
+				}
+				
+				gDatos.setMapStorage(mapStorage);
+				
+			} else {
+				mylib.console(1,"No se encuentra archivo de config");
+				throw new Exception("No se encuentra archivo de config "+gDatos.getFileConfig());
+			}
+			
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		}
 	}
 	
 	public int getLimitRows() {
@@ -57,11 +140,12 @@ public class GrabService {
     
     public Map<String, Grabacion> getGrabaciones(int tipoConsulta) throws Exception {
 	    	SolrAPI solrConn = new SolrAPI();
+	    	HBaseAPI hbConn = new HBaseAPI();
 	    	try {
 	    	    
 	    	    Map<String, Grabacion> mapGrab = new HashMap<>();
 	    	    
-	    	    solrConn.connect("cloudera4:2181,cloudera5:2181", "collgrabdata");
+	    	    solrConn.connect(gDatos.getZkHost(), gDatos.getCollectionBase());
 	    	    
 	    	    if (solrConn.connected()) {
 		    	    	logger.info("Conectado a solR");
@@ -78,12 +162,10 @@ public class GrabService {
 		    	    	
 		    	    	if (keys.size()>0) {
 		    	            //Consulta Datos a HBase
-		    	            HBaseAPI hbConn = new HBaseAPI();
-		    	            hbConn.setConfig(gDatos.getFileConfig(), gDatos.getHbProperties(),"grabaciones");
 		    	            
-		    	            Connection conn = ConnectionFactory.createConnection(hbConn.getHcfg());
+		    	            hbConn.setConfig(gDatos.getFileConfig(), gDatos.getClusterName(),gDatos.getHbTableName());
 		    	            
-		    	            Table table = conn.getTable(TableName.valueOf("grabaciones"));
+		    	            Table table = hbConn.getConnection().getTable(TableName.valueOf(gDatos.getHbTableName()));
 		    	            
 		    	            logger.info("Conectado a HBase");
 		    	            
@@ -103,7 +185,6 @@ public class GrabService {
 			    	            mapGrab.put(key, grabacion);
 				    	    	}
 				    	    	logger.info("Se recuperaron "+mapGrab.size()+ " rows desde HBase");
-				    	    	conn.close();
 		    	    	}
 	    	    }
 	    		
@@ -114,17 +195,21 @@ public class GrabService {
 	    		try {
 	    			solrConn.close();
 	    		} catch (Exception e) {}
+	    		try {
+	    			hbConn.close();
+	    		} catch (Exception e) {}
 	    	}
     }
 
     
     public List<GrabMin> getGrabData() throws Exception {
 	    	SolrAPI solrConn = new SolrAPI();
+	    	HBaseAPI hbConn = new HBaseAPI();
 	    	try {
 	    	    
 	    	    List<GrabMin> lstGrab = new ArrayList<>();
 	    	    
-	    	    solrConn.connect("cloudera4:2181,cloudera5:2181", "collgrabdata");
+	    	    solrConn.connect(gDatos.getZkHost(), gDatos.getCollectionBase());
 	    	    
 	    	    if (solrConn.connected()) {
 		    	    	logger.info("Conectado a solR");
@@ -143,12 +228,10 @@ public class GrabService {
 		    	    	
 		    	    	if (keys.size()>0) {
 					//Consulta Datos a HBase
-					HBaseAPI hbConn = new HBaseAPI();
-					hbConn.setConfig(gDatos.getFileConfig(), gDatos.getHbProperties(),"grabaciones");
 					
-					Connection conn = ConnectionFactory.createConnection(hbConn.getHcfg());
+					hbConn.setConfig(gDatos.getFileConfig(), gDatos.getClusterName(),gDatos.getHbTableName());
 					
-					Table table = conn.getTable(TableName.valueOf("grabaciones"));
+					Table table = hbConn.getConnection().getTable(TableName.valueOf(gDatos.getHbTableName()));
 					
 					logger.info("Conectado a HBase");
 					
@@ -175,11 +258,11 @@ public class GrabService {
 			            grabMin.setCampo1(campo1);
 			            grabMin.setCampo2(campo2);
 			            grabMin.setCampo3(campo3);
+			            grabMin.setId(key);
 			            
 			            lstGrab.add(grabMin);
 			    	    	}
 					logger.info("Se recuperaron "+lstGrab.size()+ " rows desde HBase");
-			    	    	conn.close();
 		    	    	}
 	    	    }
     		
@@ -190,11 +273,15 @@ public class GrabService {
 	    		try {
 	    			solrConn.close();
 	    		} catch (Exception e) {}
+	    		try {
+	    			hbConn.close();
+	    		} catch (Exception e) {}
 	    	}
     }
 
     public List<GrabMin> getGrabDataSinSkill(int tipoConsulta) throws Exception {
 	    	SolrAPI solrConn = new SolrAPI();
+	    	HBaseAPI hbConn = new HBaseAPI();
 	    	try {
 	    	    
 	    	    List<GrabMin> lstGrab = new ArrayList<>();
@@ -216,12 +303,10 @@ public class GrabService {
 		    	    	
 		    	    	if (keys.size()>0) {
 					//Consulta Datos a HBase
-					HBaseAPI hbConn = new HBaseAPI();
-					hbConn.setConfig(gDatos.getFileConfig(), gDatos.getHbProperties(),"grabaciones");
 					
-					Connection conn = ConnectionFactory.createConnection(hbConn.getHcfg());
+					hbConn.setConfig(gDatos.getFileConfig(), gDatos.getClusterName(),gDatos.getHbTableName());
 					
-					Table table = conn.getTable(TableName.valueOf("grabaciones"));
+					Table table = hbConn.getConnection().getTable(TableName.valueOf(gDatos.getHbTableName()));
 					
 					logger.info("Conectado a HBase");
 					
@@ -248,11 +333,11 @@ public class GrabService {
 			            grabMin.setCampo1(campo1);
 			            grabMin.setCampo2(campo2);
 			            grabMin.setCampo3(campo3);
+			            grabMin.setId(key);
 			            
 			            lstGrab.add(grabMin);
 			    	    	}
 					logger.info("Se recuperaron "+lstGrab.size()+ " rows desde HBase");
-			    	    	conn.close();
 		    	    	}
 		    }
 			
@@ -262,6 +347,9 @@ public class GrabService {
 		} finally {
 			try {
 				solrConn.close();
+			} catch (Exception e) {}
+			try {
+				hbConn.close();
 			} catch (Exception e) {}
 		}
 	}

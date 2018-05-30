@@ -50,6 +50,7 @@ public class MainServicesImpl implements IMainServices{
 			if (!mylib.isNullOrEmpty(gParams.getDr().getFechaHasta())) matriz += "1"; else matriz += "0";
 			if (gParams.getDr().getLstSkill().size()!=0) matriz += "1"; else matriz += "0";
 			if (gParams.getDr().getLimit()>0) matriz += "1"; else matriz += "0";
+			if (!mylib.isNullOrEmpty(gParams.getDr().getFono())) matriz += "1"; else matriz += "0";
 			
 			logger.info("Matriz generada: "+matriz);
 			logger.info("Setando Matriz Global...");
