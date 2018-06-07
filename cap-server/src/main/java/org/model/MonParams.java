@@ -11,6 +11,11 @@ public class MonParams {
 	int TxpProcess;
 	int ageShowHour;
 	int ageGapMinute;
+	String thMainAction;
+	String thListenerAction;
+	String thSyncAction;
+	String thDBAccessAction;
+	String thProcessAction;
 	
 	public String getMonID() {
 		return monID;
@@ -71,5 +76,35 @@ public class MonParams {
 	}
 	public void setAgeGapMinute(int ageGapMinute) {
 		this.ageGapMinute = ageGapMinute;
+	}
+	public String getThMainAction() {
+		return thMainAction;
+	}
+	public void setThMainAction(String thMainAction) {
+		this.thMainAction = thMainAction;
+	}
+	public String getThListenerAction() {
+		return thListenerAction;
+	}
+	public void setThListenerAction(String thListenerAction) {
+		this.thListenerAction = thListenerAction;
+	}
+	public String getThSyncAction() {
+		return thSyncAction;
+	}
+	public void setThSyncAction(String thSyncAction) {
+		this.thSyncAction = thSyncAction;
+	}
+	public String getThDBAccessAction() {
+		return thDBAccessAction;
+	}
+	public void setThDBAccessAction(String thDBAccessAction) {
+		this.thDBAccessAction = thDBAccessAction;
+	}
+	public String getThProcessAction() {
+		return thProcessAction;
+	}
+	public void setThProcessAction(String thProcessAction) {
+		this.thProcessAction = thProcessAction;
 	}
 }	

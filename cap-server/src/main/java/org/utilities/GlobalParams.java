@@ -15,6 +15,7 @@ public class GlobalParams {
 	
 	//Map de monParams recibidos desde Metadata
 	Map<String, MonParams> mapMonParams = new HashMap<>();
+	Map<String, Boolean> mapThreadRunnig = new HashMap<>();
 	
 
 	
@@ -55,6 +56,10 @@ public class GlobalParams {
 	public void setMapMonParams(Map<String, MonParams> mapMonParams) {
 		this.mapMonParams = mapMonParams;
 	}
-
-	
+	public Map<String, Boolean> getMapThreadRunnig() {
+		return mapThreadRunnig;
+	}
+	public void setMapThreadRunnig(Map<String, Boolean> mapThreadRunnig) {
+		this.mapThreadRunnig = mapThreadRunnig;
+	}
 }

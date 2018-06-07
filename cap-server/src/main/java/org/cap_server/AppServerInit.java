@@ -3,12 +3,16 @@ package org.cap_server;
 
 import java.io.FileInputStream;
 import java.util.Properties;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 import org.dataAccess.DataAccess;
 import org.json.JSONArray;
 import org.model.Info;
 import org.model.MonParams;
+import org.services.ThMain;
 import org.utilities.GlobalParams;
 
 import com.rutinas.Rutinas;
@@ -18,7 +22,7 @@ import com.rutinas.Rutinas;
  * AppName: AppServerInit
  * Version: 1.0.0
  * Fecha Actualización: 22-05-2018
- * Parametros de Ejecucion: $ java -Drole=<role> -DpathConfig=<path> -DfileConfig=<file.properties>
+ * Parametros de Ejecucion: $ java -DmonID=<role> -DpathConfig=<path> -DfileConfig=<file.properties>
  *
  */
 
@@ -37,31 +41,65 @@ public class AppServerInit {
         
     	try {
     		//Startup cap-server
-    		logger.info("Iniciando cap-server");
+    		logger.info("Iniciando Dispatcher cap-server");
     		
     		//Reading External Params
-    		logger.info("Leyendo parametros externos");
+    		logger.info("Leyendo parametros externos...");
     		getExternalParams();
     		logger.info("Parametros externos OK!");
+    		logger.info("External PathConfig: "+gParams.getPathConfig());
+    		logger.info("External FileConfig: "+gParams.getFileConfig());
+    		logger.info("External monID: "+gParams.getMonID());
     		
     		//Reading FileConfig
-    		logger.info("Leyendo Parametros de la Aplicacion");
+    		logger.info("Leyendo Parametros de la Aplicacion...");
     		getFileProperties();
     		logger.info("Parametros de la Aplicacion OK!");
+    		logger.info("Property dbHostName: "+gParams.getInfo().getDbHostName());
+    		logger.info("Property dbIP: "+gParams.getInfo().getDbIP());
+    		logger.info("Property dbName: "+gParams.getInfo().getDbName());
+    		logger.info("Property dbPort: "+gParams.getInfo().getDbPort());
+    		logger.info("Property dbTimeOut"+gParams.getInfo().getDbTimeOut());
+    		logger.info("Property dbUser: "+gParams.getInfo().getDbUser());
+    		logger.info("Property dbPass: "+gParams.getInfo().getDbPass());
     		
     		//Valida conexion a Metadata
-    		logger.info("Validando Acceso a MetaData");
+    		logger.info("Validando Acceso a MetaData...");
     		valDbConnect();
     		logger.info("Acceso a MetaData OK!");
+
+    		
+    		//Inicializa status de thread en false (no se están ejecutando)
+    		initStatusThread();
     		
     		//Recupera parametros del servicio en MetaData
-    		logger.info("Leyendo Parametros de Inicio");
+    		logger.info("Leyendo Parametros de servicio desde Metadata...");
     		getDBParams();
+    		logger.info("Parametros de servicios OK!");
+    		logger.info("Parametros de Servcios MonServices: "+mylib.serializeObjectToJSon(gParams.getMapMonParams(), false));
     		
+    		//Levanta Main Services
+    		logger.info("Scheduling thMain - Proceso Principal");
+    		ScheduledExecutorService executorThMain = Executors.newSingleThreadScheduledExecutor();
+			Runnable thMain = new ThMain(gParams);
+			gParams.getMapThreadRunnig().put("thMain", true);
+			executorThMain.scheduleWithFixedDelay(thMain, 1000, gParams.getMapMonParams().get(gParams.getMonID()).getTxpMain(), TimeUnit.MILLISECONDS);
+			logger.info("Proceso principal ha sido agendado!");
+			
+			logger.info("Finalizando dispatcher cap-server!");
+
     	} catch (Exception e) {
     		logger.error("No es posible iniciar cap-server: "+e.getMessage());
     		logger.error("Finalizando cap-server");
     	}
+    }
+        
+    private static void initStatusThread() throws Exception {
+    	gParams.getMapThreadRunnig().put("thMain", false);
+    	gParams.getMapThreadRunnig().put("thListener", false);
+    	gParams.getMapThreadRunnig().put("thSync", false);
+    	gParams.getMapThreadRunnig().put("thDBAccess", false);
+    	gParams.getMapThreadRunnig().put("thProcess", false);
     }
     
     private static void getExternalParams() throws Exception {
@@ -154,8 +192,6 @@ public class AppServerInit {
     			MonParams mp = (MonParams) mylib.serializeJSonStringToObject(ja.get(i).toString(), MonParams.class);
     			gParams.getMapMonParams().put(mp.getMonID(), mp);
     		}
-    		
-    		logger.info("resp: "+mylib.serializeObjectToJSon(gParams.getMapMonParams(), true));
     		
     	} catch (Exception e) {
     		throw new Exception("No es posible leer parametros de inicio desde Metadata: "+e.getMessage());
