@@ -5,6 +5,9 @@ import java.util.Map;
 
 import org.model.Info;
 import org.model.MonParams;
+import org.model.ProcControl;
+import org.model.Service;
+import org.model.Task;
 
 public class GlobalParams {
 	
@@ -15,16 +18,18 @@ public class GlobalParams {
 	
 	//Map de monParams recibidos desde Metadata
 	Map<String, MonParams> mapMonParams = new HashMap<>();
+	
+	
 	Map<String, Boolean> mapThreadRunnig = new HashMap<>();
 	
-
+	
+	private Map<String, Task> mapTask = new HashMap<>();
+	private Map<String, Service> mapService = new HashMap<>();
+	private Map<String, ProcControl> mapProcControl = new HashMap<>();
 	
 	private Info info;
 
-	
-	
 	//Getter and Setter
-
 	
 	public String getPathConfig() {
 		return pathConfig;
@@ -61,5 +66,23 @@ public class GlobalParams {
 	}
 	public void setMapThreadRunnig(Map<String, Boolean> mapThreadRunnig) {
 		this.mapThreadRunnig = mapThreadRunnig;
+	}
+	public Map<String, Task> getMapTask() {
+		return mapTask;
+	}
+	public void setMapTask(Map<String, Task> mapTask) {
+		this.mapTask = mapTask;
+	}
+	public Map<String, Service> getMapService() {
+		return mapService;
+	}
+	public void setMapService(Map<String, Service> mapService) {
+		this.mapService = mapService;
+	}
+	public Map<String, ProcControl> getMapProcControl() {
+		return mapProcControl;
+	}
+	public void setMapProcControl(Map<String, ProcControl> mapProcControl) {
+		this.mapProcControl = mapProcControl;
 	}
 }
