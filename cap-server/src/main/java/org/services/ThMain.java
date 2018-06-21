@@ -2,6 +2,7 @@ package org.services;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 import org.utilities.GlobalParams;
@@ -13,6 +14,7 @@ public class ThMain implements Runnable{
 	Logger logger = Logger.getLogger("thMain");
 	Rutinas mylib = new Rutinas();
 	GlobalParams gParams;
+	ServiceControl sc;
 	
 	ScheduledExecutorService execListener = Executors.newSingleThreadScheduledExecutor();
 	ScheduledExecutorService execSync = Executors.newSingleThreadScheduledExecutor();
@@ -23,6 +25,7 @@ public class ThMain implements Runnable{
 	
 	public ThMain(GlobalParams m) {
 		gParams = m;
+		sc = new ServiceControl(gParams);
 	}
         
 	public void run() {
@@ -33,6 +36,18 @@ public class ThMain implements Runnable{
 		String thName;
 	
 		logger.info(logmsg+"Iniciando Ciclo MainController");
+		
+		/**
+		 * Recuperando MonParams
+		 */
+		try {
+			logger.info(logmsg+"Recuperando MonParams...");
+			sc.getMonParams();
+			
+			sc.getMonParams();
+		} catch (Exception e) {
+			logger.warn(logmsg+"No es posible recuperar monParams");
+		}
 
 		/**
 		 * Valida el tipo de ROL del capMonitor para determinar
@@ -86,7 +101,7 @@ public class ThMain implements Runnable{
 	    			if (gParams.getMapMonParams().get(monID).getThListenerAction().equals("DISABLE")) {
 	    				logger.warn(logmsg+"Thread Listener se encuentra DISABLE");
 	    				logger.warn(logmsg+"No es posible levantar Listener hasta que habilite proceso");
-	    			} 
+	    			}
     			
     			
     			//En base al role determina si levanta o no el thProcess
@@ -99,7 +114,8 @@ public class ThMain implements Runnable{
 	    				if (!gParams.getMapThreadRunnig().get(thName)) {
 	    	        		Runnable thProcess = new ThProcess(gParams);
 	    	        		gParams.getMapThreadRunnig().put(thName, true);
-	    	        		execProcess.execute(thProcess);
+	    	        		execProcess.scheduleWithFixedDelay(thProcess, 1000, gParams.getInfo().getTxpMain(), TimeUnit.MILLISECONDS);
+	    	        		//execProcess.execute(thProcess);
 	    				}
 	    			} else 
 		    			if (gParams.getMapMonParams().get(monID).getThProcessAction().equals("DISABLE")) {
@@ -107,11 +123,7 @@ public class ThMain implements Runnable{
 		    				logger.warn(logmsg+"No es posible levantar Process hasta que habilite proceso");
 		    			} 
         			
-        			
-        			
         			//Inicia thDBAccess
-        			
-        			
         			
         		} else if (monRole.equals("SECONDARY")) {
         			logger.info(logmsg+"Iniciando Servicios asociados al rol: "+monRole);

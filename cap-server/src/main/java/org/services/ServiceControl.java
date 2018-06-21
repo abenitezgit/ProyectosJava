@@ -5,19 +5,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 import org.dataAccess.DataAccess;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.model.Dependence;
+import org.model.MonParams;
 import org.model.PGPending;
 import org.model.ProcControl;
+import org.model.Service;
+import org.model.Task;
 import org.utilities.GlobalParams;
+
+import com.rutinas.Rutinas;
 
 public class ServiceControl {
 	Logger logger = Logger.getLogger("ServiceControl");
+	Rutinas mylib = new Rutinas();
 	GlobalParams gParams;
 	FlowControl fc;
 	DataAccess dc;
@@ -30,13 +36,66 @@ public class ServiceControl {
 		gParams = m;
 		fc = new FlowControl(gParams);
 		dc = new DataAccess(gParams);
-		thProc = new ThProcess(gParams);
-		thListener = new ThListener(gParams);
 	}
 	
 	/**
 	 * thProcess
 	 */
+	
+	public void showMapProcControl() {
+		logger.info("Detalle de Procesos");
+		for (Map.Entry<String, ProcControl> entry : gParams.getMapProcControl().entrySet()) {
+			logger.info("--> "+entry.getKey()+" "+entry.getValue().getStatus());
+		}
+	}
+	
+	public void showMapTask() {
+		logger.info("Detalle de Task");
+		for (Map.Entry<String, Task> entry : gParams.getMapTask().entrySet()) {
+			logger.info("--> "+entry.getKey()+" "+entry.getValue().getStatus());
+		}
+	}
+	
+	public String syncServiceParams(JSONObject data) throws Exception{
+		try {
+			String strService="";
+			
+			//Recupera los parametros de servicio desde Metadata
+			
+			String srvID = data.getString("srvID");
+			
+			logger.info("Iniciando SyncServiceParams para cap-client: "+srvID);
+			
+			logger.info("Recuperando serviceParams desde Metadata...");
+			String response = dc.getServiceParam(srvID);
+			logger.info("Respuesta desde Metadata: "+response);
+			
+			//Actualiza mapService desde Metadata
+			logger.info("Actualizando mapService desde Metadata");
+			fc.updateMapServiceFromMD(response);
+			
+			//Actualiza mapService desde cap-client
+			try {
+				logger.info("Actualizando mapService desde cap-client...");
+				Service service = (Service) mylib.serializeJSonStringToObject(data.getString("service"), Service.class);
+				fc.updateMapServiceFromCC(service);
+			} catch (Exception e) {
+				logger.warn("No se actualizara mapService con datos de cap-client: "+e.getMessage());
+			}
+			
+			strService = mylib.serializeObjectToJSon(gParams.getMapService().get(srvID), false);
+			if (mylib.isNullOrEmpty(strService)) {
+				throw new Exception("getServiceParams(): No hay datos para el servicio "+gParams.getMapService().get(srvID));
+			}
+			
+			logger.info("Se ha actualizado mapService!");
+			logger.info("Data Service: "+strService);
+			return strService;
+		} catch (Exception e) {
+			throw new Exception("getServiceParams(): "+e.getMessage());
+		}
+	}
+	
 	public void updateProcessPending()  {
 		try {
 			Map<String, PGPending> mapPg = new HashMap<>();
@@ -48,7 +107,7 @@ public class ServiceControl {
 			
 			if (mapPg.size()>0) {
 				for(Map.Entry<String, PGPending> entry : mapPg.entrySet()) {
-					logger.info("Nuevo proceso: "+entry.getKey());
+					logger.info("Proceso leido desde Metadata: "+entry.getKey());
 				}
 			}
 			
@@ -92,6 +151,22 @@ public class ServiceControl {
 							params = dc.getProcessParam(entry.getValue().getProcID(), entry.getValue().getTypeProc());
 						} catch (Exception e) {
 							logger.error(logmsg+"Error buscando parametros en metadata: "+e.getMessage());
+						}
+						
+						logger.info(logmsg+"Buscando dependencia del proceso: "+entry.getValue().getProcID());
+						try {
+							List<Dependence> lstDep = new ArrayList<>();
+							lstDep = dc.getProcDependences(entry.getValue().getGrpID(), entry.getValue().getProcID());
+							
+							if (lstDep.size()>0) {
+								logger.info(logmsg+"Actualizando Dependencias del Proceso: "+entry.getValue().getProcID());
+								fc.updateProcDependence(key, lstDep);
+							} else {
+								logger.info(logmsg+"El proceso "+entry.getValue().getProcID()+" no posee dependencias informadas");
+							}
+							
+						} catch (Exception e) {
+							logger.error(logmsg+"Error buscando dependencia del proceso: "+entry.getValue().getProcID()+" error: "+e.getMessage());
 						}
 						
 						if (params!=null) {
@@ -138,39 +213,55 @@ public class ServiceControl {
 				logger.info(logmsg+"Validando para cada proceso PENDING si existe servicio inscrito para Asignar TASK...");
 				for(Map.Entry<String, ProcControl> entry : mappc.entrySet()) {
 					
-					//Valida si hay servicios disponibles para ejecutar procesos del cliente y del TypeProc
-					logger.info(logmsg+"Buscando Servicio Inscrito para ejecutar procesos de cliente: "+entry.getValue().getCliID()+" y TypeProc: "+entry.getValue().getTypeProc());
-					
-					List<String> lstServices = new ArrayList<>();
-					lstServices = fc.isServiceAvailable(entry.getValue().getCliID(), entry.getValue().getTypeProc());
-					
-					logger.info(logmsg+"Servicios Validos para ejecutar proceso "+entry.getKey()+" : "+lstServices.size());
+					//Valida si dependencias del proceso ya terminaron
+					logger.info(logmsg+"--> Validando Información para Key: "+entry.getKey());
+					logger.info(logmsg+"--> Valida si dependencias del proceso han finalizado...");
+					if (fc.isProcDependFinished(entry.getValue())) {
 						
-					if (lstServices.size()>0) {
-						/**
-						 * Debe seleccionar el servicio disponible de la lista encontrada si es que hay mas de uno
-						 */
-						logger.info(logmsg+"Asignando un Servicio al prcoceso: "+entry.getValue().getProcID());
+						logger.info(logmsg+"--> Dependencias del proceso han finalizado!");
 						
-						String srvID;
-						if (lstServices.size()==0) {
-							srvID = lstServices.get(0);
+						//Valida si hay servicios disponibles para ejecutar procesos del cliente y del TypeProc
+						logger.info(logmsg+"--> Buscando Servicio Inscrito para ejecutar procesos de cliente: "+entry.getValue().getCliID()+" y TypeProc: "+entry.getValue().getTypeProc());
+						
+						List<String> lstServices = new ArrayList<>();
+						lstServices = fc.isServiceAvailable(entry.getValue().getCliID(), entry.getValue().getTypeProc());
+						
+						//logger.info(logmsg+"--> Servicios Validos para ejecutar proceso "+entry.getKey()+" : "+lstServices.size());
+							
+						if (lstServices.size()>0) {
+							
+							logger.info(logmsg+"--> Existen "+lstServices.size()+" servicios para ejecutar proceso!");
+							/**
+							 * Debe seleccionar el servicio disponible de la lista encontrada si es que hay mas de uno
+							 */
+							logger.info(logmsg+"--> Asignando un Servicio al prcoceso...");
+							
+							String srvID;
+							if (lstServices.size()==0) {
+								srvID = lstServices.get(0);
+							} else {
+								//Hay mas servicios disponibles
+								//Seleccionar uno en base a algun criterio
+								srvID = lstServices.get(0);
+							}
+							
+							logger.info(logmsg+"--> Se ha asignado el servicio: "+srvID);
+							
+							//Se crea la Task asignandole un srvID y se cambia el status a READY
+	
+							logger.info(logmsg+"--> Actualizando el MapTask Global");
+							
+							//Todos los procesos en estado PENDING que se encuentran en la mapProcControl
+							//es porque no se les ha asiganado un Task de Ejecución.
+							
+							fc.updateMapTaskAssignedService(entry.getValue(),srvID);
+							fc.updateMapProcControl(entry.getKey(), "READY", 0, "");
+							
 						} else {
-							//Hay mas servicios disponibles
-							//Seleccionar uno en base a algun criterio
-							srvID = lstServices.get(0);
+							logger.info("--> No hay servcios disponibles para ejecutar proceso: "+entry.getKey());
 						}
-						
-						logger.info(logmsg+"Servicio Asignado: "+srvID);
-						
-						//Se crea la Task asignandole un srvID y se cambia el status a READY
-
-						logger.info(logmsg+"Actualizando el MapTask Global");
-						
-						
-					
 					} else {
-						logger.info("No hay servcios disponibles para ejecutar proceso: "+entry.getKey());
+						logger.info(logmsg+"--> Dependencias del proceso "+entry.getValue().getProcID()+" no han finalizado!");
 					}
 				}
 			} else {
@@ -196,5 +287,29 @@ public class ServiceControl {
 			logger.error("listStatusThread: "+e.getMessage());
 		}
 	}
+	
+    public void getMonParams() throws Exception {
+    	DataAccess da = new DataAccess(gParams);
+    	
+    	try {
+    		String resp = da.getDBParams();
+    		JSONArray ja = new JSONArray(resp);
+    		
+    		for(int i=0; i<ja.length(); i++) {
+    			MonParams mp = (MonParams) mylib.serializeJSonStringToObject(ja.get(i).toString(), MonParams.class);
+    			gParams.getMapMonParams().put(mp.getMonID(), mp);
+    			logger.info("monID: "+mp.getMonID()+" "+mylib.serializeObjectToJSon(mp, false));
+    		}
+    		
+    	} catch (Exception e) {
+    		throw new Exception("No es posible leer parametros de inicio desde Metadata: "+e.getMessage());
+    	} finally {
+			if (da.isConnected()) {
+				da.close(); 
+			}
+
+    	}
+    }
+
 	
 }

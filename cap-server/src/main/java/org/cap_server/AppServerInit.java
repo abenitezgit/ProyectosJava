@@ -62,6 +62,7 @@ public class AppServerInit {
     		logger.info("Property dbTimeOut"+gParams.getInfo().getDbTimeOut());
     		logger.info("Property dbUser: "+gParams.getInfo().getDbUser());
     		logger.info("Property dbPass: "+gParams.getInfo().getDbPass());
+    		logger.info("TxpMain: "+gParams.getInfo().getTxpMain());
     		
     		//Valida conexion a Metadata
     		logger.info("Validando Acceso a MetaData...");
@@ -84,6 +85,7 @@ public class AppServerInit {
 			Runnable thMain = new ThMain(gParams);
 			gParams.getMapThreadRunnig().put("thMain", true);
 			executorThMain.scheduleWithFixedDelay(thMain, 1000, gParams.getMapMonParams().get(gParams.getMonID()).getTxpMain(), TimeUnit.MILLISECONDS);
+			//executorThMain.execute(thMain);
 			logger.info("Proceso principal ha sido agendado!");
 			
 			logger.info("Finalizando dispatcher cap-server!");
@@ -133,7 +135,7 @@ public class AppServerInit {
 //    		info.setApiIP(conf.getProperty("apiIP"));
 //    		info.setApiPort(conf.getProperty("apiPort"));
 //    		info.setApiURLBase(conf.getProperty("apiURLBase"));
-//    		info.setAuthKey(conf.getProperty("authKey"));
+    		info.setAuthKey(conf.getProperty("authKey"));
 //    		info.setConnectType(conf.getProperty("connectType"));
     		info.setDbHostName(conf.getProperty("dbHostName"));
     		info.setDbIP(conf.getProperty("dbIP"));
@@ -141,6 +143,7 @@ public class AppServerInit {
     		info.setDbPass(conf.getProperty("dbPass"));
     		info.setDbPort(Integer.valueOf(conf.getProperty("dbPort")));
     		info.setDbUser(conf.getProperty("dbUser"));
+    		info.setTxpMain(Integer.valueOf(conf.getProperty("txpMain")));
 //    		info.setFileProperties(gParams.getFileConfig());
 //    		info.setMonHostName(conf.getProperty("monHostName"));
 //    		info.setMonIP(conf.getProperty("monIP"));

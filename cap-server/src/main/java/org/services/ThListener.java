@@ -8,7 +8,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import org.apache.log4j.Logger;
+import org.dataAccess.DataAccess;
 import org.json.JSONObject;
+import org.model.ReadObject;
 import org.utilities.GlobalParams;
 
 import com.rutinas.Rutinas;
@@ -17,14 +19,24 @@ import com.rutinas.Rutinas;
 public class ThListener implements Runnable{
 	Logger logger = Logger.getLogger("cap-Listener");
 	Rutinas mylib = new Rutinas();
+	ServiceControl sc;
+	FlowControl fc;
+	DataAccess da;
 	GlobalParams gParams;
 	
 	public ThListener(GlobalParams m) {
 		gParams = m;
+		fc = new FlowControl(gParams);
+		da = new DataAccess(gParams);
+		sc = new ServiceControl(gParams);
 	}
 	
     @Override
     public void run() {
+    	//Variables de Proceso
+    	String inputData;
+    	String outputData;
+    	
         try {
         	/**
         	 * Iniciando Thread Listener
@@ -33,53 +45,65 @@ public class ThListener implements Runnable{
 
             @SuppressWarnings("resource")
 			ServerSocket skServidor = new ServerSocket(Integer.valueOf(gParams.getMapMonParams().get(gParams.getMonID()).getMonPort()));
-            String inputData;
-            String outputData = null;
-            String dRequest;
-            String dAuth;
-            JSONObject jHeader;
-            JSONObject jData;
+            
             
             while (true) {
             	
             	logger.info("Esperando transaccion...");
-            	
                 Socket skCliente = skServidor.accept();
+                
+                logger.info("TX() Aceptada");
+                
+                logger.info("Recuperando InputStream...");
                 InputStream inpStr = skCliente.getInputStream();
+                
+                logger.info("Creando ObjectInputStream...");
                 ObjectInputStream objInput = new ObjectInputStream(inpStr);
                 
                 //Espera Entrada
                 //
                 try {
-                	inputData  = (String) objInput.readObject();
+                	inputData = (String) objInput.readObject();
                 	logger.info("Recibiendo RX(): "+ inputData);
                 	
                 	/*
                 	 * Actualiza inicio de ejecucion del modulo
                 	 */
-	                    
-	                jHeader = new JSONObject(inputData);
-	                jData = jHeader.getJSONObject("data");
-	                    
-	                dAuth = jHeader.getString("auth");
-	                dRequest = jHeader.getString("request");
-	                    
-            		if (dAuth.equals(gParams.getInfo().getAuthKey())) {
-            			logger.info("Recibiendo RX("+ dRequest +"): "+ jData.toString());
+
+                	logger.info("Parseando Data Request...");
+                	JSONObject jo = new JSONObject(inputData);
+
+                	ReadObject ro = new ReadObject();
+                	
+                	ro.setAuth(jo.getString("auth"));
+                	ro.setRequest(jo.getString("request"));
+                	ro.setData(jo.getJSONObject("data"));
+                	
+                	logger.info("Info de Parsing realizado");
+                	logger.info("Request: "+ro.getRequest());
+                	logger.info("AuthKey: "+ro.getAuth());
+                	logger.info("Data: "+ro.getData());
+                	
+            		if (ro.getAuth().equals(gParams.getInfo().getAuthKey())) {
             			
             			//Valida si Thread Main y Listener están ENABLED
-            			if (gParams.getMapMonParams().get(gParams.getMonID()).getThMainAction().equals("ENABLED") && 
-            				gParams.getMapMonParams().get(gParams.getMonID()).getThListenerAction().equals("ENABLED")) {	
+            			if (gParams.getMapMonParams().get(gParams.getMonID()).getThMainAction().equals("ENABLE") && 
+            				gParams.getMapMonParams().get(gParams.getMonID()).getThListenerAction().equals("ENABLE")) {	
             				
             				
             				logger.info("Procesando Respuesta...");
             			
-	            			switch (dRequest) {
-	                        	case "getStatus":
-	                        		outputData = "";
+	            			switch (ro.getRequest()) {
+	                        	case "syncServiceParams":
+	                        		JSONObject data = new JSONObject(ro.getData().toString());
+	                        		
+	                        		//Obtiene parametros del servicio desde Metadata
+	                        		String strService = sc.syncServiceParams(data);
+	                        		
+	                        		outputData = genResponse(0,"",strService);
 	                        		break;
 	                        	case "getProcControl":
-	                        		outputData = "";
+	                        		outputData = genResponse(0, "", fc.getStrProcControl());
 	                        		break;
 	                        	case "getGroupControl":
 	                        		outputData = "";
@@ -97,7 +121,8 @@ public class ThListener implements Runnable{
 	                        		outputData = ""; //myproc.syncMonitor(jData);
 	                        		break;
 	                        	default:
-	                        		mylib.console("Request: "+dRequest);
+	                        		logger.warn("Request no es reconocido");
+	                        		outputData = genResponse(40, "Request no es reconocido", "");
 	            			} //end switch()
             			} else {
             				logger.warn("Thread Listener no esta habilitado para procesar respuesta");
@@ -107,7 +132,7 @@ public class ThListener implements Runnable{
                         outputData = mylib.sendError(60);
                     }
                 } catch (Exception e) {
-                    outputData = mylib.sendError(90);
+                	outputData = genResponse(90, "Exception error: "+e.getMessage(), "");
                 }
                 //Envia Respuesta
                 //
@@ -128,7 +153,6 @@ public class ThListener implements Runnable{
                 ObjOutput.close();
                 objInput.close();
                 skCliente.close();
-                
 
             } //End while(true)
             
@@ -158,7 +182,7 @@ public class ThListener implements Runnable{
             responseMessage.put("response",response);
             responseMessage.put("header", jHeader);
                 
-            return jHeader.toString();
+            return responseMessage.toString();
     	} catch (Exception e) {
     		throw new Exception("genResponse: "+e.getMessage());
     	}

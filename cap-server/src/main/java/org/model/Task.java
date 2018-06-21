@@ -118,6 +118,4 @@ public class Task {
 	public void setParam(Object param) {
 		this.param = param;
 	}
-	
-	
 }

@@ -3,30 +3,269 @@ package org.services;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.model.Dependence;
 import org.model.PGPending;
 import org.model.ProcControl;
 import org.model.Service;
+import org.model.Task;
+import org.model.TypeProc;
 import org.utilities.GlobalParams;
 
 import com.rutinas.Rutinas;
-
 
 public class FlowControl {
 	Logger logger = Logger.getLogger("FlowControl");
 	GlobalParams gParams;
 	Rutinas mylib = new Rutinas();
 	
-	public FlowControl() {
-	}
-	
 	public FlowControl(GlobalParams m) {
 		gParams = m;
+	}
+	
+	public void updateMapTaskAssignedService(ProcControl pc, String srvID) throws Exception {
+		try {
+			String key = pc.getGrpID()+":"+pc.getNumSecExec()+":"+pc.getProcID();
+			Task task = new Task();
+			task.setFecIns(mylib.getDate());
+			task.setFecUpdate(mylib.getDate());
+			task.setGrpKey(key);
+			task.setNumSecExec(pc.getNumSecExec());
+			task.setParam(pc.getParam());
+			task.setProcID(pc.getProcID());
+			task.setSrvID(srvID);
+			task.setStatus("READY");
+			task.setTaskkey(key);
+			task.setTypeProc(pc.getTypeProc());
+			
+			gParams.getMapTask().put(key, task);
+			
+		} catch (Exception e) {
+			throw new Exception("updateMapTaskAssignedService"+e.getMessage());
+		}
+	}
+	
+	public boolean isProcDependFinished(ProcControl pc) throws Exception {
+		try {
+			boolean response = true;
+
+			String grpID = pc.getGrpID();
+			String numSecExec = pc.getNumSecExec();
+			
+			if (pc.getLstDependences().size() > 0) {
+				for (Dependence entry : pc.getLstDependences()) {
+					String procID = entry.getProcPadre();
+					int critical = entry.getCritical();
+					
+					String key = grpID+":"+numSecExec+":"+procID;
+					
+					if (gParams.getMapProcControl().containsKey(key)) {
+						ProcControl pcS = gParams.getMapProcControl().get(key);
+
+						if (pcS.getStatus().equals("FINISHED")) {
+							if (pcS.getuStatus().equals("SUCESS")) {
+								response = response && true;
+							} else {
+								if (critical==0) {
+									response = response && true;
+								} else {
+									response = response && false;
+								}
+							}
+						} else {
+							response = response && false;
+						}
+						
+					} else {
+						//Ha ocurrido un problema ya que siempre debería encontrar un proceso
+						response = response && false;
+					}
+				} // end for
+			} else {
+				return true;
+			}
+			
+			return response;
+		} catch (Exception e) {
+			throw new Exception ("isProcDependFinished: "+e.getMessage());
+		}
+	}
+	
+	public void updateProcDependence(String key, List<Dependence> lstDep) throws Exception {
+		try {
+			if (gParams.getMapProcControl().containsKey(key)) {
+				ProcControl pc = gParams.getMapProcControl().get(key);
+				
+				pc.setLstDependences(lstDep);
+				
+				gParams.getMapProcControl().put(key, pc);
+			}
+			
+		} catch (Exception e) {
+			throw new Exception ("updateProcDependence: "+e.getMessage());
+		}
+	}
+	
+	public void updateMapServiceFromMD(String response) throws Exception {
+		try {
+			//Actualiza solo los siguientes valores
+			//	- enable
+			//	- mapTypeProc
+			//	- mapCli
+			//	- pctBalance
+			//	- orderBalance
+			
+			Service serviceNew = (Service) mylib.serializeJSonStringToObject(response, Service.class);
+			
+			String srvID = serviceNew.getSrvID();
+			
+			String srvTypeProc = (String) serviceNew.getSrvTypeProc();
+			JSONObject jo = new JSONObject(srvTypeProc);
+			JSONArray jaProc = jo.getJSONArray("lstProc");
+			JSONArray jaCli = jo.getJSONArray("lstCli");
+			
+			Map<String, TypeProc> mapTypeProcNew = new HashMap<>();
+			Map<String, String> mapCliNew = new HashMap<>();
+			
+			for (int i=0; i<jaProc.length(); i++) {
+				JSONObject joo = jaProc.getJSONObject(i);
+				TypeProc tp = new TypeProc();
+				tp.setMaxThread(joo.getInt("maxThread"));
+				tp.setPriority(joo.getInt("priority"));
+				tp.setTypeProc(joo.getString("typeProc"));
+				tp.setUsedThread(0);
+				mapTypeProcNew.put(tp.getTypeProc(), tp);
+			}
+			
+			for (int i=0; i<jaCli.length(); i++) {
+				String cli = jaCli.getString(i);
+				mapCliNew.put(cli, cli);
+			}
+			
+			Service service = new Service();
+			
+			if (gParams.getMapService().containsKey(srvID)) {
+				service = gParams.getMapService().get(srvID);
+				
+				service.setEnable(serviceNew.getEnable());
+				service.setPctBalance(serviceNew.getPctBalance());
+				service.setOrderBalance(serviceNew.getOrderBalance());
+				
+				//Actualizacion de MapTypeProc
+				//Resguarda los usedTread actuales
+				Map<String, TypeProc> mapTypeProc = gParams.getMapService().get(srvID).getMapTypeProc();
+				
+				for (Map.Entry<String, TypeProc> entry : mapTypeProcNew.entrySet()) {
+					TypeProc tp = mapTypeProc.get(entry.getKey());
+					if (mapTypeProc.containsKey(entry.getKey())) {
+						tp.setMaxThread(entry.getValue().getMaxThread());
+						tp.setPriority(entry.getValue().getPriority());
+					}
+					mapTypeProc.put(entry.getKey(), tp);
+				}
+				
+				service.setMapTypeProc(mapTypeProc);
+				
+				
+				//Actualizacion de MapCli
+				service.setMapCli(mapCliNew);
+				
+			} else {
+				//Aun no existe mapService para este servicio y se creara
+				service.setEnable(serviceNew.getEnable());
+				service.setFecStatus(mylib.getDateNow());
+				service.setOrderBalance(serviceNew.getOrderBalance());
+				service.setPctBalance(serviceNew.getPctBalance());
+				service.setSrvDesc(serviceNew.getSrvDesc());
+				service.setSrvID(srvID);
+				service.setSrvTypeProc(serviceNew.getSrvTypeProc());
+				service.setMapCli(mapCliNew);
+				service.setMapTypeProc(mapTypeProcNew);
+			}
+			
+			
+			gParams.getMapService().put(srvID, service);
+		} catch (Exception e) {
+			throw new Exception("updateMapService(): "+e.getMessage());
+		}
+	}
+	
+	public void updateMapServiceFromCC(Service serviceNew) throws Exception {
+		//Actualiza solo los siguientes valores
+		/*
+		 * fecStatus
+		 * typeProc:usedThread
+		 */
+
+		String logmsg = "updateMapService() - ";
+		
+		try {
+			logger.info(logmsg+"Actualizando parametros del servicio...");
+			
+			Map<String, TypeProc> mapTypeProcNew = serviceNew.getMapTypeProc();
+			
+			if (mapTypeProcNew.size()>0) {
+				Service service = gParams.getMapService().get(serviceNew.getSrvID());
+				
+				//Actualiza datos del Servicio
+				if (!mylib.isNullOrEmpty(service.getFecStatus())) service.setFecStatus(serviceNew.getFecStatus());
+							
+				//Update mapTypeProc
+				for (Map.Entry<String, TypeProc> entry : mapTypeProcNew.entrySet()) {
+					TypeProc tpNew = entry.getValue();
+					
+					if (gParams.getMapService().get(serviceNew.getSrvID()).getMapTypeProc().containsKey(entry.getKey())) {
+						TypeProc tp = gParams.getMapService().get(serviceNew.getSrvID()).getMapTypeProc().get(tpNew.getTypeProc());
+						tp.setUsedThread(tpNew.getUsedThread());
+						
+						gParams.getMapService().get(serviceNew.getSrvID()).getMapTypeProc().put(entry.getKey(), tp);
+					} else {
+						gParams.getMapService().get(serviceNew.getSrvID()).getMapTypeProc().put(entry.getKey(), tpNew);
+					}
+				}
+			}
+			
+			logger.info(logmsg+"Parametros del Servicio actualizados!");
+		} catch (Exception e) {
+			throw new Exception("updateSrvParams(): "+e.getMessage());
+		}
+	}
+
+	
+//	public void updateMapService(Service service) throws Exception {
+//		try {
+//			if (gParams.getMapService().containsKey(service.getSrvID())) {
+//				gParams.getMapService().replace(service.getSrvID(), service);
+//			} else {
+//				gParams.getMapService().put(service.getSrvID(), service);
+//			}
+//		} catch (Exception e) {
+//			throw new Exception("updateMapService: "+e.getMessage());
+//		}
+//	}
+	
+	public String getStrProcControl() throws Exception {
+		try {
+			Map<String, ProcControl> mpc = new TreeMap<>();
+			for (Map.Entry<String, ProcControl> entry : gParams.getMapProcControl().entrySet()) {
+				ProcControl pc = new ProcControl();
+				pc = entry.getValue();
+				pc.setParam(null);
+				mpc.put(entry.getKey(), pc);
+			}
+			String strResponse = null;
+			strResponse = mylib.serializeObjectToJSon(mpc, false);
+			return strResponse;
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		}
 	}
 	
 	public boolean isContainValue(JSONArray lst, String variable, String value) {
@@ -74,7 +313,7 @@ public class FlowControl {
 					
 					Calendar cal = Calendar.getInstance();
 					Date fecNow = cal.getTime();
-					Date fecUpdate = entry.getValue().getFecUpdate();
+					Date fecUpdate = mylib.getDate(entry.getValue().getFecStatus(),"yyyy-MM-dd hh:mm:ss");
 					int txpMain = entry.getValue().getTxpMain();
 					
 					logger.info(logmsg+"Validando Servicio: "+entry.getKey());
@@ -84,26 +323,27 @@ public class FlowControl {
 					if (mylib.getMinuteDiff(fecNow, fecUpdate)<=txpMain) {
 						
 						logger.info(logmsg+"Servicio "+entry.getKey()+" se encuentra activo!");
-						logger.info(logmsg+"Recuperando paramtros del servicio...");
+						logger.info(logmsg+"Recuperando parametros del servicio...");
 						
 						//Obtiene los clientes y tipos de procesos que puede ejecutar
-						JSONObject jo = new JSONObject(entry.getValue().getSrvTypeProc());
-						JSONArray lstTypeProc = jo.getJSONArray("lstProc");
-						JSONArray lstCli = jo.getJSONArray("lstCli");
-						
-						logger.info(logmsg+"Tipo de Procesos autorizados: "+lstTypeProc.toString());
-						logger.info(logmsg+"Clientes autorizados: "+lstCli.toString());
-	
-						if (isContainValue(lstTypeProc, "typeProc", typeProc)) {
-							if (isContainValue(lstCli, cliID)) {
-								lstServices.add(entry.getKey());
+						if (entry.getValue().getMapCli().containsKey(cliID)) {
+							if (entry.getValue().getMapTypeProc().containsKey(typeProc)) {
+								int maxThread = entry.getValue().getMapTypeProc().get(typeProc).getMaxThread();
+								int usedThread = entry.getValue().getMapTypeProc().get(typeProc).getUsedThread();
+								
+								if (usedThread<maxThread) {
+									lstServices.add(entry.getKey());
+								}
 							}
 						}
 					}
 				}
-			} else {
-				logger.info(logmsg+"No hay servicios registrados para ejecutar procesos!");
+			} 
+			
+			if (lstServices.size()==0) {
+				logger.warn(logmsg+"No hay servicios registrados o disponibles para ejecutar este tipo de proceso");
 			}
+			
 			return lstServices;
 		} catch (Exception e) {
 			logger.error(logmsg+"Error general: "+e.getMessage());
@@ -129,6 +369,9 @@ public class FlowControl {
 					gParams.getMapProcControl().get(key).setErrCode(errCode);
 					gParams.getMapProcControl().get(key).setErrMesg(errMesg);
 					break;
+				case "READY":
+					gParams.getMapProcControl().get(key).setStatus("READY");
+					gParams.getMapProcControl().get(key).setFecUpdate(mylib.getDate());
 				default:
 					gParams.getMapProcControl().get(key).setStatus(status);
 					gParams.getMapProcControl().get(key).setuStatus(status);
@@ -170,6 +413,10 @@ public class FlowControl {
 					pc.setStatus(entry.getValue().getStatus());
 					pc.setTypeProc(entry.getValue().getTypeProc());
 					pc.setuStatus("PENDING");
+					pc.setCliID(entry.getValue().getCliID());
+					pc.setCliDesc(entry.getValue().getCliDesc());
+					pc.setFecUpdate(mylib.getDate());
+					
 					gParams.getMapProcControl().put(entry.getKey(), pc);
 				}
 			}

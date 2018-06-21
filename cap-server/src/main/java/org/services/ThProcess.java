@@ -49,12 +49,15 @@ public class ThProcess implements Runnable{
 	        		/**
 	        		 * Assigna Nuevas Task a capClient disponibles para cuendo estos ejecuten el Sync se lleven las tareas que les corresponden
 	        		 */
-	        		//sc.assigneTask();
+	        		sc.showMapProcControl();
+	        		
+	        		sc.showMapTask();
 	        		
 	        		/**
 	        		 * Finalizando ciclo del Modulo
 	        		 */
 	        		logger.info("Terminado Ciclo Servicio");
+	        		logger.info("Ciclón Ñandú");
 	
 	        	} catch (Throwable e) {
 	        		logger.error(e.getMessage());

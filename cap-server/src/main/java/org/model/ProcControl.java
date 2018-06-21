@@ -1,6 +1,10 @@
 package org.model;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ProcControl {
 	String grpID;
@@ -17,6 +21,8 @@ public class ProcControl {
 	int errCode;
 	String errMesg;
 	Object param;
+	
+	List<Dependence> lstDependences = new ArrayList<>();
 	
 	//Getter and Setter
 	
@@ -103,6 +109,12 @@ public class ProcControl {
 	}
 	public void setErrMesg(String errMesg) {
 		this.errMesg = errMesg;
+	}
+	public List<Dependence> getLstDependences() {
+		return lstDependences;
+	}
+	public void setLstDependences(List<Dependence> lstDependences) {
+		this.lstDependences = lstDependences;
 	}
 	
 }

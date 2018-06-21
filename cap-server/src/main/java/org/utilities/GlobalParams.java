@@ -17,11 +17,12 @@ public class GlobalParams {
 	private String fileConfig;
 	
 	//Map de monParams recibidos desde Metadata
+	//key = monID
+	//MonParams = Clase MonParams.class con parametros del monID correspondiente
 	Map<String, MonParams> mapMonParams = new HashMap<>();
 	
-	
+	//Map para validar si los threads están levantados o no
 	Map<String, Boolean> mapThreadRunnig = new HashMap<>();
-	
 	
 	private Map<String, Task> mapTask = new HashMap<>();
 	private Map<String, Service> mapService = new HashMap<>();

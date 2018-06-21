@@ -10,6 +10,7 @@ import java.util.TreeMap;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.model.Dependence;
 import org.model.Mov;
 import org.model.MovMatch;
 import org.model.Osp;
@@ -46,6 +47,64 @@ public class DataAccess {
 	public boolean isConnected() throws Exception {
 		
 		return dbConn.isConnected();
+	}
+	
+	public List<Dependence> getProcDependences(String grpID, String procID) throws Exception {
+		try {
+			List<Dependence> lstDep = new ArrayList<>();
+			dbConn.open();
+			if (dbConn.isConnected()) {
+				String vSql = "call sp_get_procDependences('"+grpID+"','"+procID+"')";
+				if (dbConn.executeQuery(vSql)) {
+					ResultSet rs = dbConn.getQuery();
+					while (rs.next()) {
+						Dependence d = new Dependence();
+						d.setGrpID(rs.getString("grpID"));
+						d.setCritical(rs.getInt("critical"));
+						d.setProcHijo(rs.getString("procHijo"));
+						d.setProcPadre(rs.getString("procPadre"));
+						
+						lstDep.add(d);
+					}
+				}
+			} 			
+			
+			return lstDep;
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		} finally {
+			if (dbConn.isConnected()) {
+				dbConn.close(); 
+			}
+		}
+
+	}
+
+	
+	public String getServiceParam(String srvID) throws Exception {
+		try {
+			String response="";
+			
+			dbConn.open();
+			if (dbConn.isConnected()) {
+				String vSql = "call srvConf.sp_get_service('"+srvID+"')";
+				if (dbConn.executeQuery(vSql)) {
+					ResultSet rs = dbConn.getQuery();
+					if (rs.next()) {
+						response = rs.getString("resp");
+					}
+				}
+				dbConn.close();
+			}
+			
+			return response;
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		} finally {
+			if (dbConn.isConnected()) {
+				dbConn.close(); 
+			}
+		}
 	}
 	
 	public String getDBParams() throws Exception {
@@ -101,6 +160,8 @@ public class DataAccess {
 						pg.setProcID(rs.getString("PROCID"));
 						pg.setStatus(rs.getString("STATUS"));
 						pg.setTypeProc(rs.getString("TYPEPROC"));
+						pg.setCliID(rs.getString("CLIID"));
+						pg.setCliDesc(rs.getString("CLIDESC"));
 						
 						String key = pg.getGrpID()+":"+pg.getNumSecExec()+":"+pg.getProcID();
 						mp.put(key, pg);
@@ -135,12 +196,12 @@ public class DataAccess {
 			String vSql="";
 			Object params = null;
 			
-			logger.info(logmsg+"Recuperando parametros de proceso "+procType+" "+procID);
+			logger.info(logmsg+"Recuperando parámetros de proceso "+procType+" "+procID);
 			
 			logger.info(logmsg+"Conectando a Metadata...");
 			dbConn.open();
 			if (dbConn.isConnected()) {
-				logger.info(logmsg+"Conexion establecida a Metadata!");
+				logger.info(logmsg+"Conexión establecida a Metadata!");
 				switch(procType) {
 					case "ETL":
 						break;
@@ -189,7 +250,7 @@ public class DataAccess {
 									//Asigancion de objeto de respuesta
 									params = mov;
 								} catch (Exception e) {
-									logger.error(logmsg+"No es posible recuperar parametros de proceso: "+e.getLocalizedMessage());
+									logger.error(logmsg+"No es posible recuperar parámetros de proceso: "+e.getLocalizedMessage());
 								}
 							}
 						}
@@ -290,5 +351,7 @@ public class DataAccess {
 			}
 		}
 	}
+	
+
 
 }
