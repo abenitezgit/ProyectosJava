@@ -130,13 +130,7 @@ public class AppServerInit {
     		//Carga la clase Info()
     		Info info = new Info();
     		
-//    		info.setAgeGapMinute(Integer.valueOf(conf.getProperty("ageGapMinute")));
-//    		info.setAgeShowHour(Integer.valueOf(conf.getProperty("ageShowHour")));
-//    		info.setApiIP(conf.getProperty("apiIP"));
-//    		info.setApiPort(conf.getProperty("apiPort"));
-//    		info.setApiURLBase(conf.getProperty("apiURLBase"));
     		info.setAuthKey(conf.getProperty("authKey"));
-//    		info.setConnectType(conf.getProperty("connectType"));
     		info.setDbHostName(conf.getProperty("dbHostName"));
     		info.setDbIP(conf.getProperty("dbIP"));
     		info.setDbName(conf.getProperty("dbName"));
@@ -144,22 +138,6 @@ public class AppServerInit {
     		info.setDbPort(Integer.valueOf(conf.getProperty("dbPort")));
     		info.setDbUser(conf.getProperty("dbUser"));
     		info.setTxpMain(Integer.valueOf(conf.getProperty("txpMain")));
-//    		info.setFileProperties(gParams.getFileConfig());
-//    		info.setMonHostName(conf.getProperty("monHostName"));
-//    		info.setMonIP(conf.getProperty("monIP"));
-//    		info.setMonPort(Integer.valueOf(conf.getProperty("monPort")));
-//    		info.setPathProperties(gParams.getPathConfig());
-//    		info.setSmonHostName(conf.getProperty("smonHostName"));
-//    		info.setSmonIP(conf.getProperty("smonIP"));
-//    		info.setSmonPort(Integer.valueOf(conf.getProperty("smonPort")));
-//    		info.setTxpDB(Integer.valueOf(conf.getProperty("txpDB")));
-//    		info.setTxpProcess(Integer.valueOf(conf.getProperty("txpProcess")));
-//    		info.setTxpMain(Integer.valueOf(conf.getProperty("txpMain")));
-//    		info.setTxpSync(Integer.valueOf(conf.getProperty("txpSync")));
-//    		info.setMonID(conf.getProperty("monID"));
-//    		info.setSmonID(conf.getProperty("SmonID"));
-//    		info.setDbTimeOut(Integer.valueOf(conf.getProperty("dbTimeOut")));
-//    		info.setDbType(conf.getProperty("dbType"));
     		
     		gParams.setInfo(info);
     		

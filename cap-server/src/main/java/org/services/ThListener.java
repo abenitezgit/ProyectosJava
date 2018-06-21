@@ -90,7 +90,6 @@ public class ThListener implements Runnable{
             			if (gParams.getMapMonParams().get(gParams.getMonID()).getThMainAction().equals("ENABLE") && 
             				gParams.getMapMonParams().get(gParams.getMonID()).getThListenerAction().equals("ENABLE")) {	
             				
-            				
             				logger.info("Procesando Respuesta...");
             			
 	            			switch (ro.getRequest()) {
@@ -129,7 +128,7 @@ public class ThListener implements Runnable{
             				outputData = genResponse(20,"Thread Listener no esta habilitado para procesar respuesta",null);
             			}
                     } else {
-                        outputData = mylib.sendError(60);
+                        outputData = genResponse(60,"Solicitud no está autorizada",null);
                     }
                 } catch (Exception e) {
                 	outputData = genResponse(90, "Exception error: "+e.getMessage(), "");
@@ -140,7 +139,7 @@ public class ThListener implements Runnable{
                 ObjectOutputStream ObjOutput = new ObjectOutputStream(outStr); 
                 
                 if (outputData==null) {
-                		outputData = mylib.sendError(90);
+                		outputData = genResponse(90,"Exception error",null);
                 } 
                 
                 logger.info("Enviando TX(): "+ outputData);
