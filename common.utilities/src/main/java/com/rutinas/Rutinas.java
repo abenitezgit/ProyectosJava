@@ -14,12 +14,33 @@ import javax.management.AttributeList;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.json.JSONObject;
 
 public class Rutinas {
+	
+	public void setLevelLogger(Logger logger, String level) {
+		switch (level) {
+		case "INFO":
+			logger.setLevel(Level.INFO);
+			break;
+		case "DEBUG":
+			logger.setLevel(Level.DEBUG);
+			break;
+		case "WARN":
+			logger.setLevel(Level.WARN);
+			break;
+		case "ERROR":
+			logger.setLevel(Level.ERROR);
+			break;
+		default:
+			logger.setLevel(Level.INFO);
+			break;
+		}
+	}
 	
 	public int getNumRows(Object[][] tbGrid) {
 		int numRows=0;
