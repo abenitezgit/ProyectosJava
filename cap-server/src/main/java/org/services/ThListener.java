@@ -91,10 +91,11 @@ public class ThListener implements Runnable{
             				gParams.getMapMonParams().get(gParams.getMonID()).getThListenerAction().equals("ENABLE")) {	
             				
             				logger.info("Procesando Respuesta...");
+            				
+            				JSONObject data = new JSONObject(ro.getData().toString());
             			
 	            			switch (ro.getRequest()) {
 	                        	case "syncServiceParams":
-	                        		JSONObject data = new JSONObject(ro.getData().toString());
 	                        		
 	                        		//Obtiene parametros del servicio desde Metadata
 	                        		String strService = sc.syncServiceParams(data);
@@ -104,8 +105,11 @@ public class ThListener implements Runnable{
 	                        	case "getProcControl":
 	                        		outputData = genResponse(0, "", fc.getStrProcControl());
 	                        		break;
-	                        	case "getGroupControl":
-	                        		outputData = "";
+	                        	case "syncTaskProcess":
+	                        		
+	                        		String strMapTask = sc.syncTaskProcess(data);
+	                        		
+	                        		outputData = genResponse(0,"",strMapTask);
 	                        		break;
 	                        	case "getMapTask":
 	                        		outputData = "";

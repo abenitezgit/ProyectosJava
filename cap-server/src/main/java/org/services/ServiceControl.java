@@ -49,10 +49,37 @@ public class ServiceControl {
 		}
 	}
 	
-	public void showMapTask() {
+	public void showMapTask() throws Exception {
 		logger.info("Detalle de Task");
 		for (Map.Entry<String, Task> entry : gParams.getMapTask().entrySet()) {
 			logger.info("--> "+entry.getKey()+" "+entry.getValue().getStatus());
+		}
+	}
+	
+	public String syncTaskProcess(JSONObject data) throws Exception {
+		try {
+			String strMapTask = "";
+			
+			String srvID = data.getString("srvID");
+			
+			//Validando si existen datos de entrada
+			Map<String, Object> mapObj = data.toMap();
+			
+			if (mapObj.size()>0) {
+				
+			}
+			
+			//Recuperando datos actualizados para enviar al cap-client
+			
+			Map<String, Task> mapTask = fc.getServiceMapTask(srvID);
+			
+			if (mapTask.size()>0) {
+				strMapTask = mylib.serializeObjectToJSon(mapTask, false);
+			}
+			
+			return strMapTask;
+		} catch (Exception e) {
+			throw new Exception("syncTaskProcess(): "+e.getMessage());
 		}
 	}
 	

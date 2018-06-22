@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -28,6 +29,41 @@ public class FlowControl {
 	
 	public FlowControl(GlobalParams m) {
 		gParams = m;
+	}
+	
+	private synchronized void changeStatusMapTask(String key, String status) throws Exception {
+		try {
+			if (gParams.getMapTask().containsKey(key)) {
+				gParams.getMapTask().get(key).setStatus(status);
+				gParams.getMapTask().get(key).setFecUpdate(mylib.getDate());
+				
+				logger.info("Task Update: "+key+" Status: "+gParams.getMapTask().get(key).getStatus());
+			}
+			
+		} catch (Exception e) {
+			throw new Exception("changeStatusMapTask(): "+e.getMessage());
+		}
+	}
+	
+	public Map<String, Task> getServiceMapTask(String srvID) throws Exception {
+		try {
+			Map<String, Task> mapTask = new HashMap<>();
+			
+			Map<String, Task> mapTaskTmp = gParams.getMapTask().entrySet().stream().filter(p -> p.getValue().getStatus().equals("READY")).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+			
+			for (Map.Entry<String, Task> entry : mapTaskTmp.entrySet()) {
+				if (entry.getValue().getStatus().equals("READY")) {
+					if (entry.getValue().getSrvID().equals(srvID)) {
+						String key = entry.getValue().getGrpKey()+":"+entry.getValue().getNumSecExec()+":"+entry.getValue().getProcID();
+						mapTask.put(key, entry.getValue());
+						changeStatusMapTask(key, "ASSIGNED");
+					}
+				}
+			}
+			return mapTask;
+		} catch (Exception e) {
+			throw new Exception(""+e.getMessage());
+		}
 	}
 	
 	public void updateMapTaskAssignedService(ProcControl pc, String srvID) throws Exception {
