@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.model.Service;
+import org.model.Task;
 import org.model.TypeProc;
 import org.utilities.GlobalParams;
 
@@ -21,6 +22,8 @@ public class ServiceControl {
 		gParams = m;
 		ss = new SocketService(gParams);
 		fc = new FlowControl(gParams);
+		
+		mylib.setLevelLogger(logger, gParams.getAppConfig().getLog4jLevel());
 	}
 	
 	public void showSrvParams() {
@@ -43,23 +46,50 @@ public class ServiceControl {
 		}
 	}
 	
+	public void showTaskProcess() throws Exception {
+		for (Map.Entry<String, Task> entry : gParams.getMapTask().entrySet()) {
+			logger.info("TaskID: "+entry.getKey()+ " "+ mylib.serializeObjectToJSon(entry.getValue(), false));
+		}
+	}
+	
+	public void syncTaskProcess() throws Exception {
+		try {
+			switch (gParams.getAppConfig().getConnectTypeMon()) {
+				case "SOCKET":
+					if (ss.syncTaskProcess(gParams.getAppConfig().getSrvID())) {
+						String strTaskProcess = ss.getSocketResponse();
+						fc.updateTaskProcess(strTaskProcess);
+					} else {
+						throw new Exception("syncTaskProcess(): unable to syncService");
+					}
+					break;
+				case "URL":
+					break;
+			}
+			
+		} catch (Exception e) {
+			throw new Exception("syncTaskProcess(): "+e.getMessage());
+		}
+	}
+	
 	public void syncServiceParams(String srvID) throws Exception {
 		try {
-			String strService="";
 			
-			switch (gParams.getCfgParams().getConnectTypeMon()) {
+			switch (gParams.getAppConfig().getConnectTypeMon()) {
 			case "SOCKET":
-					strService = ss.getServiceParams(srvID);
+					if (ss.getServiceParams(srvID)) {
+						String strService = ss.getSocketResponse();
+						fc.updateService(strService);
+					} else {
+						throw new Exception("syncServiceParams(): unable to syncService");
+					}
 				break;
 			case "URL":
 				break;
 			}
 			
-			fc.updateService(strService);
-			
-			logger.info("Variable global actualizada: "+mylib.serializeObjectToJSon(gParams.getService(), false));
 		} catch (Exception e) {
-			throw new Exception("getServiceParams: "+e.getMessage());
+			throw new Exception("syncServiceParams(): "+e.getMessage());
 		}
 	}
 

@@ -29,6 +29,14 @@ public class FlowControl {
 		}
 	}
 	
+	public void updateTaskProcess(String strMapTask) throws Exception {
+		try {
+			
+		} catch (Exception e) {
+			throw new Exception("updateTaskProcess(): "+e.getMessage());
+		}
+	}
+	
 	public void updateService(String strServiceNew) throws Exception {
 		String logmsg = "updateService() - ";
 		

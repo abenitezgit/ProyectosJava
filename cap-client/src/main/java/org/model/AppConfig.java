@@ -1,26 +1,34 @@
 package org.model;
 
-public class Config {
-	String monHostName;
-	String monIP;
-	String monPort;
-	String sMonHostName;
-	String sMonIP;
-	String sMonPort;
-	int txpMain;
-	String authKey;
+public class AppConfig {
+	//App Params 
+	private int txpMain;
+	private String connectTypeMon; 		//Primary: URL - SOCKET
+	private String sConnectTypeMon; 	//Secondary: URL - SOCKET
+	private String log4jName;
+	private String log4jLevel; 	
 	
-	String connectTypeMon; 		//Primary: URL - SOCKET
-	String sConnectTypeMon; 	//Secondary: URL - SOCKET
+	//Load from External Params
+	private String srvID;
+	private String pathConfig;
+	private String fileConfig;
+	
+	//Socket Params
+	private String monHostName;
+	private String monIP;
+	private String monPort;
+	private String sMonHostName;
+	private String sMonIP;
+	private String sMonPort;
+	private String authKey;
 	
 	//URL Params
-	String urlServer;
-	String urlPort;
-	String urlBase;
-
-	String sUrlServer;
-	String sUrlPort;
-	String sUrlBase;
+	private String urlServer;
+	private String urlPort;
+	private String urlBase;
+	private String sUrlServer;
+	private String sUrlPort;
+	private String sUrlBase;
 	
 	//Getter and Setter
 	
@@ -119,5 +127,35 @@ public class Config {
 	}
 	public void setAuthKey(String authKey) {
 		this.authKey = authKey;
+	}
+	public String getSrvID() {
+		return srvID;
+	}
+	public void setSrvID(String srvID) {
+		this.srvID = srvID;
+	}
+	public String getPathConfig() {
+		return pathConfig;
+	}
+	public void setPathConfig(String pathConfig) {
+		this.pathConfig = pathConfig;
+	}
+	public String getFileConfig() {
+		return fileConfig;
+	}
+	public void setFileConfig(String fileConfig) {
+		this.fileConfig = fileConfig;
+	}
+	public String getLog4jName() {
+		return log4jName;
+	}
+	public void setLog4jName(String log4jName) {
+		this.log4jName = log4jName;
+	}
+	public String getLog4jLevel() {
+		return log4jLevel;
+	}
+	public void setLog4jLevel(String log4jLevel) {
+		this.log4jLevel = log4jLevel;
 	}
 }

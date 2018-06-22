@@ -1,5 +1,7 @@
 package org.services;
 
+import java.util.concurrent.TimeUnit;
+
 import org.apache.log4j.Logger;
 import org.utilities.GlobalParams;
 
@@ -9,36 +11,61 @@ public class ThMain implements Runnable {
 	Logger logger = Logger.getLogger("thMain");
 	Rutinas mylib = new Rutinas();
 	GlobalParams gParams;
-	ServiceControl sc;
-	
-//	static Procedure myproc;
-//	static APIRest apiRest = new APIRest();
 	
 	public ThMain(GlobalParams m) {
 		gParams = m;
-		sc = new ServiceControl(gParams);
-//		myproc = new Procedure(gDatos);
-//		logger = gDatos.getLogger();
 	}
 	
     @Override
 	public void run() {
 		try {
+			//Set LogLevel
+			mylib.setLevelLogger(logger, gParams.getAppConfig().getLog4jLevel());
+			
 			logger.info("Iniciando Ciclo Modulo Principal...");
-			logger.info("Analizando Status del Servicio...");
 			
-			//Consulta datos del Servicio
-			//Obtiene los tipos de proceso que puede ejecutar, y la cantidad de thread maximos
-			//Lee desde la base de datos si esta Enable, trae la lista de typeProc y cliProc
+			logger.info("Validando Ejecución de Thread de Servicios...");
 			
-			sc.syncServiceParams(gParams.getSrvID());
+			logger.info("Validando Thread Sync...");
+			if (!gParams.getMapThreadRunnig().get("thSync")) {
+				logger.info("Activando Thread Sync...");
+	    		Runnable thSync = new ThSync(gParams);
+				gParams.getMapThreadRunnig().put("thSync", true);
+				gParams.getExecutorThSync().scheduleWithFixedDelay(thSync, 1000, 10000, TimeUnit.MILLISECONDS);
+			} else {
+				logger.info("Thread Sync esta en Ejecucion");
+			}
+
+			logger.info("Validando Thread Process...");
+			if (!gParams.getMapThreadRunnig().get("thProcess")) {
+				if (gParams.getService().getEnable()==1) {
+					logger.info("Activando Thread Process...");
+		    		Runnable thProcess = new ThProcess(gParams);
+					gParams.getMapThreadRunnig().put("thProcess", true);
+					gParams.getExecutorThProcess().scheduleWithFixedDelay(thProcess, 1000, 10000, TimeUnit.MILLISECONDS);
+				} else {
+					logger.info("thProcess se encuentra DISABLED");
+				}
+			} else {
+				if (gParams.getService().getEnable()==1) {
+					logger.info("Thread Process esta ENABLED y en Ejecucion");
+				} else {
+					logger.info("Thread Process ha cambiado a DISABLED");
+					logger.info("Bajando Thread Process...");
+					
+					gParams.getMapThreadRunnig().put("thProcess", false);
+					gParams.getExecutorThProcess().shutdown();
+					
+					while (!gParams.getExecutorThProcess().isShutdown()) {
+						Thread.sleep(5);
+					}
+					logger.info("Thread Process ha sido bajado exitosamnte");
+				}
+			}
 			
-			//Muestra los parametros retornados
-			sc.showSrvParams();
-			
-			
+			logger.info("Finalizando Ciclo Modulo Principal");
 		} catch (Exception e) {
-			logger.error("Exception error en thMain: "+e.getMessage());
+			logger.error("Exception error en Ciclo Modulo Principal: "+e.getMessage());
 		}
     }
 

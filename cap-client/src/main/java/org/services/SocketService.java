@@ -11,6 +11,8 @@ public class SocketService {
 	Rutinas mylib = new Rutinas();
 	GlobalParams gParams;
 	
+	String socketResponse="";
+	
 	public SocketService(GlobalParams m) {
 		gParams = m;
 	}
@@ -30,32 +32,31 @@ public class SocketService {
 			throw new Exception("genCapRequest(): "+e.getMessage());
 		}
 	}
-	
-	public String getServiceParams(String srvID) throws Exception {
+
+	public boolean syncTaskProcess(String srvID) throws Exception {
 		try {
 			//Clase de Sockets
 			SocketAPI socketPri = new SocketAPI();
 			
 			//Variable de Respuesta
-			String response="";
 			boolean isSocketPriActive=true;
-			
+			boolean result = false;
 			
 			//Genera Request
 			JSONObject jData = new JSONObject();
 			jData.put("srvID", srvID);
-			jData.put("service", mylib.serializeObjectToJSon(gParams.getService(), false));
-			String authKey = gParams.getCfgParams().getAuthKey();
-			String request = genCapRequest(authKey, "syncServiceParams", jData);
+			jData.put("mapTask", mylib.serializeObjectToJSon(gParams.getMapTask(), false));
+			String authKey = gParams.getAppConfig().getAuthKey();
+			String request = genCapRequest(authKey, "syncTaskProcess", jData);
 			
 			//Try Primary MonID
 			if (isSocketPriActive) {
 				try {
 					logger.info("Iniciando acceso a Primary cap-server");
-					logger.info("Validando Puerto disponible en IP: "+gParams.getCfgParams().getMonIP()+ "  Port: "+gParams.getCfgParams().getMonPort());
+					logger.info("Validando Puerto disponible en IP: "+gParams.getAppConfig().getMonIP()+ "  Port: "+gParams.getAppConfig().getMonPort());
 					
-					socketPri.setServerIP(gParams.getCfgParams().getMonIP());
-					socketPri.setPort(Integer.valueOf(gParams.getCfgParams().getMonPort()));
+					socketPri.setServerIP(gParams.getAppConfig().getMonIP());
+					socketPri.setPort(Integer.valueOf(gParams.getAppConfig().getMonPort()));
 					
 					logger.info("Abriendo Socket Server...");
 					socketPri.open();
@@ -68,7 +69,8 @@ public class SocketService {
 							
 							if (socketPri.getStatusCode()==0) {
 								logger.info("Respuesta Existosa: "+socketPri.getResponse());
-								response = socketPri.getResponse();
+								setSocketResponse(socketPri.getResponse());
+								result = true;
 							} else {
 								logger.error("Error respuesta socket: "+socketPri.getStatusCode()+"  "+socketPri.getMessage());
 							}
@@ -83,10 +85,77 @@ public class SocketService {
 				}
 			}
 					
-			return response;
+			return result;
 		} catch (Exception e) {
 			throw new Exception("getServiceParams(): "+e.getMessage());
 		} 
 	}
+
+	public boolean getServiceParams(String srvID) throws Exception {
+		try {
+			//Clase de Sockets
+			SocketAPI socketPri = new SocketAPI();
+			
+			//Variable de Respuesta
+			boolean isSocketPriActive=true;
+			boolean result = false;
+			
+			//Genera Request
+			JSONObject jData = new JSONObject();
+			jData.put("srvID", srvID);
+			jData.put("service", mylib.serializeObjectToJSon(gParams.getService(), false));
+			String authKey = gParams.getAppConfig().getAuthKey();
+			String request = genCapRequest(authKey, "syncServiceParams", jData);
+			
+			//Try Primary MonID
+			if (isSocketPriActive) {
+				try {
+					logger.info("Iniciando acceso a Primary cap-server");
+					logger.info("Validando Puerto disponible en IP: "+gParams.getAppConfig().getMonIP()+ "  Port: "+gParams.getAppConfig().getMonPort());
+					
+					socketPri.setServerIP(gParams.getAppConfig().getMonIP());
+					socketPri.setPort(Integer.valueOf(gParams.getAppConfig().getMonPort()));
+					
+					logger.info("Abriendo Socket Server...");
+					socketPri.open();
+					
+					if (socketPri.isConnected()) {
+						
+						logger.info("Socket Connected!");
+						logger.info("Enviando request: "+request);
+						if (socketPri.send(request)) {
+							
+							if (socketPri.getStatusCode()==0) {
+								logger.info("Respuesta Existosa: "+socketPri.getResponse());
+								setSocketResponse(socketPri.getResponse());
+								result = true;
+							} else {
+								logger.error("Error respuesta socket: "+socketPri.getStatusCode()+"  "+socketPri.getMessage());
+							}
+						}
+						
+						logger.info("Cerrando Socket...");
+						socketPri.close();
+					}
+				} catch (Exception e) {
+					logger.error("Error conectando a socket primario: "+e.getMessage());
+					isSocketPriActive = false;
+				}
+			}
+					
+			return result;
+		} catch (Exception e) {
+			throw new Exception("getServiceParams(): "+e.getMessage());
+		} 
+	}
+
+	public String getSocketResponse() {
+		return socketResponse;
+	}
+
+	public void setSocketResponse(String socketResponse) {
+		this.socketResponse = socketResponse;
+	}
+	
 	
 }

@@ -1,13 +1,13 @@
 package org.cap_client;
 
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.Properties;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.Logger;
-import org.model.Config;
 import org.services.ThMain;
 import org.utilities.GlobalParams;
 
@@ -17,14 +17,15 @@ import com.rutinas.Rutinas;
 /**
  * Copyrigth GBData Ltda.
  * AppName: AppClientInit
- * Version: 1.0.0
+ * Version: 3.0.0
  * Fecha Actualización: 22-05-2018
- * Parametros de Ejecucion: $ java -DmonID=<role> -DpathConfig=<path> -DfileConfig=<file.properties>
+ * Parametros de Ejecucion: $ java -DsrvID=<role> -DpathConfig=<path> -DfileConfig=<file.properties>
  *
  */
 public class AppClientInit {
 	//Inicializando el Logger
 	static Logger logger = Logger.getLogger("cap-client");
+	
 	
 	//Referenciando Rutinas
 	static Rutinas mylib = new Rutinas();
@@ -36,58 +37,94 @@ public class AppClientInit {
     public static void main( String[] args ) {
     	try {
     		//Startup cap-server
-    		logger.info("Iniciando Dispatcher cap-client");
+    		mylib.console("Iniciando Dispatcher cap-client");
     		
     		//Reading External Params
-    		logger.info("Leyendo parametros externos...");
+    		mylib.console("Leyendo parametros externos...");
     		getExternalParams();
-    		logger.info("Parametros externos OK!");
-    		logger.info("External PathConfig: "+gParams.getPathConfig());
-    		logger.info("External FileConfig: "+gParams.getFileConfig());
-    		logger.info("External srvID: "+gParams.getSrvID());
+    		mylib.console("Parametros externos OK!");
+    		mylib.console("External PathConfig: "+gParams.getAppConfig().getPathConfig());
+    		mylib.console("External FileConfig: "+gParams.getAppConfig().getFileConfig());
+    		mylib.console("External srvID: "+gParams.getAppConfig().getSrvID());
     		
+
     		//Reading FileConfig
-    		logger.info("Leyendo Archivo de Properties del Servicio...");
+    		mylib.console("Leyendo Archivo de Properties del Servicio...");
     		getFileProperties();
-    		logger.info("Archivo de Properties del Servicio OK!");
-    		logger.info("ConnectTypeMon: "+gParams.getCfgParams().getConnectTypeMon());
-    		    		
+    		mylib.console("Archivo de Properties del Servicio OK!");
+    		mylib.console("ConnectTypeMon: "+gParams.getAppConfig().getConnectTypeMon());
+
+    		//Enable Logger
+    		mylib.console("Configurando Log4j...");
+    		setupLog4j(gParams.getAppConfig().getLog4jName());
+    		
     		//Inicializa status de thread en false (no se están ejecutando)
     		initStatusThread();
     		
-    		
     		//Levanta Main Services
-    		logger.info("Scheduling thMain - Proceso Principal");
-    		ScheduledExecutorService executorThMain = Executors.newSingleThreadScheduledExecutor();
-			Runnable thMain = new ThMain(gParams);
-			gParams.getMapThreadRunnig().put("thMain", true);
-			executorThMain.scheduleWithFixedDelay(thMain, 1000, gParams.getCfgParams().getTxpMain(), TimeUnit.MILLISECONDS);
-			//executorThMain.execute(thMain);
-			logger.info("Proceso principal ha sido agendado!");
+    		mylib.console("Scheduling thMain - Proceso de Control Principal");
+    		//ScheduledExecutorService executorThMain = Executors.newSingleThreadScheduledExecutor();
 			
-			logger.info("Finalizando dispatcher cap-client!");
+    		Runnable thMain = new ThMain(gParams);
+			gParams.getMapThreadRunnig().put("thMain", true);
+			gParams.getExecutorThMain().scheduleWithFixedDelay(thMain, 1000, gParams.getAppConfig().getTxpMain(), TimeUnit.MILLISECONDS);
+			
+			//executorThMain.execute(thMain);
+			mylib.console("Proceso de Control Principal ha sido Iniciando!");
+			
+			mylib.console("Finalizando dispatcher cap-client!");
 
     	} catch (Exception e) {
-    		logger.error("No es posible iniciar cap-client: "+e.getMessage());
-    		logger.error("Finalizando cap-client");
+    		mylib.console(1, "No es posible iniciar cap-client: "+e.getMessage());
+    		mylib.console(1, "Finalizando cap-client");
     	}
 
     }
     
+    private static void setupLog4j(String appName) {
+
+        String propFileName = appName;
+        File f = new File(gParams.getAppConfig().getPathConfig()+ "/" + propFileName);
+        if (f.exists()) {
+
+            try {
+                InputStream inStreamLog4j = new FileInputStream(f);
+                Properties propertiesLog4j = new Properties();
+
+                propertiesLog4j.load(inStreamLog4j);
+                PropertyConfigurator.configure(propertiesLog4j);
+            } catch (Exception e) {
+                e.printStackTrace();
+                BasicConfigurator.configure();
+            }
+        } else {
+            BasicConfigurator.configure();
+        }
+        
+        // logger.setLevel(Level.TRACE);
+        logger.debug("log4j configured");
+
+    }
+
     private static void initStatusThread() throws Exception {
     	gParams.getMapThreadRunnig().put("thMain", false);
+    	gParams.getMapThreadRunnig().put("thSync", false);
+    	gParams.getMapThreadRunnig().put("thProcess", false);
     }
     
     private static void getExternalParams() throws Exception {
-    	gParams.setSrvID(System.getProperty("srvID"));
-    	gParams.setPathConfig(System.getProperty("pathConfig"));
-    	gParams.setFileConfig(System.getProperty("fileConfig"));
-    	
-    	if (	mylib.isNullOrEmpty(gParams.getSrvID()) || 
-    			mylib.isNullOrEmpty(gParams.getPathConfig()) || 
-    			mylib.isNullOrEmpty(gParams.getFileConfig())) {
-    		throw new Exception("Unable to read External params");
+    	try {
+    		gParams.getAppConfig().setSrvID(System.getProperty("srvID"));
+    		gParams.getAppConfig().setPathConfig(System.getProperty("pathConfig"));
+    		gParams.getAppConfig().setFileConfig(System.getProperty("fileConfig"));
     		
+    		if ( 	mylib.isNullOrEmpty(gParams.getAppConfig().getSrvID()) ||
+    				mylib.isNullOrEmpty(gParams.getAppConfig().getPathConfig()) ||
+    				mylib.isNullOrEmpty(gParams.getAppConfig().getFileConfig())) {
+    			throw new Exception("Error recuperando parametros de entrada");
+    		}
+    	} catch (Exception e) {
+    		throw new Exception("getExternalParams(): "+e.getMessage());
     	}
     }
     
@@ -96,34 +133,31 @@ public class AppClientInit {
     	 * Valida si archivo properties existe
     	 */
     	
-    	if (mylib.fileExist(gParams.getPathConfig()+"/"+gParams.getFileConfig())) {
+    	if (mylib.fileExist(gParams.getAppConfig().getPathConfig()+"/"+gParams.getAppConfig().getFileConfig())) {
     		//Abre archivo de configuración
     		Properties conf = new Properties();
-    		conf.load(new FileInputStream(gParams.getPathConfig()+"/"+gParams.getFileConfig()));
+    		conf.load(new FileInputStream(gParams.getAppConfig().getPathConfig()+"/"+gParams.getAppConfig().getFileConfig()));
     		
-    		//Carga la clase Info()
-    		Config cfg = new Config();
-    		
-    		cfg.setConnectTypeMon(conf.getProperty("connectTypeMon"));
-    		cfg.setMonHostName(conf.getProperty("monHostName"));
-    		cfg.setMonIP(conf.getProperty("monIP"));
-    		cfg.setMonPort(conf.getProperty("monPort"));
-    		cfg.setsMonHostName(conf.getProperty("sMonHostName"));
-    		cfg.setsMonIP(conf.getProperty("sMonIP"));
-    		cfg.setsMonPort(conf.getProperty("sMonPort"));
-    		cfg.setsUrlBase(conf.getProperty("sUrlBase"));
-    		cfg.setsUrlPort(conf.getProperty("sUrlPort"));
-    		cfg.setsUrlServer(conf.getProperty("sUrlServer"));
-    		cfg.setUrlBase(conf.getProperty("urlBase"));
-    		cfg.setUrlPort(conf.getProperty("urlPort"));
-    		cfg.setUrlServer(conf.getProperty("urlServer"));
-    		cfg.setTxpMain(Integer.valueOf(conf.getProperty("txpMain")));
-    		cfg.setAuthKey(conf.getProperty("authKey"));
-    		
-    		gParams.setCfgParams(cfg);
+    		gParams.getAppConfig().setConnectTypeMon(conf.getProperty("connectTypeMon"));
+    		gParams.getAppConfig().setMonHostName(conf.getProperty("monHostName"));
+    		gParams.getAppConfig().setMonIP(conf.getProperty("monIP"));
+    		gParams.getAppConfig().setMonPort(conf.getProperty("monPort"));
+    		gParams.getAppConfig().setsMonHostName(conf.getProperty("sMonHostName"));
+    		gParams.getAppConfig().setsMonIP(conf.getProperty("sMonIP"));
+    		gParams.getAppConfig().setsMonPort(conf.getProperty("sMonPort"));
+    		gParams.getAppConfig().setsUrlBase(conf.getProperty("sUrlBase"));
+    		gParams.getAppConfig().setsUrlPort(conf.getProperty("sUrlPort"));
+    		gParams.getAppConfig().setsUrlServer(conf.getProperty("sUrlServer"));
+    		gParams.getAppConfig().setUrlBase(conf.getProperty("urlBase"));
+    		gParams.getAppConfig().setUrlPort(conf.getProperty("urlPort"));
+    		gParams.getAppConfig().setUrlServer(conf.getProperty("urlServer"));
+    		gParams.getAppConfig().setTxpMain(Integer.valueOf(conf.getProperty("txpMain")));
+    		gParams.getAppConfig().setAuthKey(conf.getProperty("authKey"));
+    		gParams.getAppConfig().setLog4jLevel(conf.getProperty("log4jLevel"));
+    		gParams.getAppConfig().setLog4jName(conf.getProperty("log4jName"));
     		
     	} else {
-    		throw new Exception("Unable to read file Config: "+gParams.getPathConfig()+"/"+gParams.getFileConfig());
+    		throw new Exception("Error leyendo archivo de parametros: "+gParams.getAppConfig().getPathConfig()+"/"+gParams.getAppConfig().getFileConfig());
     	}
     }
 }
