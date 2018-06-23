@@ -3,7 +3,9 @@ package org.services;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
 import org.model.Service;
+import org.model.Task;
 import org.model.TypeProc;
 import org.utilities.GlobalParams;
 
@@ -29,9 +31,22 @@ public class FlowControl {
 		}
 	}
 	
+	private synchronized void addTask(String key, Task task) {
+		gParams.getMapTask().put(key, task);
+	}
+	
 	public void updateTaskProcess(String strMapTask) throws Exception {
 		try {
+			JSONObject jo = new JSONObject(strMapTask);
+			String[] names = JSONObject.getNames(jo);
 			
+			if (names.length>0) {
+				for (String key : names) {
+					Task task = (Task) mylib.serializeJSonStringToObject(jo.get(key).toString(), Task.class);
+					task.setFecUpdate(mylib.getDate());
+					addTask(key, task);
+				}
+			}
 		} catch (Exception e) {
 			throw new Exception("updateTaskProcess(): "+e.getMessage());
 		}

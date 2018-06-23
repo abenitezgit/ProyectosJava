@@ -1,12 +1,8 @@
 package org.cap_client;
 
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.InputStream;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.Logger;
 import org.services.ThMain;
 import org.utilities.GlobalParams;
@@ -56,7 +52,8 @@ public class AppClientInit {
 
     		//Enable Logger
     		mylib.console("Configurando Log4j...");
-    		setupLog4j(gParams.getAppConfig().getLog4jName());
+    		String pathFileName = gParams.getAppConfig().getPathConfig()+"/"+gParams.getAppConfig().getLog4jName();
+    		mylib.setupLog4j(pathFileName);
     		
     		//Inicializa status de thread en false (no se están ejecutando)
     		initStatusThread();
@@ -81,31 +78,6 @@ public class AppClientInit {
 
     }
     
-    private static void setupLog4j(String appName) {
-
-        String propFileName = appName;
-        File f = new File(gParams.getAppConfig().getPathConfig()+ "/" + propFileName);
-        if (f.exists()) {
-
-            try {
-                InputStream inStreamLog4j = new FileInputStream(f);
-                Properties propertiesLog4j = new Properties();
-
-                propertiesLog4j.load(inStreamLog4j);
-                PropertyConfigurator.configure(propertiesLog4j);
-            } catch (Exception e) {
-                e.printStackTrace();
-                BasicConfigurator.configure();
-            }
-        } else {
-            BasicConfigurator.configure();
-        }
-        
-        // logger.setLevel(Level.TRACE);
-        logger.debug("log4j configured");
-
-    }
-
     private static void initStatusThread() throws Exception {
     	gParams.getMapThreadRunnig().put("thMain", false);
     	gParams.getMapThreadRunnig().put("thSync", false);

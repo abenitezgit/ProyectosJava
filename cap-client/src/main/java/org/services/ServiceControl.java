@@ -48,7 +48,7 @@ public class ServiceControl {
 	
 	public void showTaskProcess() throws Exception {
 		for (Map.Entry<String, Task> entry : gParams.getMapTask().entrySet()) {
-			logger.info("TaskID: "+entry.getKey()+ " "+ mylib.serializeObjectToJSon(entry.getValue(), false));
+			logger.info("TaskID: "+entry.getKey());
 		}
 	}
 	
@@ -58,7 +58,11 @@ public class ServiceControl {
 				case "SOCKET":
 					if (ss.syncTaskProcess(gParams.getAppConfig().getSrvID())) {
 						String strTaskProcess = ss.getSocketResponse();
-						fc.updateTaskProcess(strTaskProcess);
+						if (!mylib.isNullOrEmpty(strTaskProcess)) {
+							fc.updateTaskProcess(strTaskProcess);
+						} else {
+							logger.info("No hay nuevos Task para agregar");
+						}
 					} else {
 						throw new Exception("syncTaskProcess(): unable to syncService");
 					}

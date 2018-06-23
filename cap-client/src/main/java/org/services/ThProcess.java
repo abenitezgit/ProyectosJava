@@ -27,6 +27,8 @@ public class ThProcess implements Runnable {
 
 			logger.info("Iniciando Ciclo de Thead Process...");
 			
+			sc.showTaskProcess();
+			
 			
 			logger.info("Finalizando Ciclo de Thead Process...");
 		} catch (Exception e) {
