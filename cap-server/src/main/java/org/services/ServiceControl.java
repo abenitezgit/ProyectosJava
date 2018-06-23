@@ -58,16 +58,12 @@ public class ServiceControl {
 	
 	public String syncTaskProcess(JSONObject data) throws Exception {
 		try {
-			String strMapTask = "";
 			
 			String srvID = data.getString("srvID");
+			String strMapTask = data.getString("mapTask");
 			
-			//Validando si existen datos de entrada
-			Map<String, Object> mapObj = data.toMap();
-			
-			if (mapObj.size()>0) {
-				
-			}
+			//Actualizando mapTask con datos desde cap-client
+			fc.updateTaskProcess(strMapTask);
 			
 			//Recuperando datos actualizados para enviar al cap-client
 			
@@ -282,7 +278,7 @@ public class ServiceControl {
 							//es porque no se les ha asiganado un Task de Ejecución.
 							
 							fc.updateMapTaskAssignedService(entry.getValue(),srvID);
-							fc.updateMapProcControl(entry.getKey(), "READY", 0, "");
+							fc.updateMapProcControl(entry.getKey(), "ASSIGNED", 0, "");
 							
 						} else {
 							logger.info("--> No hay servcios disponibles para ejecutar proceso: "+entry.getKey());

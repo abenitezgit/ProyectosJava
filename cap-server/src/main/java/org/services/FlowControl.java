@@ -29,9 +29,37 @@ public class FlowControl {
 	
 	public FlowControl(GlobalParams m) {
 		gParams = m;
+		mylib.setLevelLogger(logger, gParams.getAppConfig().getLog4jLevel());
 	}
 	
-	private synchronized void changeStatusMapTask(String key, String status) throws Exception {
+	public void updateTaskProcess(String strMapTask) throws Exception {
+		try {
+			JSONObject jo = new JSONObject(strMapTask);
+			String[] names = JSONObject.getNames(jo);
+			
+			if (names.length>0) {
+				for (String key : names) {
+					Task taskNew = (Task) mylib.serializeJSonStringToObject(jo.get(key).toString(), Task.class);
+					
+					if (gParams.getMapTask().containsKey(key)) {
+						gParams.getMapTask().get(key).setStatus(taskNew.getStatus());
+						gParams.getMapTask().get(key).setuStatus(taskNew.getuStatus());
+						gParams.getMapTask().get(key).setErrCode(taskNew.getErrCode());
+						gParams.getMapTask().get(key).setErrMesg(taskNew.getErrMesg());
+						gParams.getMapTask().get(key).setFecFinished(taskNew.getFecFinished());
+						gParams.getMapTask().get(key).setTxResult(taskNew.getTxResult());
+						gParams.getMapTask().get(key).setTxSubTask(taskNew.getTxSubTask());
+					}
+					
+				}
+			}
+		} catch (Exception e) {
+			throw new Exception("updateTaskProcess(): "+e.getMessage());
+		}
+	}
+
+	
+	private synchronized void updateStatusMapTask(String key, String status) throws Exception {
 		try {
 			if (gParams.getMapTask().containsKey(key)) {
 				gParams.getMapTask().get(key).setStatus(status);
@@ -49,17 +77,17 @@ public class FlowControl {
 		try {
 			Map<String, Task> mapTask = new HashMap<>();
 			
-			Map<String, Task> mapTaskTmp = gParams.getMapTask().entrySet().stream().filter(p -> p.getValue().getStatus().equals("READY")).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+			Map<String, Task> mapTaskTmp = gParams.getMapTask().entrySet().stream().filter(p -> p.getValue().getStatus().equals("ASSIGNED")).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 			
 			for (Map.Entry<String, Task> entry : mapTaskTmp.entrySet()) {
-				if (entry.getValue().getStatus().equals("READY")) {
-					if (entry.getValue().getSrvID().equals(srvID)) {
-						String key = entry.getValue().getGrpKey()+":"+entry.getValue().getNumSecExec()+":"+entry.getValue().getProcID();
-						mapTask.put(key, entry.getValue());
-						changeStatusMapTask(key, "ASSIGNED");
-					}
+				if (entry.getValue().getSrvID().equals(srvID)) {
+					String key = entry.getValue().getGrpKey();
+					mapTask.put(key, entry.getValue());
+					updateStatusMapTask(key, "READY");
+					updateMapProcControl(key, "READY", 0, "");
 				}
 			}
+			logger.info("Total de Task por ser enviados: "+mapTask.size());
 			return mapTask;
 		} catch (Exception e) {
 			throw new Exception(""+e.getMessage());
@@ -77,7 +105,7 @@ public class FlowControl {
 			task.setParam(pc.getParam());
 			task.setProcID(pc.getProcID());
 			task.setSrvID(srvID);
-			task.setStatus("READY");
+			task.setStatus("ASSIGNED");
 			task.setTaskkey(key);
 			task.setTypeProc(pc.getTypeProc());
 			
@@ -408,6 +436,9 @@ public class FlowControl {
 				case "READY":
 					gParams.getMapProcControl().get(key).setStatus("READY");
 					gParams.getMapProcControl().get(key).setFecUpdate(mylib.getDate());
+				case "ASSIGNED":
+					gParams.getMapProcControl().get(key).setStatus("ASSIGNED");
+					gParams.getMapProcControl().get(key).setFecUpdate(mylib.getDate());
 				default:
 					gParams.getMapProcControl().get(key).setStatus(status);
 					gParams.getMapProcControl().get(key).setuStatus(status);
@@ -478,53 +509,5 @@ public class FlowControl {
 			logger.error("updateProcessConfig: "+e.getMessage());
 		}
 		
-	}
-	
-//	public void setEnablePrimaryThread() {
-//		gParams.getMapEnableThreadControl().put("thProcess", true);
-//		gParams.getMapEnableThreadControl().put("thListener", true);
-//		gParams.getMapEnableThreadControl().put("thSync", true);
-//	}
-//	
-//	public void setEnableSecondaryThread() {
-//		gParams.getMapEnableThreadControl().put("thProcess", false);
-//		gParams.getMapEnableThreadControl().put("thListener", true);
-//		gParams.getMapEnableThreadControl().put("thSync", true);
-//	}
-//
-//	public boolean isEnableThread(String thName) {
-//		try {
-//			return gParams.getMapEnableThreadControl().get(thName);
-//		} catch (Exception e) {
-//			return false;
-//		}
-//	}
-//	
-//	public void setEnableThread(String thName) {
-//		try {
-//			if (gParams.getMapEnableThreadControl().containsKey(thName)) {
-//				gParams.getMapEnableThreadControl().put(thName, true);
-//			}
-//		} catch (Exception e) {
-//			logger.error("setEnableThread: "+e.getMessage());
-//		}
-//	}
-//
-//	public void setDisableThread(String thName) {
-//		try {
-//			if (gParams.getMapEnableThreadControl().containsKey(thName)) {
-//				gParams.getMapEnableThreadControl().put(thName, false);
-//			}
-//		} catch (Exception e) {
-//			logger.error("setEnableThread: "+e.getMessage());
-//		}
-//	}
-	
-	public int getListenerPort() {
-		if (gParams.getInfo().getMonRol().equals("PRIMARY")) {
-			return gParams.getInfo().getMonPort();
-		} else {
-			return gParams.getInfo().getSmonPort();
-		}
 	}
 }

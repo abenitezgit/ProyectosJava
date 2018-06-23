@@ -1,16 +1,12 @@
 package org.cap_server;
 
-
 import java.io.FileInputStream;
 import java.util.Properties;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 import org.dataAccess.DataAccess;
 import org.json.JSONArray;
-import org.model.Info;
 import org.model.MonParams;
 import org.services.ThMain;
 import org.utilities.GlobalParams;
@@ -26,7 +22,6 @@ import com.rutinas.Rutinas;
  *
  */
 
-
 public class AppServerInit {
 	//Inicializando el Logger
 	static Logger logger = Logger.getLogger("cap-server");
@@ -41,58 +36,64 @@ public class AppServerInit {
         
     	try {
     		//Startup cap-server
-    		logger.info("Iniciando Dispatcher cap-server");
+    		mylib.console("Iniciando Dispatcher cap-server");
     		
     		//Reading External Params
-    		logger.info("Leyendo parametros externos...");
+    		mylib.console("Leyendo parametros externos...");
     		getExternalParams();
-    		logger.info("Parametros externos OK!");
-    		logger.info("External PathConfig: "+gParams.getPathConfig());
-    		logger.info("External FileConfig: "+gParams.getFileConfig());
-    		logger.info("External monID: "+gParams.getMonID());
+    		mylib.console("Parametros externos OK!");
+    		mylib.console("External PathConfig: "+gParams.getAppConfig().getPathConfig());
+    		mylib.console("External FileConfig: "+gParams.getAppConfig().getFileConfig());
+    		mylib.console("External monID: "+gParams.getAppConfig().getMonID());
     		
     		//Reading FileConfig
-    		logger.info("Leyendo Parametros de la Aplicacion...");
+    		mylib.console("Leyendo Parametros de la Aplicacion...");
     		getFileProperties();
-    		logger.info("Parametros de la Aplicacion OK!");
-    		logger.info("Property dbHostName: "+gParams.getInfo().getDbHostName());
-    		logger.info("Property dbIP: "+gParams.getInfo().getDbIP());
-    		logger.info("Property dbName: "+gParams.getInfo().getDbName());
-    		logger.info("Property dbPort: "+gParams.getInfo().getDbPort());
-    		logger.info("Property dbTimeOut"+gParams.getInfo().getDbTimeOut());
-    		logger.info("Property dbUser: "+gParams.getInfo().getDbUser());
-    		logger.info("Property dbPass: "+gParams.getInfo().getDbPass());
-    		logger.info("TxpMain: "+gParams.getInfo().getTxpMain());
+    		mylib.console("Parametros de la Aplicacion OK!");
+    		mylib.console("Property dbHostName: "+gParams.getAppConfig().getDbHostName());
+    		mylib.console("Property dbIP: "+gParams.getAppConfig().getDbIP());
+    		mylib.console("Property dbName: "+gParams.getAppConfig().getDbName());
+    		mylib.console("Property dbPort: "+gParams.getAppConfig().getDbPort());
+    		mylib.console("Property dbTimeOut"+gParams.getAppConfig().getDbTimeOut());
+    		mylib.console("Property dbUser: "+gParams.getAppConfig().getDbUser());
+    		mylib.console("Property dbPass: "+gParams.getAppConfig().getDbPass());
+    		mylib.console("TxpMain: "+gParams.getAppConfig().getTxpMain());
+    		
+    		//Enable Logger
+    		mylib.console("Configurando Log4j...");
+    		String pathFileName = gParams.getAppConfig().getPathConfig()+"/"+gParams.getAppConfig().getLog4jName();
+    		mylib.setupLog4j(pathFileName);
     		
     		//Valida conexion a Metadata
-    		logger.info("Validando Acceso a MetaData...");
+    		mylib.console("Validando Acceso a MetaData...");
     		valDbConnect();
-    		logger.info("Acceso a MetaData OK!");
+    		mylib.console("Acceso a MetaData OK!");
 
     		
     		//Inicializa status de thread en false (no se están ejecutando)
     		initStatusThread();
     		
     		//Recupera parametros del servicio en MetaData
-    		logger.info("Leyendo Parametros de servicio desde Metadata...");
+    		mylib.console("Leyendo Parametros de servicio desde Metadata...");
     		getDBParams();
-    		logger.info("Parametros de servicios OK!");
-    		logger.info("Parametros de Servcios MonServices: "+mylib.serializeObjectToJSon(gParams.getMapMonParams(), false));
+    		mylib.console("Parametros de servicios OK!");
+    		mylib.console("Parametros de Servcios MonServices: "+mylib.serializeObjectToJSon(gParams.getMapMonParams(), false));
     		
     		//Levanta Main Services
-    		logger.info("Scheduling thMain - Proceso Principal");
-    		ScheduledExecutorService executorThMain = Executors.newSingleThreadScheduledExecutor();
+    		mylib.console("Scheduling thMain - Proceso Principal");
+    		
 			Runnable thMain = new ThMain(gParams);
 			gParams.getMapThreadRunnig().put("thMain", true);
-			executorThMain.scheduleWithFixedDelay(thMain, 1000, gParams.getMapMonParams().get(gParams.getMonID()).getTxpMain(), TimeUnit.MILLISECONDS);
+			gParams.getExecutorThMain().scheduleWithFixedDelay(thMain, 1000, gParams.getMapMonParams().get(gParams.getAppConfig().getMonID()).getTxpMain(), TimeUnit.MILLISECONDS);
 			//executorThMain.execute(thMain);
-			logger.info("Proceso principal ha sido agendado!");
 			
-			logger.info("Finalizando dispatcher cap-server!");
+			mylib.console("Proceso principal ha sido agendado!");
+			
+			mylib.console("Finalizando dispatcher cap-server!");
 
     	} catch (Exception e) {
-    		logger.error("No es posible iniciar cap-server: "+e.getMessage());
-    		logger.error("Finalizando cap-server");
+    		mylib.console(1,"No es posible iniciar cap-server: "+e.getMessage());
+    		mylib.console(1,"Finalizando cap-server");
     	}
     }
         
@@ -105,15 +106,18 @@ public class AppServerInit {
     }
     
     private static void getExternalParams() throws Exception {
-    	gParams.setMonID(System.getProperty("monID"));
-    	gParams.setPathConfig(System.getProperty("pathConfig"));
-    	gParams.setFileConfig(System.getProperty("fileConfig"));
-    	
-    	if (	mylib.isNullOrEmpty(gParams.getMonID()) || 
-    			mylib.isNullOrEmpty(gParams.getPathConfig()) || 
-    			mylib.isNullOrEmpty(gParams.getFileConfig())) {
-    		throw new Exception("Unable to read External params");
-    		
+    	try {
+	    	gParams.getAppConfig().setMonID(System.getProperty("monID"));
+	    	gParams.getAppConfig().setPathConfig(System.getProperty("pathConfig"));
+	    	gParams.getAppConfig().setFileConfig(System.getProperty("fileConfig"));
+	    	
+	    	if (	mylib.isNullOrEmpty(gParams.getAppConfig().getMonID()) || 
+	    			mylib.isNullOrEmpty(gParams.getAppConfig().getPathConfig()) || 
+	    			mylib.isNullOrEmpty(gParams.getAppConfig().getFileConfig())) {
+	    		throw new Exception("Error recuperando parametros de entrada");
+	    	}
+    	} catch (Exception e) {
+    		throw new Exception("getExternalParams(): "+e.getMessage());
     	}
     }
     
@@ -122,27 +126,26 @@ public class AppServerInit {
     	 * Valida si archivo properties existe
     	 */
     	
-    	if (mylib.fileExist(gParams.getPathConfig()+"/"+gParams.getFileConfig())) {
+    	if (mylib.fileExist(gParams.getAppConfig().getPathConfig()+"/"+gParams.getAppConfig().getFileConfig())) {
     		//Abre archivo de configuración
     		Properties conf = new Properties();
-    		conf.load(new FileInputStream(gParams.getPathConfig()+"/"+gParams.getFileConfig()));
+    		conf.load(new FileInputStream(gParams.getAppConfig().getPathConfig()+"/"+gParams.getAppConfig().getFileConfig()));
     		
-    		//Carga la clase Info()
-    		Info info = new Info();
-    		
-    		info.setAuthKey(conf.getProperty("authKey"));
-    		info.setDbHostName(conf.getProperty("dbHostName"));
-    		info.setDbIP(conf.getProperty("dbIP"));
-    		info.setDbName(conf.getProperty("dbName"));
-    		info.setDbPass(conf.getProperty("dbPass"));
-    		info.setDbPort(Integer.valueOf(conf.getProperty("dbPort")));
-    		info.setDbUser(conf.getProperty("dbUser"));
-    		info.setTxpMain(Integer.valueOf(conf.getProperty("txpMain")));
-    		
-    		gParams.setInfo(info);
+    		gParams.getAppConfig().setAuthKey(conf.getProperty("authKey"));
+    		gParams.getAppConfig().setTxpMain(Integer.valueOf(conf.getProperty("txpMain")));
+    		gParams.getAppConfig().setDbHostName(conf.getProperty("dbHostName"));
+    		gParams.getAppConfig().setDbIP(conf.getProperty("dbIP"));
+    		gParams.getAppConfig().setDbName(conf.getProperty("dbName"));
+    		gParams.getAppConfig().setDbPort(conf.getProperty("dbPort"));
+    		gParams.getAppConfig().setDbUser(conf.getProperty("dbUser"));
+    		gParams.getAppConfig().setDbPass(conf.getProperty("dbPass"));
+    		gParams.getAppConfig().setLog4jLevel(conf.getProperty("log4jLevel"));
+    		gParams.getAppConfig().setLog4jName(conf.getProperty("log4jName"));
+    		gParams.getAppConfig().setDbTimeOut(Integer.valueOf(conf.getProperty("dbTimeOut")));
+
     		
     	} else {
-    		throw new Exception("Unable to read file Config: "+gParams.getPathConfig()+"/"+gParams.getFileConfig());
+    		throw new Exception("Error leyendo archivo de parametros: "+gParams.getAppConfig().getPathConfig()+"/"+gParams.getAppConfig().getFileConfig());
     	}
     }
     

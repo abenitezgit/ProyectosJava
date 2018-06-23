@@ -2,8 +2,10 @@ package org.utilities;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
-import org.model.Info;
+import org.model.AppConfig;
 import org.model.MonParams;
 import org.model.ProcControl;
 import org.model.Service;
@@ -11,14 +13,10 @@ import org.model.Task;
 
 public class GlobalParams {
 	
-	//Load from External Params
-	private String monID;
-	private String pathConfig;
-	private String fileConfig;
-	
 	//Map de monParams recibidos desde Metadata
 	//key = monID
 	//MonParams = Clase MonParams.class con parametros del monID correspondiente
+	private AppConfig appConfig = new AppConfig();
 	Map<String, MonParams> mapMonParams = new HashMap<>();
 	
 	//Map para validar si los threads están levantados o no
@@ -28,34 +26,10 @@ public class GlobalParams {
 	private Map<String, Service> mapService = new HashMap<>();
 	private Map<String, ProcControl> mapProcControl = new HashMap<>();
 	
-	private Info info;
-
+	ScheduledExecutorService executorThMain = Executors.newSingleThreadScheduledExecutor();
+	
 	//Getter and Setter
 	
-	public String getPathConfig() {
-		return pathConfig;
-	}
-	public void setPathConfig(String pathConfig) {
-		this.pathConfig = pathConfig;
-	}
-	public String getFileConfig() {
-		return fileConfig;
-	}
-	public void setFileConfig(String fileConfig) {
-		this.fileConfig = fileConfig;
-	}
-	public Info getInfo() {
-		return info;
-	}
-	public void setInfo(Info info) {
-		this.info = info;
-	}
-	public String getMonID() {
-		return monID;
-	}
-	public void setMonID(String monID) {
-		this.monID = monID;
-	}
 	public Map<String, MonParams> getMapMonParams() {
 		return mapMonParams;
 	}
@@ -85,5 +59,17 @@ public class GlobalParams {
 	}
 	public void setMapProcControl(Map<String, ProcControl> mapProcControl) {
 		this.mapProcControl = mapProcControl;
+	}
+	public AppConfig getAppConfig() {
+		return appConfig;
+	}
+	public void setAppConfig(AppConfig appConfig) {
+		this.appConfig = appConfig;
+	}
+	public ScheduledExecutorService getExecutorThMain() {
+		return executorThMain;
+	}
+	public void setExecutorThMain(ScheduledExecutorService executorThMain) {
+		this.executorThMain = executorThMain;
 	}
 }

@@ -33,18 +33,21 @@ public class ThListener implements Runnable{
 	
     @Override
     public void run() {
+    	mylib.setLevelLogger(logger, gParams.getAppConfig().getLog4jLevel());
+    	
     	//Variables de Proceso
     	String inputData;
     	String outputData;
+    	String monID = gParams.getAppConfig().getMonID();
     	
         try {
         	/**
         	 * Iniciando Thread Listener
         	 */
-        	logger.info("Iniciando Listener Server port: " + gParams.getMapMonParams().get(gParams.getMonID()).getMonPort());
+        	logger.info("Iniciando Listener Server port: " + gParams.getMapMonParams().get(monID).getMonPort());
 
             @SuppressWarnings("resource")
-			ServerSocket skServidor = new ServerSocket(Integer.valueOf(gParams.getMapMonParams().get(gParams.getMonID()).getMonPort()));
+			ServerSocket skServidor = new ServerSocket(Integer.valueOf(gParams.getMapMonParams().get(monID).getMonPort()));
             
             
             while (true) {
@@ -84,11 +87,11 @@ public class ThListener implements Runnable{
                 	logger.info("AuthKey: "+ro.getAuth());
                 	logger.info("Data: "+ro.getData());
                 	
-            		if (ro.getAuth().equals(gParams.getInfo().getAuthKey())) {
+            		if (ro.getAuth().equals(gParams.getAppConfig().getAuthKey())) {
             			
             			//Valida si Thread Main y Listener están ENABLED
-            			if (gParams.getMapMonParams().get(gParams.getMonID()).getThMainAction().equals("ENABLE") && 
-            				gParams.getMapMonParams().get(gParams.getMonID()).getThListenerAction().equals("ENABLE")) {	
+            			if (gParams.getMapMonParams().get(monID).getThMainAction().equals("ENABLE") && 
+            				gParams.getMapMonParams().get(monID).getThListenerAction().equals("ENABLE")) {	
             				
             				logger.info("Procesando Respuesta...");
             				

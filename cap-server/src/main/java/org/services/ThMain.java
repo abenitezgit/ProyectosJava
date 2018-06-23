@@ -9,7 +9,6 @@ import org.utilities.GlobalParams;
 
 import com.rutinas.Rutinas;
 
-
 public class ThMain implements Runnable{
 	Logger logger = Logger.getLogger("thMain");
 	Rutinas mylib = new Rutinas();
@@ -29,6 +28,8 @@ public class ThMain implements Runnable{
 	}
         
 	public void run() {
+		mylib.setLevelLogger(logger, gParams.getAppConfig().getLog4jLevel());
+		
 		final String module = "run()";
 		final String logmsg = module + " - ";
 		
@@ -54,8 +55,8 @@ public class ThMain implements Runnable{
 		 * los servicios internos que debe levantar
 		 */
 		logger.info(logmsg+"Validando Rol del Servicio...");
-		String monRole = gParams.getMapMonParams().get(gParams.getMonID()).getMonRole();
-		String monID = gParams.getMonID();
+		String monID = gParams.getAppConfig().getMonID();
+		String monRole = gParams.getMapMonParams().get(monID).getMonRole();
 		
 		logger.info(logmsg+"ID del Servicio: "+monID);
 		logger.info(logmsg+"Rol del Servicio: "+monRole);
@@ -114,7 +115,7 @@ public class ThMain implements Runnable{
 	    				if (!gParams.getMapThreadRunnig().get(thName)) {
 	    	        		Runnable thProcess = new ThProcess(gParams);
 	    	        		gParams.getMapThreadRunnig().put(thName, true);
-	    	        		execProcess.scheduleWithFixedDelay(thProcess, 1000, gParams.getInfo().getTxpMain(), TimeUnit.MILLISECONDS);
+	    	        		execProcess.scheduleWithFixedDelay(thProcess, 1000, gParams.getAppConfig().getTxpMain(), TimeUnit.MILLISECONDS);
 	    	        		//execProcess.execute(thProcess);
 	    				}
 	    			} else 

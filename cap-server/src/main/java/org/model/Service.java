@@ -28,7 +28,6 @@ public class Service {
 
 	//Getter and Setter
 	
-	
 	public String getSrvID() {
 		return srvID;
 	}

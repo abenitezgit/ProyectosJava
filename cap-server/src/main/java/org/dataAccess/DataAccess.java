@@ -29,7 +29,12 @@ public class DataAccess {
 	
 	public DataAccess(GlobalParams m) {
 		gParams = m;
-		dbConn = new MysqlAPI(gParams.getInfo().getDbHostName(), gParams.getInfo().getDbName(), String.valueOf(gParams.getInfo().getDbPort()),gParams.getInfo().getDbUser(),gParams.getInfo().getDbPass(),gParams.getInfo().getDbTimeOut());
+		dbConn = new MysqlAPI(	gParams.getAppConfig().getDbHostName(), 
+								gParams.getAppConfig().getDbName(), 
+								String.valueOf(gParams.getAppConfig().getDbPort()),
+								gParams.getAppConfig().getDbUser(),
+								gParams.getAppConfig().getDbPass(),
+								gParams.getAppConfig().getDbTimeOut());
 	}
 	
 	
@@ -145,7 +150,7 @@ public class DataAccess {
 			logger.info(logmsg+"Conectando a Metadata...");
 			dbConn.open();
 			if (dbConn.isConnected()) {
-				String vSql = "call srvConf.sp_get_groupActiveServer("+ gParams.getMapMonParams().get(gParams.getMonID()).getAgeGapMinute() +")";
+				String vSql = "call srvConf.sp_get_groupActiveServer("+ gParams.getMapMonParams().get(gParams.getAppConfig().getMonID()).getAgeGapMinute() +")";
 				logger.info(logmsg+"Ejecutando: "+vSql);
 				if (dbConn.executeQuery(vSql)) {
 					logger.info(logmsg+"Ejecucion Exitosa");
