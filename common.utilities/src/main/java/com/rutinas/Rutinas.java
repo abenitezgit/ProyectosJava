@@ -1,12 +1,15 @@
 package com.rutinas;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.TimeZone;
 
 import javax.management.Attribute;
@@ -14,14 +17,39 @@ import javax.management.AttributeList;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
+import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.json.JSONObject;
 
 public class Rutinas {
 	
+    public void setupLog4j(String pathFileName) throws Exception {
+    	try {
+	        File f = new File(pathFileName);
+	        if (f.exists()) {
+	
+	            try {
+	                InputStream inStreamLog4j = new FileInputStream(f);
+	                Properties propertiesLog4j = new Properties();
+	
+	                propertiesLog4j.load(inStreamLog4j);
+	                PropertyConfigurator.configure(propertiesLog4j);
+	            } catch (Exception e) {
+	                e.printStackTrace();
+	                BasicConfigurator.configure();
+	            }
+	        } else {
+	            BasicConfigurator.configure();
+	        }
+    	} catch (Exception e) {
+    		throw new Exception("setupLog4j(): "+e.getMessage());
+    	}
+    }
+
 	public void setLevelLogger(Logger logger, String level) {
 		switch (level) {
 		case "INFO":
