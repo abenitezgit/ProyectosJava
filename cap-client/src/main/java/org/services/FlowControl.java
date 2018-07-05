@@ -20,6 +20,17 @@ public class FlowControl {
 		gParams = m;
 	}
 	
+	public synchronized void removeUsedThreadProc(String typeProc) throws Exception {
+		try {
+			int usedThread = gParams.getService().getMapTypeProc().get(typeProc).getUsedThread();
+			usedThread--;
+			gParams.getService().getMapTypeProc().get(typeProc).setUsedThread(usedThread);
+			
+		} catch (Exception e) {
+			throw new Exception("removeUsedThreadProc(): "+e.getMessage());
+		}
+	}
+	
 	public synchronized void addUsedThreadProc(String typeProc) throws Exception {
 		try {
 			int usedThread = gParams.getService().getMapTypeProc().get(typeProc).getUsedThread();
@@ -27,12 +38,66 @@ public class FlowControl {
 			gParams.getService().getMapTypeProc().get(typeProc).setUsedThread(usedThread);
 			
 		} catch (Exception e) {
-			throw new Exception("updateMapTypeProc(): "+e.getMessage());
+			throw new Exception("addUsedThreadProc(): "+e.getMessage());
 		}
 	}
 	
 	private synchronized void addTask(String key, Task task) {
 		gParams.getMapTask().put(key, task);
+	}
+
+	
+	public synchronized void updateStatusSuccessTask(String key) throws Exception {
+		if (gParams.getMapTask().containsKey(key)) {
+			gParams.getMapTask().get(key).setStatus("FINISHED");
+			gParams.getMapTask().get(key).setuStatus("SUCCESS");
+			gParams.getMapTask().get(key).setFecUpdate(mylib.getDate());
+			gParams.getMapTask().get(key).setFecFinished(mylib.getDate());
+		}
+		
+	}
+	
+	public synchronized void updateStatusErrorTask(String key, int errCode, String errMesg) throws Exception {
+		if (gParams.getMapTask().containsKey(key)) {
+			gParams.getMapTask().get(key).setStatus("FINISHED");
+			gParams.getMapTask().get(key).setuStatus("ERROR");
+			gParams.getMapTask().get(key).setFecUpdate(mylib.getDate());
+			gParams.getMapTask().get(key).setFecFinished(mylib.getDate());
+			gParams.getMapTask().get(key).setErrCode(errCode);
+			gParams.getMapTask().get(key).setErrMesg(errMesg);
+		}
+		
+	}
+	
+	public synchronized void updateStatusTask(String key, String status) throws Exception {
+		try {
+			if (gParams.getMapTask().containsKey(key)) {
+				gParams.getMapTask().get(key).setStatus(status);
+				gParams.getMapTask().get(key).setFecUpdate(mylib.getDate());
+			}
+			
+		} catch (Exception e) {
+			throw new Exception("updateStatusTask"+e.getMessage());
+		}
+	}
+	
+	public boolean isExistFreeThread(String typeProc) throws Exception {
+		try {
+			if (gParams.getService().getMapTypeProc().containsKey(typeProc)) {
+				int usedThread = gParams.getService().getMapTypeProc().get(typeProc).getUsedThread();
+				int maxThread = gParams.getService().getMapTypeProc().get(typeProc).getMaxThread();
+				
+				if (usedThread < maxThread) {
+					return true;
+				} else {
+					return false;
+				}
+			} else {
+				return false;
+			}
+		} catch (Exception e) {
+			throw new Exception("isExistFreeThread(): "+e.getMessage());
+		}
 	}
 	
 	public void updateTaskProcess(String strMapTask) throws Exception {

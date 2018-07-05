@@ -1,5 +1,6 @@
 package org.services;
 
+
 import org.apache.log4j.Logger;
 import org.utilities.GlobalParams;
 
@@ -24,9 +25,13 @@ public class ThProcess implements Runnable {
 		try {
 			//Set LogLevel
 			mylib.setLevelLogger(logger, gParams.getAppConfig().getLog4jLevel());
-
-			logger.info("Iniciando Ciclo de Thead Process...");
 			
+			logger.info("Iniciando Ciclo thProcess...");
+			
+			if (gParams.getService().getEnable()==1) {
+				sc.executeTask();
+			}
+
 			sc.showTaskProcess();
 			
 			

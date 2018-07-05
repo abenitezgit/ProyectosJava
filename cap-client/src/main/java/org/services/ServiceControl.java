@@ -1,7 +1,7 @@
 package org.services;
 
-
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 import org.model.Service;
@@ -26,6 +26,7 @@ public class ServiceControl {
 		mylib.setLevelLogger(logger, gParams.getAppConfig().getLog4jLevel());
 	}
 	
+	
 	public void showSrvParams() {
 		Service srv = gParams.getService();
 		logger.info("Srv Enable: "+srv.getEnable());
@@ -46,9 +47,49 @@ public class ServiceControl {
 		}
 	}
 	
+	public void executeTask() throws Exception {
+		try {
+			Map<String, Task> mapTask = gParams.getMapTask().entrySet().stream()
+					.filter(p -> p.getValue().getStatus().equals("READY"))
+					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+			
+			for (Map.Entry<String, Task> entry : mapTask.entrySet()) {
+				String typeProc = entry.getValue().getTypeProc();
+				switch(typeProc) {
+					case "OSP":
+						if (fc.isExistFreeThread(typeProc)) {
+							Thread thOsp = new ThOSP(gParams, entry.getValue());
+							fc.addUsedThreadProc(typeProc);
+							fc.updateStatusTask(entry.getKey(),"RUNNING");
+							thOsp.run();
+							
+						} else {
+							logger.info("Esperando por Thread...");
+						}
+						break;
+					case "ETB":
+						if (fc.isExistFreeThread(typeProc)) {
+							Thread thETB = new ThETB(gParams, entry.getValue());
+							fc.addUsedThreadProc(typeProc);
+							fc.updateStatusTask(entry.getKey(),"RUNNING");
+							thETB.run();
+							
+						} else {
+							logger.info("Esperando por Thread...");
+						}
+						break;
+						
+				}
+			}
+			
+		} catch (Exception e) {
+			throw new Exception("executeTask(): "+e.getMessage());
+		}
+	}
+	
 	public void showTaskProcess() throws Exception {
 		for (Map.Entry<String, Task> entry : gParams.getMapTask().entrySet()) {
-			logger.info("TaskID: "+entry.getKey());
+			logger.info("TaskID: "+entry.getKey()+" "+entry.getValue().getStatus()+" "+entry.getValue().getFecIns()+" "+entry.getValue().getFecUpdate());
 		}
 	}
 	
@@ -96,5 +137,6 @@ public class ServiceControl {
 			throw new Exception("syncServiceParams(): "+e.getMessage());
 		}
 	}
+	
 
 }

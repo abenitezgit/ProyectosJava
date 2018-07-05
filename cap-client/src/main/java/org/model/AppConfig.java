@@ -6,7 +6,8 @@ public class AppConfig {
 	private String connectTypeMon; 		//Primary: URL - SOCKET
 	private String sConnectTypeMon; 	//Secondary: URL - SOCKET
 	private String log4jName;
-	private String log4jLevel; 	
+	private String log4jLevel;
+	private String workPath;
 	
 	//Load from External Params
 	private String srvID;
@@ -157,5 +158,11 @@ public class AppConfig {
 	}
 	public void setLog4jLevel(String log4jLevel) {
 		this.log4jLevel = log4jLevel;
+	}
+	public String getWorkPath() {
+		return workPath;
+	}
+	public void setWorkPath(String workPath) {
+		this.workPath = workPath;
 	}
 }

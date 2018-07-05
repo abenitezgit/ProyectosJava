@@ -127,6 +127,7 @@ public class AppClientInit {
     		gParams.getAppConfig().setAuthKey(conf.getProperty("authKey"));
     		gParams.getAppConfig().setLog4jLevel(conf.getProperty("log4jLevel"));
     		gParams.getAppConfig().setLog4jName(conf.getProperty("log4jName"));
+    		gParams.getAppConfig().setWorkPath(conf.getProperty("workPath"));
     		
     	} else {
     		throw new Exception("Error leyendo archivo de parametros: "+gParams.getAppConfig().getPathConfig()+"/"+gParams.getAppConfig().getFileConfig());
