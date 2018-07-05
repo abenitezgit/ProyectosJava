@@ -54,7 +54,7 @@ public class AppServerInit {
     		mylib.console("Property dbIP: "+gParams.getAppConfig().getDbIP());
     		mylib.console("Property dbName: "+gParams.getAppConfig().getDbName());
     		mylib.console("Property dbPort: "+gParams.getAppConfig().getDbPort());
-    		mylib.console("Property dbTimeOut"+gParams.getAppConfig().getDbTimeOut());
+    		mylib.console("Property dbTimeOut: "+gParams.getAppConfig().getDbTimeOut());
     		mylib.console("Property dbUser: "+gParams.getAppConfig().getDbUser());
     		mylib.console("Property dbPass: "+gParams.getAppConfig().getDbPass());
     		mylib.console("TxpMain: "+gParams.getAppConfig().getTxpMain());
@@ -161,7 +161,7 @@ public class AppServerInit {
 	    		da.close();
 	    	}
     	} catch (Exception e) {
-    		throw new Exception("Unable to Connect MetaData");
+    		throw new Exception("Unable to Connect MetaData: "+e.getMessage());
     	}
     }
     

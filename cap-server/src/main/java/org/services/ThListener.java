@@ -67,7 +67,7 @@ public class ThListener implements Runnable{
                 //
                 try {
                 	inputData = (String) objInput.readObject();
-                	logger.info("Recibiendo RX(): "+ inputData);
+                	logger.debug("Recibiendo RX(): "+ inputData);
                 	
                 	/*
                 	 * Actualiza inicio de ejecucion del modulo
@@ -82,10 +82,7 @@ public class ThListener implements Runnable{
                 	ro.setRequest(jo.getString("request"));
                 	ro.setData(jo.getJSONObject("data"));
                 	
-                	logger.info("Info de Parsing realizado");
-                	logger.info("Request: "+ro.getRequest());
-                	logger.info("AuthKey: "+ro.getAuth());
-                	logger.info("Data: "+ro.getData());
+                	logger.info("Request Header: "+ro.getRequest()+" "+ro.getAuth());
                 	
             		if (ro.getAuth().equals(gParams.getAppConfig().getAuthKey())) {
             			
@@ -149,7 +146,7 @@ public class ThListener implements Runnable{
                 		outputData = genResponse(90,"Exception error",null);
                 } 
                 
-                logger.info("Enviando TX(): "+ outputData);
+                logger.debug("Enviando TX(): "+ outputData);
                 
                 ObjOutput.writeObject(outputData);
                 

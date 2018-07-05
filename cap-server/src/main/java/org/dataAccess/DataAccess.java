@@ -11,11 +11,15 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.model.Dependence;
+import org.model.ExpTable;
+import org.model.ExpTableParam;
+import org.model.Ftp;
 import org.model.Mov;
 import org.model.MovMatch;
 import org.model.Osp;
 import org.model.OspParam;
 import org.model.PGPending;
+import org.model.ProcControl;
 import org.utilities.GlobalParams;
 
 import com.api.MysqlAPI;
@@ -84,7 +88,6 @@ public class DataAccess {
 		}
 
 	}
-
 	
 	public String getServiceParam(String srvID) throws Exception {
 		try {
@@ -208,7 +211,30 @@ public class DataAccess {
 			if (dbConn.isConnected()) {
 				logger.info(logmsg+"Conexión establecida a Metadata!");
 				switch(procType) {
-					case "ETL":
+					case "FTP":
+						Ftp ftp = new Ftp();
+						
+						vSql = "call sp_get_ftp('"+procID+"')";
+						logger.info(logmsg+"Ejecutando query: "+vSql);
+						if (dbConn.executeQuery(vSql)) {
+							ResultSet rs = dbConn.getQuery();
+							if (rs.next()) {
+								try {
+									String resp = rs.getString("resp");
+									logger.info(logmsg+"Respuesta de la query: "+resp);
+									
+									logger.info(logmsg+"Serializando respuesta en objeto clase Ftp()");
+									ftp = (Ftp) mylib.serializeJSonStringToObject(resp, Ftp.class);
+									
+									logger.info(logmsg+"Se ha serializado correctamente el objeto clase Ftp()");
+																		
+									params = ftp;
+								} catch (Exception e) {
+									logger.error(logmsg+"No es posible recuperar parametros de proceso: "+e.getLocalizedMessage());
+								}
+							}
+						}
+						
 						break;
 					case "MOV":
 						Mov mov = new Mov();
@@ -294,7 +320,7 @@ public class DataAccess {
 											
 											logger.info(logmsg+"Se ha serializado correctamente el objeto clase OspParams()");
 											
-											mapOspParam.put(String.format("%30d", ospParam.getOrder()), ospParam);
+											mapOspParam.put(String.format("%03d", ospParam.getOrder()), ospParam);
 										}
 									}
 									
@@ -308,6 +334,54 @@ public class DataAccess {
 						}
 						
 						break;
+					case "ETB":
+						ExpTable etb = new ExpTable();
+						Map<String, ExpTableParam> mapEtbParam = new TreeMap<>();
+						
+						vSql = "call sp_get_exp('"+procID+"')";
+						logger.info(logmsg+"Ejecutando query: "+vSql);
+						if (dbConn.executeQuery(vSql)) {
+							ResultSet rs = dbConn.getQuery();
+							if (rs.next()) {
+								try {
+									String resp = rs.getString("resp");
+									logger.info(logmsg+"Respuesta de la query: "+resp);
+									
+									logger.info(logmsg+"Serializando respuesta en objeto clase ExpTable()");
+									etb = (ExpTable) mylib.serializeJSonStringToObject(resp, ExpTable.class);
+									
+									logger.info(logmsg+"Se ha serializado correctamente el objeto clase ExpTable()");
+									
+									//Busca Parametros del ExpTable
+									String vSql2 = "call sp_get_expMatch('"+procID+"')";
+									logger.info(logmsg+"Ejecutando query: "+vSql2);
+									if (dbConn.executeQuery(vSql2)) {
+										ResultSet rs2 = dbConn.getQuery();
+										while (rs2.next()) {
+											ExpTableParam etbParam = new ExpTableParam();
+											resp = rs2.getString("resp");
+											logger.info(logmsg+"Respuesta de la query: "+resp);
+											
+											logger.info(logmsg+"Serializando respuesta en objeto clase ExpTableParam()");
+											etbParam = (ExpTableParam) mylib.serializeJSonStringToObject(resp, ExpTableParam.class);
+											
+											logger.info(logmsg+"Se ha serializado correctamente el objeto clase ExpTableParam()");
+											
+											mapEtbParam.put(String.format("%03d", etbParam.getEtbOrder()), etbParam);
+										}
+									}
+									
+									etb.setMapEtbParam(mapEtbParam);
+									
+									params = etb;
+								} catch (Exception e) {
+									logger.error(logmsg+"No es posible recuperar parametros de proceso: "+e.getLocalizedMessage());
+								}
+							}
+						}
+						
+						break;
+
 					default:
 						logger.error("getProcessParam: tipo de proceso no encontrado");
 				}
@@ -328,7 +402,7 @@ public class DataAccess {
 		}
 	}
 
-	public void updateProcControl(String key, String status, int errCode, String errMesg) throws Exception {
+	public void updateProcControl(String key, String uStatus, int errCode, String errMesg) throws Exception {
 		try {
 			dbConn.open();
 			if (dbConn.isConnected()) {
@@ -336,16 +410,24 @@ public class DataAccess {
 				String vGrpID = tokens[0];
 				String vNumSecExec = tokens[1];
 				String vProcID = tokens[2];
-				String vSql = "call srvConf.sp_upd_procControl('"+vGrpID+"','"+vNumSecExec+"','"+vProcID+"','"+status+"',"+errCode+",'"+errMesg+"')";
-				if (dbConn.executeQuery(vSql)) {
-					ResultSet rs = dbConn.getQuery();
-					if (rs.next()) {
-						int result = rs.getInt("resp");
-						if (result<0) {
-							logger.error("updateProcControl: No es posible actualizar Metadata para ID: "+key);
-						}
-					}
+				
+				String spName = "srvConf.sp_upd_procControl";
+				List<String> spParams = new ArrayList<>();
+				spParams.add("IN&VARCHAR&"+vGrpID);
+				spParams.add("IN&VARCHAR&"+vNumSecExec);
+				spParams.add("IN&VARCHAR&"+vProcID);
+				spParams.add("IN&VARCHAR&"+uStatus);
+				spParams.add("IN&INTEGER&"+errCode);
+				spParams.add("IN&VARCHAR&"+errMesg);
+				
+				for (String param : spParams) {
+					logger.debug("List Param: "+param);
 				}
+				
+				
+				//String vSql = "call srvConf.sp_upd_procControl('"+vGrpID+"','"+vNumSecExec+"','"+vProcID+"','"+status+"',"+errCode+",'"+errMesg+"')";
+				dbConn.executeProcedure(spName, spParams);
+				
 				dbConn.close();
 			}
 		} catch (Exception e) {
@@ -357,6 +439,82 @@ public class DataAccess {
 		}
 	}
 	
-
+	public boolean updateGroupControl(String key, String status, String uStatus, int errCode, String errMesg) throws Exception {
+		try {
+			boolean response = false;
+			
+			String[] items = key.split(":");  //Sepera grpID y numSecExcec
+			
+			String spName = "srvConf.sp_upd_groupControl";
+			List<String> spParams = new ArrayList<>();
+			spParams.add("IN&VARCHAR&"+items[0]);
+			spParams.add("IN&VARCHAR&"+items[1]);
+			spParams.add("IN&VARCHAR&"+status);
+			spParams.add("IN&VARCHAR&"+uStatus);
+			spParams.add("IN&INTEGER&"+errCode);
+			spParams.add("IN&VARCHAR&"+errMesg);
+			
+			logger.info("SP Group Update Name: "+spName);
+			for (String param : spParams) {
+				logger.info("SP Group Update Param: "+param);
+			}
+			
+			dbConn.open();
+			
+			if (dbConn.isConnected()) {
+				
+				dbConn.executeProcedure(spName, spParams);
+				dbConn.close();
+				
+				response = true;
+			}
+			
+			return response;
+		} catch (Exception e) {
+			throw new Exception("updateGroupControl(): "+e.getMessage());
+		} finally {
+			if (dbConn.isConnected()) {
+				dbConn.close(); 
+			}
+		}
+	}
+	
+	public boolean updateProcControl(ProcControl pc) throws Exception {
+		try {
+			boolean response = false;
+			
+			String spName = "srvConf.sp_upd_procControl";
+			List<String> spParams = new ArrayList<>();
+			spParams.add("IN&VARCHAR&"+pc.getGrpID());
+			spParams.add("IN&VARCHAR&"+pc.getNumSecExec());
+			spParams.add("IN&VARCHAR&"+pc.getProcID());
+			spParams.add("IN&VARCHAR&"+pc.getuStatus());
+			spParams.add("IN&VARCHAR&"+pc.getErrCode());
+			spParams.add("IN&VARCHAR&"+pc.getErrMesg());
+			
+			logger.info("SP Proc Update Name: "+spName);
+			for (String param : spParams) {
+				logger.info("SP Proc Update Param: "+param);
+			}
+			
+			dbConn.open();
+			
+			if (dbConn.isConnected()) {
+				
+				dbConn.executeProcedure(spName, spParams);
+				dbConn.close();
+				
+				response = true;
+			}
+			
+			return response;
+		} catch (Exception e) {
+			throw new Exception("updateProcControl(): "+e.getMessage());
+		} finally {
+			if (dbConn.isConnected()) {
+				dbConn.close(); 
+			}
+		}
+	}
 
 }
