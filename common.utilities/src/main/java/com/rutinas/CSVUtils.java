@@ -5,28 +5,32 @@ import java.io.Writer;
 import java.util.List;
 
 public class CSVUtils {
+	
 private static final char DEFAULT_SEPARATOR = ',';
     
-    public static void writeLine(Writer w, List<String> values) throws IOException {
+    public void writeLine(Writer w, List<String> values) throws IOException {
         writeLine(w, values, DEFAULT_SEPARATOR, ' ');
     }
 
-    public static void writeLine(Writer w, List<String> values, char separators) throws IOException {
+    public void writeLine(Writer w, List<String> values, char separators) throws IOException {
         writeLine(w, values, separators, ' ');
     }
 
     //https://tools.ietf.org/html/rfc4180
-    private static String followCVSformat(String value) {
+    private String followCVSformat(String value) {
 
-        String result = value;
-        if (result.contains("\"")) {
-            result = result.replace("\"", "\"\"");
-        }
-        return result;
-
+    	if (value!=null) {
+	        String result = value;
+	        if (result.contains("\"")) {
+	            result = result.replace("\"", "\"\"");
+	        }
+	        return result;
+    	} else {
+    		return "";
+    	}
     }
 
-    public static void writeLine(Writer w, List<String> values, char separators, char customQuote) throws IOException {
+    public void writeLine(Writer w, List<String> values, char separators, char customQuote) throws IOException {
 
         boolean first = true;
 

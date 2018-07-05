@@ -27,6 +27,51 @@ import org.json.JSONObject;
 
 public class Rutinas {
 	
+	public String parseFnParam(String param) throws Exception {
+		try {
+			StringBuilder response = new StringBuilder(); 
+			
+			String[] items = param.split("&");
+			
+			for (String item : items) {
+				String[] fns = item.split(":");
+				
+				String fn = fns[0];
+				String val = fns[1];
+				
+				if (val.substring(0,1).equals("(")) {
+					val = val.substring(1,val.length()-1);
+				} else {
+					throw new Exception("Error formato parametro: "+val);
+				}
+				
+				switch(fn) {
+				case "date":
+					String[] ff = val.split(",");
+					
+					int daysBack = Integer.valueOf(ff[0]);
+					String dateFormat = ff[1];
+					
+					Calendar cal = Calendar.getInstance();
+					cal.add(Calendar.DAY_OF_MONTH, daysBack);
+					
+					Date date = cal.getTime();
+					
+					response.append(getDateString(date, dateFormat));
+					
+					break;
+				case "varchar":
+					response.append(val);
+				}
+				
+			}
+			
+			return response.toString();
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		}
+	}
+	
     public void setupLog4j(String pathFileName) throws Exception {
     	try {
 	        File f = new File(pathFileName);
