@@ -548,20 +548,21 @@ public class FlowControl {
 				case "READY":
 					gParams.getMapProcControl().get(key).setStatus("READY");
 					gParams.getMapProcControl().get(key).setFecUpdate(mylib.getDate());
+					break;
 				case "ASSIGNED":
 					gParams.getMapProcControl().get(key).setStatus("ASSIGNED");
 					gParams.getMapProcControl().get(key).setFecUpdate(mylib.getDate());
+					break;
 				default:
 					gParams.getMapProcControl().get(key).setStatus(uStatus);
 					gParams.getMapProcControl().get(key).setuStatus(uStatus);
 					gParams.getMapProcControl().get(key).setFecUpdate(mylib.getDate());
 					break;
 				}
-				
 			}
 			
 		} catch (Exception e) {
-			logger.error("updateMapProcControl: "+e.getMessage());
+			logger.error("updateMapProcControl(1): "+e.getMessage());
 		}
 	}
 	
@@ -599,8 +600,6 @@ public class FlowControl {
 					gParams.getMapProcControl().put(entry.getKey(), pc);
 				}
 			}
-			
-			
 		} catch (Exception e) {
 			logger.error("updateMapProcControl: "+e.getMessage());
 		}

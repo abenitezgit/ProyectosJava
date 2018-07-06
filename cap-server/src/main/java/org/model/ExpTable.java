@@ -34,6 +34,14 @@ public class ExpTable {
 	private String ownerID;
 	private String ownerName;
 	private String ownerPass;
+	private int ftpEnable;
+	private int ftpSecure;
+	private String ftpRemotePath;
+	private String ftpServerID;
+	private String ftpUserID;
+	private String ftpServerIP;
+	private String ftpUserName;
+	private String ftpUserPass;
 	
 	private Map<String, ExpTableParam> mapEtbParam = new TreeMap<>();
 
@@ -278,6 +286,70 @@ public class ExpTable {
 
 	public void setMapEtbParam(Map<String, ExpTableParam> mapEtbParam) {
 		this.mapEtbParam = mapEtbParam;
+	}
+
+	public int getFtpEnable() {
+		return ftpEnable;
+	}
+
+	public void setFtpEnable(int ftpEnable) {
+		this.ftpEnable = ftpEnable;
+	}
+
+	public int getFtpSecure() {
+		return ftpSecure;
+	}
+
+	public void setFtpSecure(int ftpSecure) {
+		this.ftpSecure = ftpSecure;
+	}
+
+	public String getFtpRemotePath() {
+		return ftpRemotePath;
+	}
+
+	public void setFtpRemotePath(String ftpRemotePath) {
+		this.ftpRemotePath = ftpRemotePath;
+	}
+
+	public String getFtpServerID() {
+		return ftpServerID;
+	}
+
+	public void setFtpServerID(String ftpServerID) {
+		this.ftpServerID = ftpServerID;
+	}
+
+	public String getFtpUserID() {
+		return ftpUserID;
+	}
+
+	public void setFtpUserID(String ftpUserID) {
+		this.ftpUserID = ftpUserID;
+	}
+
+	public String getFtpServerIP() {
+		return ftpServerIP;
+	}
+
+	public void setFtpServerIP(String ftpServerIP) {
+		this.ftpServerIP = ftpServerIP;
+	}
+
+	public String getFtpUserName() {
+		return ftpUserName;
+	}
+
+	public void setFtpUserName(String ftpUserName) {
+		this.ftpUserName = ftpUserName;
+	}
+
+	public String getFtpUserPass() {
+		return ftpUserPass;
+	}
+
+	public void setFtpUserPass(String ftpUserPass) {
+		this.ftpUserPass = ftpUserPass;
 	}
 	
 	
