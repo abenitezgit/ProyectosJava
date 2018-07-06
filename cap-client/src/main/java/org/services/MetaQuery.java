@@ -34,7 +34,7 @@ public class MetaQuery {
 				}
 				
 				if (maxRows >= 0) {
-					strVsql.append(" and rowsnum <= ");
+					strVsql.append(" and rownum <= ");
 					strVsql.append(maxRows);
 				}
 				
