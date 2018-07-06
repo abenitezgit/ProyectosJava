@@ -9,23 +9,23 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.util.StringTokenizer;
 
-import org.apache.commons.net.PrintCommandListener;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
 
-public class FtpAPI {
+public class FtpAPI2 {
 	FTPClient ftp = new FTPClient();
 	
 	private String hostIP;
 	private String userName;
 	private String userPass;
 	private int connectTimeout = 3000;
+	private int replyCode;
+	private String replyString;
 	
 	//Constructor
-	public FtpAPI() {
+	public FtpAPI2() {
 	}
 	
 	/**
@@ -34,7 +34,7 @@ public class FtpAPI {
 	 * @param userPass
 	 * @param timeout (milisegundos)
 	 */
-	public FtpAPI(String hostIP, String userName, String userPass, int timeout) {
+	public FtpAPI2(String hostIP, String userName, String userPass, int timeout) {
 		this.hostIP = hostIP;
 		this.userName = userName;
 		this.userPass = userPass;
@@ -42,7 +42,23 @@ public class FtpAPI {
 	}
 	
 	//Getter and setter
-	
+
+	public int getReplyCode() {
+		return replyCode;
+	}
+
+	public void setReplyCode(int replyCode) {
+		this.replyCode = replyCode;
+	}
+
+	public String getReplyString() {
+		return replyString;
+	}
+
+	public void setReplyString(String replyString) {
+		this.replyString = replyString;
+	}
+
 	public FTPClient getFtpClient() {
 		return ftp;
 	}
@@ -83,21 +99,31 @@ public class FtpAPI {
 	
 	public void connect() throws Exception {
 		try {
-	        ftp.addProtocolCommandListener(new PrintCommandListener(new PrintWriter(System.out)));
-	        int reply;
+	        //ftp.addProtocolCommandListener(new PrintCommandListener(new PrintWriter(System.out)));
+	        //int reply;
 
-	        	ftp.setConnectTimeout(connectTimeout);
-	        	ftp.connect(hostIP);
+        	ftp.setConnectTimeout(connectTimeout);
+        	ftp.connect(hostIP);
 
-            reply = ftp.getReplyCode();
-            if (!FTPReply.isPositiveCompletion(reply)) {
+        	replyCode = ftp.getReplyCode();
+        	replyString = ftp.getReplyString();
+        	
+            if (!FTPReply.isPositiveCompletion(replyCode)) {
                 ftp.disconnect();
                 throw new Exception("Problema al intentar conectar con el servidor FTP");
             }
             
             ftp.login(userName, userPass);
-            ftp.setFileType(BINARY_FILE_TYPE);
-            ftp.enterLocalPassiveMode();
+        	replyCode = ftp.getReplyCode();
+        	replyString = ftp.getReplyString();
+
+        	ftp.setFileType(BINARY_FILE_TYPE);
+        	replyCode = ftp.getReplyCode();
+        	replyString = ftp.getReplyString();
+
+        	ftp.enterLocalPassiveMode();
+        	replyCode = ftp.getReplyCode();
+        	replyString = ftp.getReplyString();
             
 		} catch (Exception e) {
 			throw new Exception(e.getMessage());
@@ -234,22 +260,26 @@ public class FtpAPI {
 		}
 	}
 	
-	public boolean upload(String remotePathFile, String localPathFile) throws Exception {
+	public void upload(String remotePathFile, String localPathFile) throws Exception {
 		try {
 			File upload = new File(localPathFile);
 			FileInputStream fisUploadloadFile = new FileInputStream(upload);   	//Puntero para escribir el archivo
 			InputStream isInputloadFile = new BufferedInputStream(fisUploadloadFile);
 			
 			//ftp.appendFile(remotePathFile, isInputloadFile);
-			boolean success = ftp.storeFile(remotePathFile, isInputloadFile);
+			ftp.storeFile(remotePathFile, isInputloadFile);
+			
+			replyCode = ftp.getReplyCode();
+			replyString = ftp.getReplyString();
 			
 			fisUploadloadFile.close();
 			isInputloadFile.close();
  
-			return success;
 		} catch (Exception e) {
 			throw new Exception(e.getMessage());
 		}
 	}
+
+
 
 }

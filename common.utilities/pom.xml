@@ -20,6 +20,20 @@
 	</properties>
 	
 	<dependencies>
+		  <!-- https://mvnrepository.com/artifact/com.jcraft/jsch -->
+		<dependency>
+		    <groupId>com.jcraft</groupId>
+		    <artifactId>jsch</artifactId>
+		    <version>0.1.54</version>
+		</dependency>
+	
+		<!-- https://mvnrepository.com/artifact/commons-net/commons-net -->
+		<dependency>
+		    <groupId>commons-net</groupId>
+		    <artifactId>commons-net</artifactId>
+		    <version>3.6</version>
+		</dependency>
+	
 
 		<!--  MySQL Dependencies -->
 	    <dependency>
