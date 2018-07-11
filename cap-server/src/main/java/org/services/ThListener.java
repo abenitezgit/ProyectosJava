@@ -102,17 +102,17 @@ public class ThListener implements Runnable{
 	                        		
 	                        		outputData = genResponse(0,"",strService);
 	                        		break;
-	                        	case "getProcControl":
-	                        		outputData = genResponse(0, "", fc.getStrProcControl());
+	                        	case "monRequest":
+	                        		String strMonRequest = sc.getMonRequest(data);
+	                        		outputData = genResponse(0, "", strMonRequest);
 	                        		break;
 	                        	case "syncTaskProcess":
-	                        		
 	                        		String strMapTask = sc.syncTaskProcess(data);
-	                        		
 	                        		outputData = genResponse(0,"",strMapTask);
 	                        		break;
-	                        	case "getMapTask":
-	                        		outputData = "";
+	                        	case "dbRequest":
+	                        		String strDbRequest = sc.getDBrequest(data); 
+	                        		outputData = genResponse(0,"",strDbRequest);
 	                        		break;
 	                        	case "getMapInterval":
 	                        		outputData = "";

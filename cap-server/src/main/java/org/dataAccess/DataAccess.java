@@ -1,6 +1,7 @@
 package org.dataAccess;
 
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,6 +15,7 @@ import org.model.Dependence;
 import org.model.ExpTable;
 import org.model.ExpTableParam;
 import org.model.Ftp;
+import org.model.Group;
 import org.model.Mov;
 import org.model.MovMatch;
 import org.model.Osp;
@@ -56,6 +58,90 @@ public class DataAccess {
 	public boolean isConnected() throws Exception {
 		
 		return dbConn.isConnected();
+	}
+	
+	public String getDBprocGroup(String grpID) throws Exception {
+		try {
+			JSONArray ja = new JSONArray();
+			
+			dbConn.open();
+			if (dbConn.isConnected()) {
+				String vSql = "call sp_get_dbprocGroup('"+grpID+"')";
+				if (dbConn.executeQuery(vSql)) {
+					ResultSet rs = dbConn.getQuery();
+					ResultSetMetaData rsm = rs.getMetaData();
+					
+					while (rs.next()) {
+						JSONObject jo = new JSONObject();
+
+						for (int i=1; i<=rsm.getColumnCount(); i++) {
+							switch(rsm.getColumnType(i)) {
+							case java.sql.Types.VARCHAR:
+								jo.put(rsm.getColumnName(i), rs.getString(rsm.getColumnName(i)));
+								break;
+							case java.sql.Types.INTEGER:
+								jo.put(rsm.getColumnName(i), rs.getInt(rsm.getColumnName(i)));
+								break;
+							default:
+								jo.put(rsm.getColumnName(i), rs.getString(rsm.getColumnName(i)));
+								break;
+							}
+						}
+						
+						ja.put(jo);
+					}
+				}
+			} 			
+			return ja.toString();
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		} finally {
+			if (dbConn.isConnected()) {
+				dbConn.close(); 
+			}
+		}
+	}
+	
+	public String getDBGroup(String grpID) throws Exception {
+		try {
+			JSONArray ja = new JSONArray();
+			
+			dbConn.open();
+			if (dbConn.isConnected()) {
+				String vSql = "call sp_get_dbGroup('"+grpID+"')";
+				if (dbConn.executeQuery(vSql)) {
+					ResultSet rs = dbConn.getQuery();
+					ResultSetMetaData rsm = rs.getMetaData();
+					
+					while (rs.next()) {
+						JSONObject jo = new JSONObject();
+
+						for (int i=1; i<=rsm.getColumnCount(); i++) {
+							switch(rsm.getColumnType(i)) {
+							case java.sql.Types.VARCHAR:
+								jo.put(rsm.getColumnName(i), rs.getString(rsm.getColumnName(i)));
+								break;
+							case java.sql.Types.INTEGER:
+								jo.put(rsm.getColumnName(i), rs.getInt(rsm.getColumnName(i)));
+								break;
+							default:
+								jo.put(rsm.getColumnName(i), rs.getString(rsm.getColumnName(i)));
+								break;
+							}
+						}
+						
+						ja.put(jo);
+					}
+				}
+			} 			
+			return ja.toString();
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		} finally {
+			if (dbConn.isConnected()) {
+				dbConn.close(); 
+			}
+		}
 	}
 	
 	public List<Dependence> getProcDependences(String grpID, String procID) throws Exception {
@@ -142,6 +228,35 @@ public class DataAccess {
 			}
 		}
 
+	}
+	
+	public Group getGroupParam(String grpID) throws Exception {
+		final String module = "getGroupParam()";
+		String logmsg = module + " - ";
+		
+		try {
+			Group group = new Group();
+			
+			logger.info(logmsg+"Conectando a Metadata...");
+			dbConn.open();
+			if (dbConn.isConnected()) {
+				String vSql = "call srvConf.sp_get_groupParam('"+grpID+"')"; 
+				logger.info(logmsg+"Ejecutando query: "+vSql);
+				if (dbConn.executeQuery(vSql)) {
+					logger.info(logmsg+"Ejecucion Exitosa");
+					logger.info(logmsg+"Recuperando parametros del grupo...");
+					ResultSet rs = dbConn.getQuery();
+					if (rs.next()) {
+						String strGroup = rs.getString("resp");
+						group = (Group) mylib.serializeJSonStringToObject(strGroup, Group.class);
+					}
+				}
+			}
+
+			return group;
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		}
 	}
 	
 	public Map<String, PGPending> getActiveGroup() {

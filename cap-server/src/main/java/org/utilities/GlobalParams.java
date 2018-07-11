@@ -6,6 +6,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 import org.model.AppConfig;
+import org.model.Group;
 import org.model.MonParams;
 import org.model.ProcControl;
 import org.model.Service;
@@ -25,6 +26,8 @@ public class GlobalParams {
 	private Map<String, Task> mapTask = new HashMap<>();
 	private Map<String, Service> mapService = new HashMap<>();
 	private Map<String, ProcControl> mapProcControl = new HashMap<>();
+	private Map<String, String> mapAssignedService = new HashMap<>();
+	private Map<String, Group> mapGroupParam = new HashMap<>();
 	
 	ScheduledExecutorService executorThMain = Executors.newSingleThreadScheduledExecutor();
 	
@@ -71,5 +74,17 @@ public class GlobalParams {
 	}
 	public void setExecutorThMain(ScheduledExecutorService executorThMain) {
 		this.executorThMain = executorThMain;
+	}
+	public Map<String, String> getMapAssignedService() {
+		return mapAssignedService;
+	}
+	public void setMapAssignedService(Map<String, String> mapAssignedService) {
+		this.mapAssignedService = mapAssignedService;
+	}
+	public Map<String, Group> getMapGroupParam() {
+		return mapGroupParam;
+	}
+	public void setMapGroupParam(Map<String, Group> mapGroupParam) {
+		this.mapGroupParam = mapGroupParam;
 	}
 }

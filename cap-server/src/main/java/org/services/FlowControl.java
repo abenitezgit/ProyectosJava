@@ -14,6 +14,7 @@ import org.dataAccess.DataAccess;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.model.Dependence;
+import org.model.Group;
 import org.model.PGPending;
 import org.model.ProcControl;
 import org.model.Service;
@@ -36,6 +37,69 @@ public class FlowControl {
 		mylib.setLevelLogger(logger, gParams.getAppConfig().getLog4jLevel());
 	}
 
+	public String getProcControl(String status, String uStatus) throws Exception {
+		try {
+			String response = "";
+			
+			Map<String, ProcControl> mpc = new TreeMap<>();
+			
+			if (status.equals("*") && uStatus.equals("*") ) {
+				mpc = gParams.getMapProcControl()
+						.entrySet()
+						.stream()
+						.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+			}
+			
+			if (!status.equals("*") && uStatus.equals("*")) {
+				mpc = gParams.getMapProcControl()
+						.entrySet()
+						.stream()
+						.filter(p -> p.getValue().getStatus().equals(status))
+						.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+			}
+
+			if (status.equals("*") && !uStatus.equals("*")) {
+				mpc = gParams.getMapProcControl()
+						.entrySet()
+						.stream()
+						.filter(p -> p.getValue().getuStatus().equals(uStatus))
+						.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+			}
+
+			if (!status.equals("*") && !uStatus.equals("*")) {
+				mpc = gParams.getMapProcControl()
+						.entrySet()
+						.stream()
+						.filter(p -> p.getValue().getuStatus().equals(uStatus) && p.getValue().getStatus().equals(status))
+						.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+			}
+			
+			JSONArray ja = new JSONArray();
+			
+			for (Map.Entry<String, ProcControl> entry : mpc.entrySet()) {
+				JSONObject jo = new JSONObject();
+				
+				jo.put("grpID", entry.getValue().getGrpID());
+				jo.put("numSecExec", entry.getValue().getNumSecExec());
+				jo.put("procID", entry.getValue().getProcID());
+				jo.put("status", entry.getValue().getStatus());
+				jo.put("uStatus", entry.getValue().getuStatus());
+				jo.put("fecIns", entry.getValue().getFecIns());
+				jo.put("fecUpdate", entry.getValue().getFecUpdate());
+				jo.put("cliID", entry.getValue().getCliID());
+				jo.put("cliDesc", entry.getValue().getCliDesc());
+				
+				ja.put(jo);
+			}
+			
+			response = ja.toString();
+			
+			return response;
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		}
+	}
+	
 	public void deleteTask(String key) throws Exception {
 		try {
 			gParams.getMapTask().remove(key);
@@ -72,7 +136,7 @@ public class FlowControl {
 							gParams.getMapTask().get(key).setTxResult(taskNew.getTxResult());
 							gParams.getMapTask().get(key).setTxSubTask(taskNew.getTxSubTask());
 							
-							updateMapProcControl(key, taskNew.getuStatus(), taskNew.getErrCode(), taskNew.getErrMesg());
+							updateMapProcControl(key, taskNew);
 						}
 					}
 				}
@@ -102,20 +166,26 @@ public class FlowControl {
 	
 	public Map<String, Task> getServiceMapTask(String srvID) throws Exception {
 		try {
-			Map<String, Task> mapTask = new HashMap<>();
+			Map<String, Task> mapSendTask = new HashMap<>();
 			
-			Map<String, Task> mapTaskTmp = gParams.getMapTask().entrySet().stream().filter(p -> p.getValue().getStatus().equals("ASSIGNED")).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+			Map<String, Task> mapTaskTmp = gParams.getMapTask()
+									.entrySet()
+									.stream()
+									.filter(p -> p.getValue().getStatus().equals("ASSIGNED") && p.getValue().getSrvID().equals(srvID))
+									.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 			
 			for (Map.Entry<String, Task> entry : mapTaskTmp.entrySet()) {
-				if (entry.getValue().getSrvID().equals(srvID)) {
-					String key = entry.getValue().getGrpKey();
-					mapTask.put(key, entry.getValue());
-					updateStatusMapTask(key, "READY");
-					updateMapProcControl(key, "READY", 0, "");
-				}
+				String key = entry.getValue().getGrpKey();
+				
+				mapSendTask.put(key, entry.getValue());
+				
+				updateStatusMapTask(key, "READY");
+				updateMapProcControl(key, "READY", 0, "");
 			}
-			logger.info("Total de Task por ser enviados: "+mapTask.size());
-			return mapTask;
+			
+			logger.info("Total de Task por ser enviados: "+mapSendTask.size());
+			
+			return mapSendTask;
 		} catch (Exception e) {
 			throw new Exception(""+e.getMessage());
 		}
@@ -197,6 +267,7 @@ public class FlowControl {
 
 			String grpID = pc.getGrpID();
 			String numSecExec = pc.getNumSecExec();
+			String keyProcMain = grpID+":"+numSecExec+":"+pc.getProcID();
 			
 			if (pc.getLstDependences().size() > 0) {
 				for (Dependence entry : pc.getLstDependences()) {
@@ -220,6 +291,7 @@ public class FlowControl {
 									response = response && true;
 								} else {
 									response = response && false;
+									updateMapProcControlAbort(keyProcMain);
 								}
 							}
 						} else {
@@ -460,6 +532,49 @@ public class FlowControl {
 		}
 	}
 	
+	public String assignService(List<String> lstServices, String grpID, String typeProc) throws Exception {
+		try {
+			String response = "";
+			
+			if (gParams.getMapAssignedService().containsKey(grpID)) {
+				return gParams.getMapAssignedService().get(grpID);
+			} else {
+				
+				Map<String, Integer> mapPctUsed = new TreeMap<>();
+				
+				for (String srvKey : lstServices) {
+					int maxThread = gParams.getMapService().get(srvKey).getMapTypeProc().get(typeProc).getMaxThread();
+					int usedThread = gParams.getMapService().get(srvKey).getMapTypeProc().get(typeProc).getUsedThread();
+					int pctUsed = Math.round(((usedThread/maxThread)*100));
+					mapPctUsed.put(srvKey, pctUsed);
+				}
+
+				String srvID = "";
+				int itPct = 100;
+				
+				for (Map.Entry<String, Integer> entry : mapPctUsed.entrySet()) {
+					
+					if (entry.getValue()<itPct) {
+						srvID = entry.getKey();
+						itPct = entry.getValue();
+					}
+				}
+				
+				if (gParams.getMapGroupParam().containsKey(grpID)) {
+					if (gParams.getMapGroupParam().get(grpID).getTypeBalance().equals("SINGLE")) {
+						gParams.getMapAssignedService().put(grpID, srvID);
+					}
+				}
+				
+				response = srvID;
+			}
+			
+			return response;
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		}
+	}
+	
 	public List<String> getServiceAvailable(String cliID, String typeProc) {
 		final String module = "getServiceAvailable()";
 		final String logmsg = module+" - ";
@@ -471,40 +586,45 @@ public class FlowControl {
 				
 				for(Map.Entry<String, Service> entry : gParams.getMapService().entrySet()) {
 					
-					Calendar cal = Calendar.getInstance();
-					Date fecNow = cal.getTime();
-					Date fecUpdate = mylib.getDate(entry.getValue().getFecStatus(),"yyyy-MM-dd hh:mm:ss");
-					int txpMain = entry.getValue().getTxpMain();
+					if (entry.getValue().getEnable()==1) {
 					
-					//Valida si el servicio se ha respotado en txpMain
-					if (mylib.getMinuteDiff(fecNow, fecUpdate)<=txpMain) {
+						Calendar cal = Calendar.getInstance();
+						Date fecNow = cal.getTime();
+						Date fecUpdate = mylib.getDate(entry.getValue().getFecStatus(),"yyyy-MM-dd hh:mm:ss");
+						int txpMain = entry.getValue().getTxpMain();
 						
-						//Obtiene los clientes y tipos de procesos que puede ejecutar
-						if (entry.getValue().getMapCli().containsKey(cliID)) {
-							if (entry.getValue().getMapTypeProc().containsKey(typeProc)) {
-								int maxThread = entry.getValue().getMapTypeProc().get(typeProc).getMaxThread();
-								int usedThread = entry.getValue().getMapTypeProc().get(typeProc).getUsedThread();
-								
-								if (usedThread<maxThread) {
-									if (getNumTaskByService(entry.getKey())<maxThread) {
-										lstServices.add(entry.getKey());
+						//Valida si el servicio se ha respotado en txpMain
+						if (mylib.getMinuteDiff(fecNow, fecUpdate)<=txpMain) {
+							
+							//Obtiene los clientes y tipos de procesos que puede ejecutar
+							if (entry.getValue().getMapCli().containsKey(cliID)) {
+								if (entry.getValue().getMapTypeProc().containsKey(typeProc)) {
+									int maxThread = entry.getValue().getMapTypeProc().get(typeProc).getMaxThread();
+									int usedThread = entry.getValue().getMapTypeProc().get(typeProc).getUsedThread();
+									
+									if (usedThread<maxThread) {
+										if (getNumTaskByService(entry.getKey())<maxThread) {
+											lstServices.add(entry.getKey());
+										} else {
+											logger.warn(logmsg+"El servicio "+entry.getKey()+" tiene todos sus thread max utilizados");
+										}
 									} else {
-										logger.warn(logmsg+"El servicio "+entry.getKey()+" tiene todos sus thread max utilizados");
+										logger.warn(logmsg+"El servicio "+entry.getKey()+" tiene todos sus thread used utilizados");
 									}
 								} else {
-									logger.warn(logmsg+"El servicio "+entry.getKey()+" tiene todos sus thread used utilizados");
+									logger.warn(logmsg+"El servicio "+entry.getKey()+" no tiene autorizacion para ejecutar tipos de proceso: "+typeProc);
 								}
 							} else {
-								logger.warn(logmsg+"El servicio "+entry.getKey()+" no tiene autorizacion para ejecutar tipos de proceso: "+typeProc);
+								logger.warn(logmsg+"El servicio "+entry.getKey()+" no tiene autorizacion para ejecutar procesos del cliente: "+cliID);
 							}
 						} else {
-							logger.warn(logmsg+"El servicio "+entry.getKey()+" no tiene autorizacion para ejecutar procesos del cliente: "+cliID);
+							logger.warn(logmsg+"El servicio "+entry.getKey()+" no se ha registrado en los últimos "+entry.getValue().getTxpMain()+" minutos");
 						}
 					} else {
-						logger.warn(logmsg+"El servicio "+entry.getKey()+" no se ha registrado en los últimos "+entry.getValue().getTxpMain()+" minutos");
+						logger.warn(logmsg+"El servicio "+entry.getKey()+" se encuentra deshabilitado");
 					}
-				}
-			} 
+				} //end for
+			} //end if
 			
 			return lstServices;
 		} catch (Exception e) {
@@ -524,6 +644,37 @@ public class FlowControl {
 			return (int) numTask;
 		} catch (Exception e) {
 			throw new Exception("getNumTaskByService(): "+e.getMessage());
+		}
+	}
+	
+	public void updateMapProcControlAbort(String key) {
+		try {
+			if (gParams.getMapProcControl().containsKey(key)) {
+				gParams.getMapProcControl().get(key).setStatus("FINISHED");
+				gParams.getMapProcControl().get(key).setuStatus("ABORT");
+				gParams.getMapProcControl().get(key).setFecUpdate(mylib.getDate());
+				gParams.getMapProcControl().get(key).setErrCode(80);
+				gParams.getMapProcControl().get(key).setErrMesg("Abortado por falla en dependencia critica");;
+			}
+			
+		} catch (Exception e) {
+			logger.error("updateMapProcControlAbort(): "+e.getMessage());
+		}
+	}
+	
+	public void updateMapProcControl(String key, Task task) {
+		try {
+			//Actualiza status MapProcControl Global
+			if (gParams.getMapProcControl().containsKey(key)) {
+				gParams.getMapProcControl().get(key).setStatus(task.getStatus());
+				gParams.getMapProcControl().get(key).setuStatus(task.getuStatus());
+				gParams.getMapProcControl().get(key).setFecUpdate(mylib.getDate());
+				gParams.getMapProcControl().get(key).setErrCode(task.getErrCode());
+				gParams.getMapProcControl().get(key).setErrMesg(task.getErrMesg());
+			}
+			
+		} catch (Exception e) {
+			logger.error("updateMapProcControl(): "+e.getMessage());
 		}
 	}
 	
@@ -573,6 +724,24 @@ public class FlowControl {
 			}
 		} catch (Exception e) {
 			logger.error("updateMapProcControl: "+e.getMessage());
+		}
+	}
+	
+	public void updateMapGroup(Map<String, PGPending> mapPg) throws Exception {
+		try {
+			for(Map.Entry<String, PGPending> entry : mapPg.entrySet()) {
+				String grpID = entry.getKey().split(":")[0];
+				
+				if (!gParams.getMapGroupParam().containsKey(grpID)) {
+					//Recupera parametros de grupo desde MD
+					Group group = da.getGroupParam(grpID);
+					gParams.getMapGroupParam().put(grpID, group);
+				}
+				
+			}
+			
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
 		}
 	}
 	

@@ -43,6 +43,50 @@ public class ServiceControl {
 	 * thProcess
 	 */
 	
+	public String getMonRequest(JSONObject data) throws Exception {
+		try {
+			String method = data.getString("method");
+			String response = "";
+			String param = "";
+			String param1 = "";
+			
+			switch (method) {
+				case "getProcControl":
+					param = data.getString("status");
+					param1 = data.getString("uStatus");
+					response = fc.getProcControl(param,param1);
+					break;
+			}
+			
+			return response;
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		}
+	}
+	
+	public String getDBrequest(JSONObject data) throws Exception {
+		try {
+			String method = data.getString("method");
+			String response = "";
+			String param = "";
+			
+			switch (method) {
+				case "getDBGroup":
+					param = data.getString("grpID");
+					response = dc.getDBGroup(param);
+					break;
+				case "getDBprocGroup":
+					param = data.getString("grpID");
+					response = dc.getDBprocGroup(param);
+					break;
+			}
+			
+			return response;
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		}
+	}
+	
 	public void showMapProcControl() {
 		logger.info("Detalle de Procesos");
 		for (Map.Entry<String, ProcControl> entry : gParams.getMapProcControl().entrySet()) {
@@ -51,9 +95,10 @@ public class ServiceControl {
 	}
 	
 	public void showMapTask() throws Exception {
-		logger.info("Detalle de Task");
+		logger.info("Detalle de Task: ");
 		for (Map.Entry<String, Task> entry : gParams.getMapTask().entrySet()) {
-			logger.info("--> "+entry.getKey()+" "+entry.getValue().getStatus()+" "+entry.getValue().getuStatus()+" "+entry.getValue().getErrCode()+" "+entry.getValue().getErrMesg());
+			logger.info("-->"+mylib.serializeObjectToJSon(entry.getValue(), true));
+			//logger.info("--> "+entry.getKey()+" "+entry.getValue().getStatus()+" "+entry.getValue().getuStatus()+" "+ entry.getValue().getSrvID()+ " "+ entry.getValue().getErrCode()+" "+entry.getValue().getErrMesg());
 		}
 	}
 	
@@ -62,19 +107,22 @@ public class ServiceControl {
 			
 			String srvID = data.getString("srvID");
 			String strMapTask = data.getString("mapTask");
+			String strSendMapTask = "";
 			
 			//Actualizando mapTask con datos desde cap-client
+			logger.info("Actualizando Task con datos desde cap-client: "+srvID);
 			fc.updateTaskProcess(strMapTask);
 			
 			//Recuperando datos actualizados para enviar al cap-client
 			
+			logger.info("Preparando Task para ser enviado el cap-client: "+srvID);
 			Map<String, Task> mapTask = fc.getServiceMapTask(srvID);
 			
 			if (mapTask.size()>0) {
-				strMapTask = mylib.serializeObjectToJSon(mapTask, false);
+				strSendMapTask = mylib.serializeObjectToJSon(mapTask, false);
 			}
 			
-			return strMapTask;
+			return strSendMapTask;
 		} catch (Exception e) {
 			throw new Exception("syncTaskProcess(): "+e.getMessage());
 		}
@@ -134,6 +182,9 @@ public class ServiceControl {
 					logger.debug("Proceso leido desde Metadata: "+entry.getKey());
 				}
 			}
+			
+			//Recupera parametros de los grupos encontrados
+			fc.updateMapGroup(mapPg);
 			
 			//Actualiza la Tabla de status de proceso global
 			logger.info("Actualizando Control de Procesos locales...");
@@ -305,7 +356,10 @@ public class ServiceControl {
 						}
 					}
 					
-					
+					logger.info(logmsg+"Eliminando asigación de servicio al grupo");
+					if (gParams.getMapAssignedService().containsKey(subKey.split(":")[0])) {
+						gParams.getMapAssignedService().remove(subKey.split(":")[0]);
+					}
 					
 				} else {
 					logger.info(logmsg+"SubKey :"+subKey+" no ha finalizado!");
@@ -361,14 +415,15 @@ public class ServiceControl {
 							 */
 							logger.info(logmsg+"--> Asignando un Servicio al proceso...");
 							
-							String srvID;
-							if (lstServices.size()==0) {
-								srvID = lstServices.get(0);
-							} else {
-								//Hay mas servicios disponibles
-								//Seleccionar uno en base a algun criterio
-								srvID = lstServices.get(0);
-							}
+							String srvID = fc.assignService(lstServices, entry.getValue().getGrpID(), entry.getValue().getTypeProc());
+							
+//							if (lstServices.size()==0) {
+//								srvID = lstServices.get(0);
+//							} else {
+//								//Hay mas servicios disponibles
+//								//Seleccionar uno en base a algun criterio
+//								srvID = lstServices.get(0);
+//							}
 							
 							logger.info(logmsg+"--> Se ha asignado el servicio: "+srvID+ " al proceso: "+entry.getKey());
 							

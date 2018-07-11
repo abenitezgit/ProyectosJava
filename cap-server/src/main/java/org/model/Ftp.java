@@ -6,6 +6,7 @@ public class Ftp {
 	private String ftpDesc;
 	private int enable;
 	private int ftpSecure;
+	private String ftpAction;
 	private String remoteFile;
 	private String localFile;
 	private String remotePath;
@@ -95,6 +96,12 @@ public class Ftp {
 	}
 	public void setUserPass(String userPass) {
 		this.userPass = userPass;
+	}
+	public String getFtpAction() {
+		return ftpAction;
+	}
+	public void setFtpAction(String ftpAction) {
+		this.ftpAction = ftpAction;
 	}
 
 }
