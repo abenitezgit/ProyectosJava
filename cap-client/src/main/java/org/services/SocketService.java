@@ -9,12 +9,14 @@ import com.rutinas.Rutinas;
 public class SocketService {
 	Logger logger = Logger.getLogger("SocketService");
 	Rutinas mylib = new Rutinas();
+	FlowControl fc;
 	GlobalParams gParams;
 	
 	String socketResponse="";
 	
 	public SocketService(GlobalParams m) {
 		gParams = m;
+		fc = new FlowControl(gParams);
 	}
 	
 	public String genCapRequest(String authKey, String request, JSONObject jData) throws Exception {
@@ -45,7 +47,7 @@ public class SocketService {
 			//Genera Request
 			JSONObject jData = new JSONObject();
 			jData.put("srvID", srvID);
-			jData.put("mapTask", mylib.serializeObjectToJSon(gParams.getMapTask(), false));
+			jData.put("mapTask", mylib.serializeObjectToJSon(fc.getSimpleMapTask(), false));
 			String authKey = gParams.getAppConfig().getAuthKey();
 			String request = genCapRequest(authKey, "syncTaskProcess", jData);
 			

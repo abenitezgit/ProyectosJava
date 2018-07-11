@@ -1,6 +1,8 @@
 package org.services;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
@@ -18,6 +20,37 @@ public class FlowControl {
 	
 	public FlowControl(GlobalParams m) {
 		gParams = m;
+	}
+	
+	public Map<String, Task> getSimpleMapTask() throws Exception {
+		try {
+			Map<String, Task> mapTaskTmp = new HashMap<>();
+			//Map<String, Task> mapTaskTmp = new HashMap<>(gParams.getMapTask().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+			
+			//mapTaskTmp.putAll(gParams.getMapTask());
+			
+			//Todas estas copias de Map son referencias al original
+			
+			for (Map.Entry<String, Task> entry : gParams.getMapTask().entrySet()) {
+				mapTaskTmp.put(entry.getKey(), entry.getValue());
+			}
+			
+			Map<String, Task> simpleMap = new HashMap<>();
+			
+			for (Map.Entry<String, Task> entry : mapTaskTmp.entrySet()) {
+				Task task = entry.getValue();
+				//task.setParam(null);
+				simpleMap.put(entry.getKey(), task);
+				
+				if (entry.getValue().getStatus().equals("FINISHED")) {
+					gParams.getMapTask().remove(entry.getKey());
+				}
+			}
+			
+			return simpleMap;
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		}
 	}
 	
 	public synchronized void removeUsedThreadProc(String typeProc) throws Exception {

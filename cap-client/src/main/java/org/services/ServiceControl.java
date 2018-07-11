@@ -49,7 +49,9 @@ public class ServiceControl {
 	
 	public void executeTask() throws Exception {
 		try {
-			Map<String, Task> mapTask = gParams.getMapTask().entrySet().stream()
+			Map<String, Task> mapTask = gParams.getMapTask()
+					.entrySet()
+					.stream()
 					.filter(p -> p.getValue().getStatus().equals("READY"))
 					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 			
@@ -64,7 +66,7 @@ public class ServiceControl {
 							thOsp.run();
 							
 						} else {
-							logger.info("Esperando por Thread...");
+							logger.info("Esperando por Free Thread OSP...");
 						}
 						break;
 					case "ETB":
@@ -75,10 +77,20 @@ public class ServiceControl {
 							thETB.run();
 							
 						} else {
-							logger.info("Esperando por Thread...");
+							logger.info("Esperando por Free Thread ETB...");
 						}
 						break;
-						
+					case "FTP":
+						if (fc.isExistFreeThread(typeProc)) {
+							Thread thFTP = new ThFTP(gParams, entry.getValue());
+							fc.addUsedThreadProc(typeProc);
+							fc.updateStatusTask(entry.getKey(),"RUNNING");
+							thFTP.run();
+							
+						} else {
+							logger.info("Esperando por Free Thread FTP...");
+						}
+						break;
 				}
 			}
 			
@@ -99,7 +111,7 @@ public class ServiceControl {
 				case "SOCKET":
 					if (ss.syncTaskProcess(gParams.getAppConfig().getSrvID())) {
 						String strTaskProcess = ss.getSocketResponse();
-						if (!mylib.isNullOrEmpty(strTaskProcess)) {
+						if (!mylib.isNullOrEmpty(strTaskProcess) && !strTaskProcess.equals("{}")) {
 							fc.updateTaskProcess(strTaskProcess);
 						} else {
 							logger.info("No hay nuevos Task para agregar");
