@@ -98,6 +98,9 @@ public class FtpAPI2 {
 	//Public Methods
 	
 	public void connect() throws Exception {
+		final int FTP_LOGIN_SUCCESS = 230;
+		final int FTP_SWITCHING_SUCCESS = 200;
+		
 		try {
 	        //ftp.addProtocolCommandListener(new PrintCommandListener(new PrintWriter(System.out)));
 	        //int reply;
@@ -116,15 +119,18 @@ public class FtpAPI2 {
             ftp.login(userName, userPass);
         	replyCode = ftp.getReplyCode();
         	replyString = ftp.getReplyString();
-
-        	ftp.setFileType(BINARY_FILE_TYPE);
-        	replyCode = ftp.getReplyCode();
-        	replyString = ftp.getReplyString();
-
-        	ftp.enterLocalPassiveMode();
-        	replyCode = ftp.getReplyCode();
-        	replyString = ftp.getReplyString();
-            
+        	
+        	if (replyCode==FTP_LOGIN_SUCCESS) {
+	        	ftp.setFileType(BINARY_FILE_TYPE);
+	        	replyCode = ftp.getReplyCode();
+	        	replyString = ftp.getReplyString();
+	        	
+	        	if (replyCode==FTP_SWITCHING_SUCCESS) {
+	        		ftp.enterLocalPassiveMode();
+		        	replyCode = ftp.getReplyCode();
+		        	replyString = ftp.getReplyString();
+	        	}
+        	} 
 		} catch (Exception e) {
 			throw new Exception(e.getMessage());
 		}
@@ -176,6 +182,10 @@ public class FtpAPI2 {
             } else {
             		result = false;
             }
+            
+            replyCode = ftp.getReplyCode();
+            replyString = ftp.getReplyString();
+            
             isDownloadFile.close();
             osDownloadFile.close();
             fosDownloadFile.close();
