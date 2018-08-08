@@ -55,6 +55,8 @@ public class GrabResourceMin2 {
 			logger.info("Iniciando consulta de Uris de grabaciones via GET");
 			logger.info("connID: "+connID);
 			
+			srvGrab.initComponent();
+			
 			String result = mainS.getUrisGrab(connID);
 			
             //String strResponse = mylib.serializeObjectToJSon(dResponseMin, false);
