@@ -76,6 +76,8 @@ public class ServiceETB {
 							mylog.error("Archivos no pudieron se enviados por FTP");
 						}
 					}
+				} else {
+					exitStatus = true;
 				}
 				
 			} else {
@@ -196,6 +198,7 @@ public class ServiceETB {
 			if (mapRows.size()>0) {
 				//Separator
 				char separator = etb.getEtbFileSep().charAt(0);
+				mylog.info("Separador: "+separator);
 				
 				//Lista para cabecera de nombres de columnas
 				List<String> headers = new ArrayList<>();
@@ -217,17 +220,22 @@ public class ServiceETB {
 				
 				CSVUtils csv = new CSVUtils();
 				
-				FileWriter fw = new FileWriter(gParams.getAppConfig().getWorkPath()+"/"+genFileName(numFile), etb.getEtbAppend()==1);
+				String expFilePath = getFilePath();
+				
+				FileWriter fw = new FileWriter(expFilePath+"/"+genFileName(numFile), etb.getEtbAppend()==1);
 				lstExportFiles.add(genFileName(numFile));
 				
-				mylog.info("Exportando a archivo: "+genFileName(numFile));
+				mylog.info("Exportando a archivo: "+expFilePath+"/"+genFileName(numFile));
 					
 				if (etb.getEtbHeader()==1) {
 					mylog.info("Generando cabecera de nombres de columnas...");
 					headers = genHeaderFile();
 					csv.writeLine(fw, headers, separator);
+				} else {
+					mylog.info("Exportación SIN headers");
 				}
 				
+				mylog.info("Recorriendo registros y exportando...");
 				for (Map.Entry<Integer, List<String>> entry : mapRows.entrySet()) {
 					itNumRowMultiFiles ++;
 					
@@ -235,7 +243,7 @@ public class ServiceETB {
 						if (itNumRowMultiFiles > maxRowsMultiFiles) {
 							fw.close();
 							numFile++;
-							fw = new FileWriter(gParams.getAppConfig().getWorkPath()+"/"+genFileName(numFile), etb.getEtbAppend()==1);
+							fw = new FileWriter(expFilePath+"/"+genFileName(numFile), etb.getEtbAppend()==1);
 							lstExportFiles.add(genFileName(numFile));
 							
 							mylog.info("Exportando a archivo: "+genFileName(numFile));
@@ -253,6 +261,8 @@ public class ServiceETB {
 					
 				}
 				
+				mylog.info("Registros exportados!");
+				
 				//Close Writer
 				fw.close();
 				
@@ -267,13 +277,13 @@ public class ServiceETB {
 				exitStatus = true;
 			}
 			
+			
+			mylog.info("Termino Exitoso de exportacion a CSV");
 			return exitStatus;
 		} catch (Exception e) {
 			mylog.error("exportCSV: "+e.getMessage());
 			return false;
-		} finally {
-			mylog.info("Termino exportacion a CSV");
-		}
+		} 
 	}
 	
 	public List<String> genHeaderFile() throws Exception {
@@ -295,6 +305,19 @@ public class ServiceETB {
 		}
 	}
 	
+	public String getFilePath() {
+		String filePath=gParams.getAppConfig().getWorkPath();
+		
+//		if (!mylib.isNullOrEmpty(etb.getEtbFilePath())) {
+//			filePath = etb.getEtbFilePath();
+//			filePath.replace("\\", "/");
+//		}
+		if (filePath.endsWith("/")) {
+			filePath = filePath.substring(0,filePath.length()-1);
+		}
+		return filePath;
+	}
+	
 	public void genEmptyFile() throws Exception {
 		try {
 			FileWriter fw = new FileWriter(genFileName(0), false);
@@ -310,12 +333,11 @@ public class ServiceETB {
 			String pathFileName="";
 			
 			String fileName = mylib.parseFnParam(etb.getEtbFileName());
-			String fileExt = etb.getEtbFileExt();
 			
 			if (etb.getEtbMultiFiles()==0) {
-				pathFileName = fileName+"."+fileExt;
+				pathFileName = fileName;
 			} else {
-				pathFileName = fileName+"_"+String.format("%05d", numFile)+"."+fileExt;
+				pathFileName = fileName+"_"+String.format("%05d", numFile);
 			}
 			
 			return pathFileName;

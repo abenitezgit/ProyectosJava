@@ -1,13 +1,174 @@
 package org.services;
 
+import org.model.Mov;
+
 import com.rutinas.Rutinas;
 
 public class MetaQuery {
 	Rutinas mylib = new Rutinas();
 	String dbType;
 	
+	public MetaQuery() {
+		
+	}
+	
 	public MetaQuery(String dbType) {
 		this.dbType = dbType;
+	}
+	
+	
+	public String parseSqlTableName(String dbType, String dbName, String tbName, String ownerName) throws Exception {
+		try {
+			String parsedTbName="";
+			
+			switch(dbType) {
+				case "mySQL":
+					if (!mylib.isNullOrEmpty(ownerName)) {
+						parsedTbName = ownerName+"."+tbName;
+					} else {
+						parsedTbName = tbName;
+					}
+					break;
+				case "ORA11":
+					if (!mylib.isNullOrEmpty(ownerName)) {
+						parsedTbName = ownerName+"."+tbName;
+					} else {
+						parsedTbName = tbName;
+					}
+					break;
+				case "ORA":
+					if (!mylib.isNullOrEmpty(ownerName)) {
+						parsedTbName = ownerName+"."+tbName;
+					} else {
+						parsedTbName = tbName;
+					}
+					break;
+				case "SQL":
+					parsedTbName = dbName+"."+ownerName+"."+tbName;
+					break;
+			}
+			
+			return parsedTbName;
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		}
+	}
+	
+	public String parseSourceTable(Mov mov) throws Exception {
+		try {
+			String sourceTableName="";
+			
+			switch(mov.getsDbType()) {
+				case "mySQL":
+					if (!mylib.isNullOrEmpty(mov.getsOwnerName())) {
+						sourceTableName = mov.getsOwnerName()+"."+mov.getsTbName();
+					} else {
+						sourceTableName = mov.getsTbName();
+					}
+					break;
+				case "ORA11":
+					if (!mylib.isNullOrEmpty(mov.getsOwnerName())) {
+						sourceTableName = mov.getsOwnerName()+"."+mov.getsTbName();
+					} else {
+						sourceTableName = mov.getsTbName();
+					}
+					break;
+				case "ORA":
+					if (!mylib.isNullOrEmpty(mov.getsOwnerName())) {
+						sourceTableName = mov.getsOwnerName()+"."+mov.getsTbName();
+					} else {
+						sourceTableName = mov.getsTbName();
+					}
+					break;
+				case "SQL":
+					sourceTableName = mov.getsDbName()+"."+mov.getsOwnerName()+"."+mov.getsTbName();
+					break;
+				default:
+					break;
+			}
+			
+			return sourceTableName;
+		} catch (Exception e) {
+			throw new Exception ("parseSourceTableName(): "+e.getMessage());
+		}
+	}
+
+	public String parseDestTable(Mov mov) throws Exception {
+		try {
+			String destTableName="";
+			
+			switch(mov.getdDbType()) {
+				case "mySQL":
+					if (!mylib.isNullOrEmpty(mov.getdOwnerName())) {
+						destTableName = mov.getdOwnerName()+"."+mov.getdTbName();
+					} else {
+						destTableName = mov.getdTbName();
+					}
+					break;
+				case "ORA11":
+					if (!mylib.isNullOrEmpty(mov.getdOwnerName())) {
+						destTableName = mov.getdOwnerName()+"."+mov.getdTbName();
+					} else {
+						destTableName = mov.getdTbName();
+					}
+					break;
+				case "ORA":
+					if (!mylib.isNullOrEmpty(mov.getdOwnerName())) {
+						destTableName = mov.getdOwnerName()+"."+mov.getdTbName();
+					} else {
+						destTableName = mov.getdTbName();
+					}
+					break;
+				case "SQL":
+					destTableName = mov.getdDbName()+"."+mov.getdOwnerName()+"."+mov.getdTbName();
+					break;
+				default:
+					break;
+			}
+			
+			return destTableName;
+		} catch (Exception e) {
+			throw new Exception ("parseDestTableName(): "+e.getMessage());
+		}
+	}
+
+	public String genSqlDeleteTableDest(Mov mov) throws Exception {
+		try {
+			StringBuilder sentencia = new StringBuilder();
+			
+			switch(mov.getdDbType()) {
+				case "ORA11":
+					sentencia.append("delete from "+parseDestTable(mov));
+					if (mov.getDeleteWhereActive()==1) {
+						sentencia.append(" where "+mov.getDeleteWhereBody());
+					}
+					break;
+				case "ORA":
+					sentencia.append("delete from "+parseDestTable(mov));
+					if (mov.getDeleteWhereActive()==1) {
+						sentencia.append(" where "+mov.getDeleteWhereBody());
+					}
+					break;
+				case "mySQL":
+					sentencia.append("delete from "+parseDestTable(mov));
+					if (mov.getDeleteWhereActive()==1) {
+						sentencia.append(" where "+mov.getDeleteWhereBody());
+					}
+					break;
+				case "SQL":
+					sentencia.append("delete from "+parseDestTable(mov));
+					if (mov.getDeleteWhereActive()==1) {
+						sentencia.append(" where "+mov.getDeleteWhereBody());
+					}
+					break;
+				default:
+					throw new Exception("genSqlDeleteTableDest(): Tipo de Base de datos no encontrada");
+			}
+			
+			return sentencia.toString();
+		} catch (Exception e) {
+			throw new Exception("genSqlDeleteTableDest(): "+e.getMessage());
+		}
 	}
 	
 	public String getStringBuilderQuery(String fields, String owner, String fileName, String whereBody, String orderBody, int maxRows) {
@@ -521,4 +682,12 @@ public class MetaQuery {
     	}
     	return vSQL;
     }
+
+	public String getDbType() {
+		return dbType;
+	}
+
+	public void setDbType(String dbType) {
+		this.dbType = dbType;
+	}
 }

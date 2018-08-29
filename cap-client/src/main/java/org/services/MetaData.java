@@ -14,6 +14,8 @@ import org.utilities.MyLogger;
 
 import com.api.MysqlAPI;
 import com.api.OracleAPI;
+import com.model.SPparam;
+//import com.api.SqlAPI;
 
 
 /**
@@ -24,6 +26,7 @@ public class MetaData {
 	Logger logger;
     MysqlAPI myConn;
     OracleAPI oraConn;
+    SqlAPI sqlConn;
     String dbType;
     MyLogger mylog;
     
@@ -52,6 +55,23 @@ public class MetaData {
                 	//mylib.console(1,"Error de conexion a MetaData: "+e.getMessage());
                 	throw new Exception(e.getMessage());
                 }
+            case "ORA":
+                try {
+                    oraConn = new OracleAPI(dbHost, dbName, dbPort, dbUser, dbPass, dbTimeOut);
+                    oraConn.open();
+                } catch (Exception e) {
+                	//mylib.console(1,"Error de conexion a MetaData: "+e.getMessage());
+                	throw new Exception(e.getMessage());
+                }
+                break;
+            case "SQL":
+                try {
+                	sqlConn = new SqlAPI(dbHost, dbName, dbPort, dbUser, dbPass, dbTimeOut);
+                	sqlConn.open();
+                } catch (Exception e) {
+                	//mylib.console(1,"Error de conexion a MetaData: "+e.getMessage());
+                	throw new Exception(e.getMessage());
+                }
                 break;
             default:
                 break;
@@ -64,6 +84,10 @@ public class MetaData {
     			return myConn.getConnection();
     		case "ORA11":
     			return oraConn.getConnection();
+    		case "ORA":
+    			return oraConn.getConnection();
+    		case "SQL":
+    			return sqlConn.getConnection();
 			default:
 				return null;
     	} 
@@ -76,6 +100,10 @@ public class MetaData {
 	                return myConn.isConnected();
 	            case "ORA11":
 	                return oraConn.isConnected();
+	            case "ORA":
+	                return oraConn.isConnected();
+	            case "SQL":
+	                return sqlConn.isConnected();
 	            default:
 	                return false;
 	        }
@@ -91,6 +119,10 @@ public class MetaData {
 	    			return myConn.executeQuery(vSQL);
 	        	case "ORA11":
 	    			return oraConn.executeQuery(vSQL);
+	        	case "ORA":
+	    			return oraConn.executeQuery(vSQL);
+	        	case "SQL":
+	    			return sqlConn.executeQuery(vSQL);
 	    		default:
 	    			return false;
 	        }
@@ -107,6 +139,10 @@ public class MetaData {
                     return myConn.getQuery();
 	            case "ORA11":
                     return oraConn.getQuery();
+	            case "ORA":
+                    return oraConn.getQuery();
+	            case "SQL":
+                    return sqlConn.getQuery();
 	            default:
 	                return null;
 	        }
@@ -122,6 +158,10 @@ public class MetaData {
                     return myConn.executeUpdate(upd);
 	            case "ORA11":
                     return oraConn.executeUpdate(upd);
+	            case "ORA":
+                    return oraConn.executeUpdate(upd);
+	            case "SQL":
+                    return sqlConn.executeUpdate(upd);
 	            default:
 	                return 0;
 	        }
@@ -137,6 +177,10 @@ public class MetaData {
                 return myConn.isExistRows();
             case "ORA11":
                 return oraConn.isExistRows();
+            case "ORA":
+                return oraConn.isExistRows();
+            case "SQL":
+                return sqlConn.isExistRows();
             default:
                 return false;
 	        }
@@ -155,6 +199,12 @@ public class MetaData {
 	            case "ORA11":
 	                oraConn.close();
 	                break;
+	            case "ORA":
+	                oraConn.close();
+	                break;
+	            case "SQL":
+	                sqlConn.close();
+	                break;
 	            default:
 	                break;
 	        }
@@ -163,16 +213,33 @@ public class MetaData {
     	}
     }
     
-    public boolean executeProcedure(String ospOwner, String spName, List<String> spParams) throws Exception {
+    public boolean executeProcedure(String ospOwner, String spName, List<SPparam> spParams) throws Exception {
     	try {
     		boolean response = false;
+    		String storeProc = "";
     		
 	        switch (dbType) {
 	            case "mySQL":
 	            	response = false;
 	            	break;
 	            case "ORA11":
-	            	String storeProc = spName;
+	            	storeProc = spName;
+	            	if (!ospOwner.isEmpty()) {
+	            		storeProc = ospOwner +"."+ spName;
+	            	} 
+	            	
+	            	response = oraConn.executeProcedure(storeProc, spParams); 
+	            	break;
+	            case "ORA":
+	            	storeProc = spName;
+	            	if (!ospOwner.isEmpty()) {
+	            		storeProc = ospOwner +"."+ spName;
+	            	} 
+	            	
+	            	response = oraConn.executeProcedure(storeProc, spParams); 
+	            	break;
+	            case "SQL":
+	            	storeProc = spName;
 	            	if (!ospOwner.isEmpty()) {
 	            		storeProc = ospOwner +"."+ spName;
 	            	} 

@@ -1,17 +1,15 @@
 package org.services;
 
 import org.apache.log4j.Logger;
-import org.model.ExpTable;
-import org.model.Ftp;
-import org.model.Osp;
+import org.model.Mov;
 import org.model.Task;
 import org.utilities.GlobalParams;
 import org.utilities.MyLogger;
 
 import com.rutinas.Rutinas;
 
-public class ThETB extends Thread {
-	final String className = "thETB";
+public class ThMOV extends Thread {
+	final String className = "thMOV";
 	
 	Logger logger; 
 	MyLogger mylog;
@@ -27,7 +25,7 @@ public class ThETB extends Thread {
 //	static Procedure myproc;
 //	static APIRest apiRest = new APIRest();
 	
-	public ThETB(GlobalParams m, Task task) {
+	public ThMOV(GlobalParams m, Task task) {
 		gParams = m;
 		fc = new FlowControl(gParams);
 		this.task = task;
@@ -42,24 +40,23 @@ public class ThETB extends Thread {
 			//Set LogLevel
 			mylib.setLevelLogger(logger, gParams.getAppConfig().getLog4jLevel());
 
-			mylog.info("Iniciando Ejecución de Exportación de Datos...");
+			mylog.info("Iniciando Ejecución de Data Moving...");
 			
-			mylog.info("Se ejecutara Exportación: "+task.getProcID());
+			mylog.info("Se ejecutara Task: "+task.getProcID());
 			
-			mylog.info("Parseando parametros del ETB...");
-			ExpTable etb = (ExpTable) parsingTaskParams(task);
+			mylog.info("Parseando parametros del MOV...");
+			Mov mov = (Mov) parsingTaskParams(task);
 			
 			mylog.info("Task ID: "+task.getGrpKey());
-			mylog.info("Exp Desc: "+etb.getEtbDesc());
-			mylog.info("Exp TableName: "+etb.getEtbTableName());
-			mylog.info("Exp FileName: "+etb.getEtbFileName());
+			mylog.info("Mov Desc: "+mov.getMovDesc());
+			mylog.info("Source table name: "+mov.getsTbName());
+			mylog.info("Dest table name: "+mov.getdTbName());
 
-			mylog.info("Instanciando Clase ServiceoETB...");
-			ServiceETB serviceEtb = new ServiceETB(gParams, etb, mylog);
+			mylog.info("Instanciando Clase ServiceoMOV...");
+			ServiceMOV sMov = new ServiceMOV(mov, mylog);
 
-			mylog.info("Ejecutando Exportación...");
-			
-			if (serviceEtb.execute()) {
+			mylog.info("Ejecutando Data Moving...");
+			if (sMov.execute()) {
 				fc.updateStatusSuccessTask(task.getTaskkey());
 				mylog.info("Termino SUCCESS Ejecucion TaskID: "+task.getTaskkey());
 			} else {
@@ -68,12 +65,12 @@ public class ThETB extends Thread {
 			}
 		
 			fc.removeUsedThreadProc(task.getTypeProc());
-			mylog.info("Finalizando Ejecución de Exportación de Datos");
+			mylog.info("Finalizando Ejecución de Data Moving");
 		} catch (Exception e) {
 			try {
 				fc.updateStatusErrorTask(task.getTaskkey(), 90, e.getMessage().toString());
 				fc.removeUsedThreadProc(task.getTypeProc());
-				mylog.error("Exception error en Ejecución de Exportación de Datos: "+e.getMessage().toString());
+				mylog.error("Exception error en Ejecución de Data Moving: "+e.getMessage().toString());
 			} catch (Exception er) {}
 		} 
     }
@@ -84,21 +81,10 @@ public class ThETB extends Thread {
 			Object response = null;
 			
 			switch (task.getTypeProc()) {
-				case "OSP":
-					String strOsp = mylib.serializeObjectToJSon(task.getParam(), false);
-					Osp osp = (Osp) mylib.serializeJSonStringToObject(strOsp, Osp.class);
-					response = osp;
-					break;
-				case "ETB":
-					String strEtb = mylib.serializeObjectToJSon(task.getParam(), false);
-					ExpTable etb = (ExpTable) mylib.serializeJSonStringToObject(strEtb, ExpTable.class);
-					response = etb;
-					break;
-				case "FTP":
-					String strFtp = mylib.serializeObjectToJSon(task.getParam(), false);
-					Ftp ftp = (Ftp) mylib.serializeJSonStringToObject(strFtp, Ftp.class);
-					response = ftp;
-					break;
+			case "MOV":
+				String strMov = mylib.serializeObjectToJSon(task.getParam(), false);
+				Mov mov = (Mov) mylib.serializeJSonStringToObject(strMov, Mov.class);
+				response = mov;
 			}
 			
 			return response;

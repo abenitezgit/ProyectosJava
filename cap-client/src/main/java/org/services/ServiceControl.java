@@ -91,6 +91,17 @@ public class ServiceControl {
 							logger.info("Esperando por Free Thread FTP...");
 						}
 						break;
+					case "MOV":
+						if (fc.isExistFreeThread(typeProc)) {
+							Thread thMOV = new ThMOV(gParams, entry.getValue());
+							fc.addUsedThreadProc(typeProc);
+							fc.updateStatusTask(entry.getKey(),"RUNNING");
+							thMOV.run();
+							
+						} else {
+							logger.info("Esperando por Free Thread MOV...");
+						}
+						break;
 				}
 			}
 			

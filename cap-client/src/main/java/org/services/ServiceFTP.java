@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.model.Ftp;
 import org.utilities.GlobalParams;
 import org.utilities.MyLogger;
+import org.utilities.MyUtils;
 
 import com.api.FtpAPI2;
 import com.api.SFtpAPI;
@@ -12,6 +13,7 @@ import com.rutinas.Rutinas;
 public class ServiceFTP {
 	Rutinas mylib = new Rutinas();
 	GlobalParams gParams;
+	MyUtils utils;
 	Logger logger;
 	MyLogger mylog;
 	Ftp ftpProc;
@@ -21,6 +23,7 @@ public class ServiceFTP {
 		this.ftpProc = ftpProc;
 		this.mylog = mylog;
 		this.logger = mylog.getLogger();
+		this.utils = new MyUtils(gParams);
 	}
 
 
@@ -56,7 +59,8 @@ public class ServiceFTP {
 				String localFile = mylib.parseFnParam(ftpProc.getLocalFile());
 				String remoteFile = mylib.parseFnParam(ftpProc.getRemoteFile());
 
-				String localPathFileName = ftpProc.getLocalPath()+"/"+localFile;
+				String localPath = utils.getFilePath(ftpProc.getLocalPath());
+				String localPathFileName = localPath+"/"+localFile;
 				String remotePathFileName = ftpProc.getRemotePath()+"/"+remoteFile;
 					
 				mylog.info("Uploading file: "+localPathFileName);
@@ -115,7 +119,8 @@ public class ServiceFTP {
 				String localFile = mylib.parseFnParam(ftpProc.getLocalFile());
 				String remoteFile = mylib.parseFnParam(ftpProc.getRemoteFile());
 
-				String localPathFileName = ftpProc.getLocalPath()+"/"+localFile;
+				String localPath = utils.getFilePath(ftpProc.getLocalPath());
+				String localPathFileName = localPath+"/"+localFile;
 				String remotePathFileName = ftpProc.getRemotePath()+"/"+remoteFile;
 					
 				mylog.info("Download file: "+localPathFileName);
@@ -168,7 +173,8 @@ public class ServiceFTP {
 				String localFile = mylib.parseFnParam(ftpProc.getLocalFile());
 				String remoteFile = mylib.parseFnParam(ftpProc.getRemoteFile());
 
-				String localPathFileName = ftpProc.getLocalPath()+"/"+localFile;
+				String localPath = utils.getFilePath(ftpProc.getLocalPath());
+				String localPathFileName = localPath+"/"+localFile;
 				String remotePathFileName = ftpProc.getRemotePath()+"/"+remoteFile;
 				
 				mylog.info("Uploading file: "+localPathFileName);
@@ -218,7 +224,8 @@ public class ServiceFTP {
 				String localFile = mylib.parseFnParam(ftpProc.getLocalFile());
 				String remoteFile = mylib.parseFnParam(ftpProc.getRemoteFile());
 
-				String localPathFileName = ftpProc.getLocalPath()+"/"+localFile;
+				String localPath = utils.getFilePath(ftpProc.getLocalPath());
+				String localPathFileName = localPath+"/"+localFile;
 				String remotePathFileName = ftpProc.getRemotePath()+"/"+remoteFile;
 				
 				mylog.info("Download file: "+localPathFileName);

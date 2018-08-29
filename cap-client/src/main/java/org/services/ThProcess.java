@@ -30,6 +30,8 @@ public class ThProcess implements Runnable {
 			
 			if (gParams.getService().getEnable()==1) {
 				sc.executeTask();
+			} else {
+				logger.warn("Servicio se encuentra DISABLED");
 			}
 
 			sc.showTaskProcess();

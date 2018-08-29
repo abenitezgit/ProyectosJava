@@ -8,6 +8,7 @@ import org.model.Osp;
 import org.model.OspParam;
 import org.utilities.MyLogger;
 
+import com.model.SPparam;
 import com.rutinas.Rutinas;
 
 public class ServiceOSP {
@@ -24,7 +25,7 @@ public class ServiceOSP {
 	
 	//variables de intercambio
 	private boolean existParams;
-	private List<String> parsedParams = new ArrayList<>();
+	private List<SPparam> parsedParams = new ArrayList<>();
 	
 	public boolean execute() throws Exception {
 		try {
@@ -40,7 +41,7 @@ public class ServiceOSP {
 				mylog.info("Conectado a Database Cliente");
 				String ospOwner = osp.getDbOwnerUser();
 				String ospName = osp.getOspName();
-				List<String> ospParams = parsedParams;
+				List<SPparam> ospParams = parsedParams;
 				
 				mylog.info("Executing "+ospName+"...");
 				if (md.executeProcedure(ospOwner, ospName, ospParams)) {
@@ -85,7 +86,7 @@ public class ServiceOSP {
 					}
 					
 					mylog.info("Parsed: "+type+"&"+dataType+"&"+value);
-					parsedParams.add(type+"&"+dataType+"&"+value);
+					parsedParams.add(new SPparam(value));
     			}
     			
     			if (parsedParams.size()>0) {
