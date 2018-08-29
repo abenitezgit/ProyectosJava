@@ -14,6 +14,7 @@ public class Task {
 	Date fecFinished;
 	String status;
 	String uStatus;
+	String typeExec;
 	int errCode;
 	String errMesg;
 	Object param;
@@ -117,5 +118,11 @@ public class Task {
 	}
 	public void setParam(Object param) {
 		this.param = param;
+	}
+	public String getTypeExec() {
+		return typeExec;
+	}
+	public void setTypeExec(String typeExec) {
+		this.typeExec = typeExec;
 	}
 }

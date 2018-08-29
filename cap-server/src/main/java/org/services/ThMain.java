@@ -6,11 +6,17 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 import org.utilities.GlobalParams;
+import org.utilities.MyLogger;
 
 import com.rutinas.Rutinas;
 
 public class ThMain implements Runnable{
-	Logger logger = Logger.getLogger("thMain");
+	final String className = "thMain";
+	
+	Logger logger; 
+	MyLogger mylog;
+	
+	//Logger logger = Logger.getLogger("thMain");
 	Rutinas mylib = new Rutinas();
 	GlobalParams gParams;
 	ServiceControl sc;
@@ -25,41 +31,42 @@ public class ThMain implements Runnable{
 	public ThMain(GlobalParams m) {
 		gParams = m;
 		sc = new ServiceControl(gParams);
+		//mylog = new MyLogger(gParams, className, "run()");
+		//logger = mylog.getLogger();
 	}
         
 	public void run() {
+		mylog = new MyLogger(gParams, className, "run()");
+		logger = mylog.getLogger();
 		mylib.setLevelLogger(logger, gParams.getAppConfig().getLog4jLevel());
-		
-		final String module = "run()";
-		final String logmsg = module + " - ";
 		
 		//Declaraciones
 		String thName;
 	
-		logger.info(logmsg+"Iniciando Ciclo MainController");
+		mylog.info("Iniciando Ciclo MainController");
 		
 		/**
 		 * Recuperando MonParams
 		 */
 		try {
-			logger.info(logmsg+"Recuperando MonParams...");
+			mylog.info("Recuperando MonParams...");
 			sc.getMonParams();
 			
 			sc.getMonParams();
 		} catch (Exception e) {
-			logger.warn(logmsg+"No es posible recuperar monParams");
+			mylog.warn("No es posible recuperar monParams");
 		}
 
 		/**
 		 * Valida el tipo de ROL del capMonitor para determinar
 		 * los servicios internos que debe levantar
 		 */
-		logger.info(logmsg+"Validando Rol del Servicio...");
+		mylog.info("Validando Rol del Servicio...");
 		String monID = gParams.getAppConfig().getMonID();
 		String monRole = gParams.getMapMonParams().get(monID).getMonRole();
 		
-		logger.info(logmsg+"ID del Servicio: "+monID);
-		logger.info(logmsg+"Rol del Servicio: "+monRole);
+		mylog.info("ID del Servicio: "+monID);
+		mylog.info("Rol del Servicio: "+monRole);
 
 		/**
 		 * Leyendo status de los Threads
@@ -70,25 +77,25 @@ public class ThMain implements Runnable{
 		String thDBAccessAction = gParams.getMapMonParams().get(monID).getThDBAccessAction();
 		String thProcessAction = gParams.getMapMonParams().get(monID).getThProcessAction();
 		
-		logger.info(logmsg+"Informando Status de los Threads de Procesos");
-		logger.info(logmsg+"Status Thread Main: "+thMainAction);
-		logger.info(logmsg+"Status Thread Listener: "+thListenerAction);
-		logger.info(logmsg+"Status Thread Sync: "+thSyncAction);
-		logger.info(logmsg+"Status Thread DBAccess: "+thDBAccessAction);
-		logger.info(logmsg+"Status Thread Process: "+thProcessAction);
+		mylog.info("Informando Status de los Threads de Procesos");
+		mylog.info("Status Thread Main: "+thMainAction);
+		mylog.info("Status Thread Listener: "+thListenerAction);
+		mylog.info("Status Thread Sync: "+thSyncAction);
+		mylog.info("Status Thread DBAccess: "+thDBAccessAction);
+		mylog.info("Status Thread Process: "+thProcessAction);
 		
-		logger.info(logmsg+"Informando Startup de los Threads de Procesos");
-		logger.info(logmsg+"Thread Main Started: "+gParams.getMapThreadRunnig().get("thMain"));
-		logger.info(logmsg+"Thread Listener Started: "+gParams.getMapThreadRunnig().get("thListener"));
-		logger.info(logmsg+"Thread Sync Started: "+gParams.getMapThreadRunnig().get("thSync"));
-		logger.info(logmsg+"Thread DBAccess Started: "+gParams.getMapThreadRunnig().get("thDBAccess"));
-		logger.info(logmsg+"Thread Process Started: "+gParams.getMapThreadRunnig().get("thProcess"));
+		mylog.info("Informando Startup de los Threads de Procesos");
+		mylog.info("Thread Main Started: "+gParams.getMapThreadRunnig().get("thMain"));
+		mylog.info("Thread Listener Started: "+gParams.getMapThreadRunnig().get("thListener"));
+		mylog.info("Thread Sync Started: "+gParams.getMapThreadRunnig().get("thSync"));
+		mylog.info("Thread DBAccess Started: "+gParams.getMapThreadRunnig().get("thDBAccess"));
+		mylog.info("Thread Process Started: "+gParams.getMapThreadRunnig().get("thProcess"));
 		
 		switch (thMainAction) {
     		case "ENABLE":
     			
     			//Inicia threads comunes
-    			logger.info(logmsg+"Iniciando Threads de Procesos que no se han iniciado...");
+    			mylog.info("Iniciando Threads de Procesos que no se han iniciado...");
     			
     			//Inicia thListener
     			thName = "thListener";
@@ -100,14 +107,14 @@ public class ThMain implements Runnable{
     				}
     			} else 
 	    			if (gParams.getMapMonParams().get(monID).getThListenerAction().equals("DISABLE")) {
-	    				logger.warn(logmsg+"Thread Listener se encuentra DISABLE");
-	    				logger.warn(logmsg+"No es posible levantar Listener hasta que habilite proceso");
+	    				mylog.warn("Thread Listener se encuentra DISABLE");
+	    				mylog.warn("No es posible levantar Listener hasta que habilite proceso");
 	    			}
     			
     			
     			//En base al role determina si levanta o no el thProcess
         		if (monRole.equals("PRIMARY")) {
-        			logger.info(logmsg+"Iniciando Servicios asociados al rol: "+monRole);
+        			mylog.info("Iniciando Servicios asociados al rol: "+monRole);
         			
         			//Inicia thProcess
         			thName = "thProcess";
@@ -120,17 +127,29 @@ public class ThMain implements Runnable{
 	    				}
 	    			} else 
 		    			if (gParams.getMapMonParams().get(monID).getThProcessAction().equals("DISABLE")) {
-		    				logger.warn(logmsg+"Thread Process se encuentra DISABLE");
-		    				logger.warn(logmsg+"No es posible levantar Process hasta que habilite proceso");
+		    				mylog.warn("Thread Process se encuentra DISABLE");
+		    				mylog.warn("No es posible levantar Process hasta que habilite proceso");
 		    			} 
         			
         			//Inicia thDBAccess
+        			thName = "thDBAccess";
+	    			if (gParams.getMapMonParams().get(monID).getThDBAccessAction().equals("ENABLE")) {
+	    				if (!gParams.getMapThreadRunnig().get(thName)) {
+	    	        		Runnable thDBAccess = new ThDBAccess(gParams);
+	    	        		gParams.getMapThreadRunnig().put(thName, true);
+	    	        		execDBAccess.scheduleWithFixedDelay(thDBAccess, 1000, gParams.getMapMonParams().get(monID).getTxpSync(), TimeUnit.MILLISECONDS);
+	    				}
+	    			} else 
+		    			if (gParams.getMapMonParams().get(monID).getThProcessAction().equals("DISABLE")) {
+		    				mylog.warn("Thread DBAccess se encuentra DISABLE");
+		    				mylog.warn("No es posible levantar DBAccess hasta que habilite proceso");
+		    			} 
         			
         		} else if (monRole.equals("SECONDARY")) {
-        			logger.info(logmsg+"Iniciando Servicios asociados al rol: "+monRole);
+        			mylog.info("Iniciando Servicios asociados al rol: "+monRole);
         		} else {
-        			logger.error(logmsg+"Servicio sin Role definido");
-        			logger.error(logmsg+"Abortando Startup de Servicios");
+        			mylog.error("Servicio sin Role definido");
+        			mylog.error("Abortando Startup de Servicios");
         			System.exit(0);
         		}
 
@@ -139,16 +158,16 @@ public class ThMain implements Runnable{
     			/**
     			 * Si thMain es puesto en DISABLE
     			 */
-    			logger.info(logmsg+"Main Cotroller se encuentra DISABLED");
-    			logger.info(logmsg+"Todos los thread de servicios seran suspendidos");
+    			mylog.info("Main Cotroller se encuentra DISABLED");
+    			mylog.info("Todos los thread de servicios seran suspendidos");
     			
     			break;
     		case "SHUTDOWN":
-    			logger.info(logmsg+"Main Controller se encuentra en SHUTDOWN");
-    			logger.info(logmsg+"Todos los thread de servicios seran bajados y la aplicacion sera finalizada");
+    			mylog.info("Main Controller se encuentra en SHUTDOWN");
+    			mylog.info("Todos los thread de servicios seran bajados y la aplicacion sera finalizada");
     			break;
 		}
 		
-		logger.info(logmsg+"Finalizando Ciclo Main Controller");
+		mylog.info("Finalizando Ciclo Main Controller");
     }
 }

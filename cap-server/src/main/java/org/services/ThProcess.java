@@ -61,7 +61,6 @@ public class ThProcess implements Runnable{
     		 * Finalizando ciclo del Modulo
     		 */
     		logger.info("Terminado Ciclo Servicio");
-    		logger.info("Ciclón Ñandú");
 
     	} catch (Throwable e) {
     		logger.error(e.getMessage());

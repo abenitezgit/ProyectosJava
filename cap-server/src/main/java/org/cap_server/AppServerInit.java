@@ -177,6 +177,13 @@ public class AppServerInit {
     			gParams.getMapMonParams().put(mp.getMonID(), mp);
     		}
     		
+    		/**
+    		 * Recupera valores de ID para logs
+    		 */
+    		
+    		gParams.setMessageID(gParams.getMapMonParams().get(gParams.getAppConfig().getMonID()).getMessageID());
+    		gParams.setLogID(gParams.getMapMonParams().get(gParams.getAppConfig().getMonID()).getLogID());
+    		
     	} catch (Exception e) {
     		throw new Exception("No es posible leer parametros de inicio desde Metadata: "+e.getMessage());
     	} finally {

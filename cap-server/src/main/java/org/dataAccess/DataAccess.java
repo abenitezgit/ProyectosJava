@@ -11,20 +11,28 @@ import java.util.TreeMap;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.model.Category;
+import org.model.Client;
+import org.model.DBase;
 import org.model.Dependence;
 import org.model.ExpTable;
 import org.model.ExpTableParam;
 import org.model.Ftp;
 import org.model.Group;
+import org.model.LoadTable;
+import org.model.LoadTableParam;
+import org.model.LogMessage;
 import org.model.Mov;
 import org.model.MovMatch;
 import org.model.Osp;
 import org.model.OspParam;
 import org.model.PGPending;
 import org.model.ProcControl;
+import org.model.ProcGroup;
 import org.utilities.GlobalParams;
 
 import com.api.MysqlAPI;
+import com.model.SPparam;
 import com.rutinas.Rutinas;
 
 public class DataAccess {
@@ -60,89 +68,247 @@ public class DataAccess {
 		return dbConn.isConnected();
 	}
 	
-	public String getDBprocGroup(String grpID) throws Exception {
+	public boolean addDBresources(String method, Object param) throws Exception {
 		try {
-			JSONArray ja = new JSONArray();
+			List<SPparam> spParams = new ArrayList<>();
+			String spName = "";
+			boolean resultStat = false;
+			
+			switch(method) {
+				case "addGroup":
+					JSONObject joGroup = (JSONObject) param;
+					String strGroup = joGroup.toString();
+					Group group = (Group) mylib.serializeJSonStringToObject(strGroup, Group.class);
+					
+					spParams.add(new SPparam(group.getGrpID()));
+					spParams.add(new SPparam(group.getGrpDesc()));
+					spParams.add(new SPparam(group.getEnable()));
+					spParams.add(new SPparam(group.getHorID()));
+					spParams.add(new SPparam(group.getGrpID()));
+					spParams.add(new SPparam(group.getCliID()));
+					spParams.add(new SPparam(group.getMaxTimeExec()));
+					spParams.add(new SPparam(group.getTypeBalance()));
+					spParams.add(new SPparam(group.getTypeRequest()));
+					spParams.add(new SPparam(group.getCatID()));
+					
+					spName = "sp_add_group";
+					
+					break;
+				case "addProcGroup":
+					JSONObject joProcGroup = (JSONObject) param;
+					String strProcGroup = joProcGroup.toString();
+					ProcGroup procGroup = (ProcGroup) mylib.serializeJSonStringToObject(strProcGroup, ProcGroup.class);
+					
+					spParams.add(new SPparam(procGroup.getGrpID()));
+					spParams.add(new SPparam(procGroup.getProcID()));
+					spParams.add(new SPparam(procGroup.getnOrder()));
+					spParams.add(new SPparam(procGroup.getEnable()));
+					spParams.add(new SPparam(procGroup.getType()));
+					
+					spName = "sp_add_procGroup";
+					
+					break;
+				case "addClient":
+					JSONObject joClient = (JSONObject) param;
+					String strClient = joClient.toString();
+					Client client = (Client) mylib.serializeJSonStringToObject(strClient, Client.class);
+					
+					spParams.add(new SPparam(client.getCliID()));
+					spParams.add(new SPparam(client.getCliDesc()));
+					
+					spName = "sp_add_client";
+					
+					break;
+				case "addCategory":
+					JSONObject joCat = (JSONObject) param;
+					String strCat = joCat.toString();
+					Category cat = (Category) mylib.serializeJSonStringToObject(strCat, Category.class);
+					
+					spParams.add(new SPparam(cat.getCatID()));
+					spParams.add(new SPparam(cat.getCatDesc()));
+					spParams.add(new SPparam(cat.getEnable()));
+					
+					spName = "sp_add_category";
+					
+					break;
+				case "addDBase":
+					JSONObject jodb = (JSONObject) param;
+					String strDb = jodb.toString();
+					DBase db = (DBase) mylib.serializeJSonStringToObject(strDb, DBase.class);
+					
+					spParams.add(new SPparam(db.getDbID()));
+					spParams.add(new SPparam(db.getDbDesc()));
+					spParams.add(new SPparam(db.getDbPort()));
+					spParams.add(new SPparam(db.getDbInstance()));
+					spParams.add(new SPparam(db.getDbName()));
+					spParams.add(new SPparam(db.getDbType()));
+					spParams.add(new SPparam(db.getDbJDBCString()));
+					spParams.add(new SPparam(db.getDbName()));
+					spParams.add(new SPparam(db.getDbFileConf()));
+					spParams.add(new SPparam(db.getDbEnable()));
+					
+					spName = "sp_add_dbase";
+					
+					break;
+				case "addDependence":
+					JSONObject jodep = (JSONObject) param;
+					String strDep = jodep.toString();
+					Dependence dep = (Dependence) mylib.serializeJSonStringToObject(strDep, Dependence.class);
+					
+					spParams.add(new SPparam(dep.getGrpID()));
+					spParams.add(new SPparam(dep.getCritical()));
+					spParams.add(new SPparam(dep.getProcHijo()));
+					spParams.add(new SPparam(dep.getProcPadre()));
+					
+					spName = "sp_add_depProc";
+					
+					break;
+			}
 			
 			dbConn.open();
+			
 			if (dbConn.isConnected()) {
-				String vSql = "call sp_get_dbprocGroup('"+grpID+"')";
-				if (dbConn.executeQuery(vSql)) {
-					ResultSet rs = dbConn.getQuery();
-					ResultSetMetaData rsm = rs.getMetaData();
-					
-					while (rs.next()) {
-						JSONObject jo = new JSONObject();
-
-						for (int i=1; i<=rsm.getColumnCount(); i++) {
-							switch(rsm.getColumnType(i)) {
-							case java.sql.Types.VARCHAR:
-								jo.put(rsm.getColumnName(i), rs.getString(rsm.getColumnName(i)));
-								break;
-							case java.sql.Types.INTEGER:
-								jo.put(rsm.getColumnName(i), rs.getInt(rsm.getColumnName(i)));
-								break;
-							default:
-								jo.put(rsm.getColumnName(i), rs.getString(rsm.getColumnName(i)));
-								break;
-							}
-						}
-						
-						ja.put(jo);
-					}
+				if (dbConn.executeProcedure(spName, spParams)) {
+					resultStat = true;
 				}
-			} 			
-			return ja.toString();
-		} catch (Exception e) {
-			throw new Exception(e.getMessage());
-		} finally {
-			if (dbConn.isConnected()) {
-				dbConn.close(); 
+				
+				dbConn.close();
 			}
+			
+			return resultStat;
+		} catch (Exception e) {
+			throw new Exception("addDBresource(): "+e.getMessage());
 		}
 	}
 	
-	public String getDBGroup(String grpID) throws Exception {
+	public List<Map<String,Object>> getDBresources(String method, Object params) throws Exception {
+		List<Map<String,Object>> rows = new ArrayList<>();
 		try {
+			
+			List<SPparam> spParams = new ArrayList<>();
+			String param="";
+			
 			JSONArray ja = new JSONArray();
+			JSONObject joParams = new JSONObject();
+			String spName="";
+			
+			switch (method) {
+				case "getDBGroup":
+					joParams = (JSONObject) params;
+					logger.info("Parametros recibidos: "+joParams.toString());
+					param = joParams.getString("grpID");
+					spParams.add(new SPparam(param));
+					spName = "sp_get_dbGroup";
+					break;
+				case "getDBprocGroup":
+					joParams = (JSONObject) params;
+					param = joParams.getString("grpID");
+					spParams.add(new SPparam(param));
+					spName = "sp_get_dbprocGroup";
+					break;
+				case "getDBschedule":
+					joParams = (JSONObject) params;
+					param = joParams.getString("horID");
+					spParams.add(new SPparam(param));
+					spName = "sp_get_schedule";
+					break;
+				case "getDBschedDiary":
+					joParams = (JSONObject) params;
+					param = joParams.getString("horID");
+					spParams.add(new SPparam(param));
+					spName = "sp_get_schedDiary";
+					break;
+				case "getDBdiary":
+					joParams = (JSONObject) params;
+					param = joParams.getString("ageID");
+					spParams.add(new SPparam(param));
+					spName = "sp_get_diary";
+					break;
+				case "getDBbase":
+					joParams = (JSONObject) params;
+					param = joParams.getString("dbID");
+					spParams.add(new SPparam(param));
+					spName = "sp_get_dbbase";
+					break;
+				case "getDBgroupControl":
+					joParams = (JSONObject) params;
+					param = joParams.getString("grpID");
+					spParams.add(new SPparam(param));
+					spName = "sp_get_dbGroupControl";
+					break;
+				case "getDBprocControl":
+					joParams = (JSONObject) params;
+					param = joParams.getString("grpID");
+					spParams.add(new SPparam(param));
+					spName = "sp_get_dbProcControl";
+					break;
+				case "getDBclient":
+					joParams = (JSONObject) params;
+					param = joParams.getString("cliID");
+					spParams.add(new SPparam(param));
+					spName = "sp_get_dbClient";
+					break;
+				case "getDBcategory":
+					joParams = (JSONObject) params;
+					param = joParams.getString("catID");
+					spParams.add(new SPparam(param));
+					spName = "sp_get_category";
+					break;
+				case "getDBprocDep":
+					joParams = (JSONObject) params;
+					param = joParams.getString("grpID");
+					spParams.add(new SPparam(param));
+					param = joParams.getString("procID");
+					spParams.add(new SPparam(param));
+					spName = "sp_get_dependences";
+					break;
+			}
 			
 			dbConn.open();
 			if (dbConn.isConnected()) {
-				String vSql = "call sp_get_dbGroup('"+grpID+"')";
-				if (dbConn.executeQuery(vSql)) {
-					ResultSet rs = dbConn.getQuery();
+				if (dbConn.executeProcedure(spName, spParams)) {
+					ResultSet rs = dbConn.getSpResult();
 					ResultSetMetaData rsm = rs.getMetaData();
 					
 					while (rs.next()) {
 						JSONObject jo = new JSONObject();
+						Map<String,Object> cols = new HashMap<>();
 
 						for (int i=1; i<=rsm.getColumnCount(); i++) {
 							switch(rsm.getColumnType(i)) {
 							case java.sql.Types.VARCHAR:
-								jo.put(rsm.getColumnName(i), rs.getString(rsm.getColumnName(i)));
+								jo.put(rsm.getColumnLabel(i), rs.getString(rsm.getColumnLabel(i)));
+								cols.put(rsm.getColumnLabel(i), rs.getString(rsm.getColumnLabel(i)));
 								break;
 							case java.sql.Types.INTEGER:
-								jo.put(rsm.getColumnName(i), rs.getInt(rsm.getColumnName(i)));
+								jo.put(rsm.getColumnLabel(i), rs.getInt(rsm.getColumnLabel(i)));
+								cols.put(rsm.getColumnLabel(i), rs.getInt(rsm.getColumnLabel(i)));
 								break;
 							default:
-								jo.put(rsm.getColumnName(i), rs.getString(rsm.getColumnName(i)));
+								jo.put(rsm.getColumnLabel(i), rs.getString(rsm.getColumnLabel(i)));
+								cols.put(rsm.getColumnLabel(i), rs.getString(rsm.getColumnLabel(i)));
 								break;
 							}
 						}
 						
+						rows.add(cols);
 						ja.put(jo);
 					}
+					rs.close();
 				}
+				dbConn.close();
 			} 			
-			return ja.toString();
+			
+			
+			//return ja.toString();
+			//return mylib.serializeObjectToJSon(rows, false);
+			return rows;
+			
 		} catch (Exception e) {
 			throw new Exception(e.getMessage());
-		} finally {
-			if (dbConn.isConnected()) {
-				dbConn.close(); 
-			}
 		}
 	}
+
 	
 	public List<Dependence> getProcDependences(String grpID, String procID) throws Exception {
 		try {
@@ -161,6 +327,7 @@ public class DataAccess {
 						
 						lstDep.add(d);
 					}
+					rs.close();
 				}
 			} 			
 			
@@ -187,6 +354,7 @@ public class DataAccess {
 					if (rs.next()) {
 						response = rs.getString("resp");
 					}
+					rs.close();
 				}
 				dbConn.close();
 			}
@@ -215,6 +383,7 @@ public class DataAccess {
 						JSONObject jo = new JSONObject(resp);
 						ja.put(jo);
 					}
+					rs.close();
 				}
 				dbConn.close();
 			}
@@ -250,10 +419,44 @@ public class DataAccess {
 						String strGroup = rs.getString("resp");
 						group = (Group) mylib.serializeJSonStringToObject(strGroup, Group.class);
 					}
+					rs.close();
 				}
+				dbConn.close();
 			}
 
 			return group;
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		} finally {
+			if (dbConn.isConnected()) {
+				dbConn.close();
+			}
+		}
+	}
+	
+	public void addMyLog(LogMessage lgm) throws Exception {
+		try {
+			dbConn.open();
+			
+			if (dbConn.isConnected()) {
+				
+				List<SPparam> spParams = new ArrayList<>();
+				spParams.add(new SPparam(lgm.getLogID()));
+				spParams.add(new SPparam(lgm.getMessageID()));
+				spParams.add(new SPparam(lgm.getTimesTamp()));
+				spParams.add(new SPparam(lgm.getAppName()));
+				spParams.add(new SPparam(lgm.getLoggerName()));
+				spParams.add(new SPparam(lgm.getLogType()));
+				spParams.add(new SPparam(lgm.getMessageText()));
+				spParams.add(new SPparam(lgm.getModuleName()));
+
+				if (!dbConn.executeProcedure("sp_add_myLog", spParams)) {
+					logger.error("No es posible guardar log en BD");
+				}
+				
+				dbConn.close();
+			}
+			
 		} catch (Exception e) {
 			throw new Exception(e.getMessage());
 		}
@@ -276,7 +479,7 @@ public class DataAccess {
 					ResultSet rs = dbConn.getQuery();
 					while (rs.next()) {
 						PGPending pg = new PGPending();
-						pg.setFecIns(rs.getDate("FECINS"));
+						pg.setFecIns(mylib.getDate());
 						pg.setGrpID(rs.getString("GRPID"));
 						pg.setnOrder(rs.getInt("NORDER"));
 						pg.setNumSecExec(rs.getString("NUMSECEXEC"));
@@ -285,10 +488,12 @@ public class DataAccess {
 						pg.setTypeProc(rs.getString("TYPEPROC"));
 						pg.setCliID(rs.getString("CLIID"));
 						pg.setCliDesc(rs.getString("CLIDESC"));
+						pg.setTypeExec(rs.getString("TYPEEXEC"));
 						
 						String key = pg.getGrpID()+":"+pg.getNumSecExec()+":"+pg.getProcID();
 						mp.put(key, pg);
 					}
+					rs.close();
 				} else {
 					logger.info(logmsg+"No pudo ejecutar query");
 				}
@@ -348,6 +553,7 @@ public class DataAccess {
 									logger.error(logmsg+"No es posible recuperar parametros de proceso: "+e.getLocalizedMessage());
 								}
 							}
+							rs.close();
 						}
 						
 						break;
@@ -388,6 +594,7 @@ public class DataAccess {
 											
 											lstMovMatch.add(movMatch);
 										}
+										rs2.close();
 									}
 									
 									//Asignacion de Lista de Campos al Mov
@@ -399,6 +606,7 @@ public class DataAccess {
 									logger.error(logmsg+"No es posible recuperar parámetros de proceso: "+e.getLocalizedMessage());
 								}
 							}
+							rs.close();
 						}
 						
 						break;
@@ -437,6 +645,7 @@ public class DataAccess {
 											
 											mapOspParam.put(String.format("%03d", ospParam.getOrder()), ospParam);
 										}
+										rs2.close();
 									}
 									
 									osp.setMapOspParam(mapOspParam);
@@ -446,6 +655,7 @@ public class DataAccess {
 									logger.error(logmsg+"No es posible recuperar parametros de proceso: "+e.getLocalizedMessage());
 								}
 							}
+							rs.close();
 						}
 						
 						break;
@@ -484,6 +694,7 @@ public class DataAccess {
 											
 											mapEtbParam.put(String.format("%03d", etbParam.getEtbOrder()), etbParam);
 										}
+										rs2.close();
 									}
 									
 									etb.setMapEtbParam(mapEtbParam);
@@ -493,10 +704,60 @@ public class DataAccess {
 									logger.error(logmsg+"No es posible recuperar parametros de proceso: "+e.getLocalizedMessage());
 								}
 							}
+							rs.close();
 						}
 						
 						break;
 
+					case "LTB":
+						LoadTable ltb = new LoadTable();
+						Map<Integer, LoadTableParam> mapLtbParam = new TreeMap<>();
+						
+						vSql = "call sp_get_ltb('"+procID+"')";
+						logger.info(logmsg+"Ejecutando query: "+vSql);
+						if (dbConn.executeQuery(vSql)) {
+							ResultSet rs = dbConn.getQuery();
+							if (rs.next()) {
+								try {
+									String resp = rs.getString("resp");
+									logger.info(logmsg+"Respuesta de la query: "+resp);
+									
+									logger.info(logmsg+"Serializando respuesta en objeto clase LoadTable()");
+									ltb = (LoadTable) mylib.serializeJSonStringToObject(resp, LoadTable.class);
+									
+									logger.info(logmsg+"Se ha serializado correctamente el objeto clase LoadTable()");
+									
+									//Busca Parametros del LoadTable
+									String vSql2 = "call sp_get_ltbMatch('"+procID+"')";
+									logger.info(logmsg+"Ejecutando query: "+vSql2);
+									if (dbConn.executeQuery(vSql2)) {
+										ResultSet rs2 = dbConn.getQuery();
+										while (rs2.next()) {
+											LoadTableParam ltbParam = new LoadTableParam();
+											resp = rs2.getString("resp");
+											logger.info(logmsg+"Respuesta de la query: "+resp);
+											
+											logger.info(logmsg+"Serializando respuesta en objeto clase LoadTableParam()");
+											ltbParam = (LoadTableParam) mylib.serializeJSonStringToObject(resp, LoadTableParam.class);
+											
+											logger.info(logmsg+"Se ha serializado correctamente el objeto clase LoadTableParam()");
+											
+											mapLtbParam.put(ltbParam.getFileLoadOrder(), ltbParam);
+										}
+										rs2.close();
+									}
+									
+									ltb.setMapLtbParam(mapLtbParam);
+									
+									params = ltb;
+								} catch (Exception e) {
+									logger.error(logmsg+"No es posible recuperar parametros de proceso: "+e.getLocalizedMessage());
+								}
+							}
+							rs.close();
+						}
+						
+						break;
 					default:
 						logger.error("getProcessParam: tipo de proceso no encontrado");
 				}
@@ -527,16 +788,16 @@ public class DataAccess {
 				String vProcID = tokens[2];
 				
 				String spName = "srvConf.sp_upd_procControl";
-				List<String> spParams = new ArrayList<>();
-				spParams.add("IN&VARCHAR&"+vGrpID);
-				spParams.add("IN&VARCHAR&"+vNumSecExec);
-				spParams.add("IN&VARCHAR&"+vProcID);
-				spParams.add("IN&VARCHAR&"+uStatus);
-				spParams.add("IN&INTEGER&"+errCode);
-				spParams.add("IN&VARCHAR&"+errMesg);
+				List<SPparam> spParams = new ArrayList<>();
+				spParams.add(new SPparam(vGrpID));
+				spParams.add(new SPparam(vNumSecExec));
+				spParams.add(new SPparam(vProcID));
+				spParams.add(new SPparam(uStatus));
+				spParams.add(new SPparam(errCode));
+				spParams.add(new SPparam(errMesg));
 				
-				for (String param : spParams) {
-					logger.debug("List Param: "+param);
+				for (SPparam param : spParams) {
+					logger.debug("List Param: "+param.getValue());
 				}
 				
 				
@@ -561,17 +822,17 @@ public class DataAccess {
 			String[] items = key.split(":");  //Sepera grpID y numSecExcec
 			
 			String spName = "srvConf.sp_upd_groupControl";
-			List<String> spParams = new ArrayList<>();
-			spParams.add("IN&VARCHAR&"+items[0]);
-			spParams.add("IN&VARCHAR&"+items[1]);
-			spParams.add("IN&VARCHAR&"+status);
-			spParams.add("IN&VARCHAR&"+uStatus);
-			spParams.add("IN&INTEGER&"+errCode);
-			spParams.add("IN&VARCHAR&"+errMesg);
+			List<SPparam> spParams = new ArrayList<>();
+			spParams.add(new SPparam(items[0]));
+			spParams.add(new SPparam(items[1]));
+			spParams.add(new SPparam(status));
+			spParams.add(new SPparam(uStatus));
+			spParams.add(new SPparam(errCode));
+			spParams.add(new SPparam(errMesg));
 			
 			logger.info("SP Group Update Name: "+spName);
-			for (String param : spParams) {
-				logger.info("SP Group Update Param: "+param);
+			for (SPparam param : spParams) {
+				logger.info("SP Group Update Param: "+param.getValue());
 			}
 			
 			dbConn.open();
@@ -599,17 +860,17 @@ public class DataAccess {
 			boolean response = false;
 			
 			String spName = "srvConf.sp_upd_procControl";
-			List<String> spParams = new ArrayList<>();
-			spParams.add("IN&VARCHAR&"+pc.getGrpID());
-			spParams.add("IN&VARCHAR&"+pc.getNumSecExec());
-			spParams.add("IN&VARCHAR&"+pc.getProcID());
-			spParams.add("IN&VARCHAR&"+pc.getuStatus());
-			spParams.add("IN&VARCHAR&"+pc.getErrCode());
-			spParams.add("IN&VARCHAR&"+pc.getErrMesg());
+			List<SPparam> spParams = new ArrayList<>();
+			spParams.add(new SPparam(pc.getGrpID()));
+			spParams.add(new SPparam(pc.getNumSecExec()));
+			spParams.add(new SPparam(pc.getProcID()));
+			spParams.add(new SPparam(pc.getuStatus()));
+			spParams.add(new SPparam(pc.getErrCode()));
+			spParams.add(new SPparam(pc.getErrMesg()));
 			
 			logger.info("SP Proc Update Name: "+spName);
-			for (String param : spParams) {
-				logger.info("SP Proc Update Param: "+param);
+			for (SPparam param : spParams) {
+				logger.info("SP Proc Update Param: "+param.getValue());
 			}
 			
 			dbConn.open();

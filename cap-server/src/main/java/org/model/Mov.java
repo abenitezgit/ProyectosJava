@@ -9,135 +9,138 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Mov {
-    String mOVID;
-    String mOVDESC;
-    int mOVENABLE;
-    String cLIID;
-    String cLIDESC;
-    String sSERVERID;
-    String sHOSTNAME;
-    String sDOMAIN;
+    String movID;
+    String movDesc;
+    int enable;
+    String cliID;
+    String cliDesc;
+    String sServerID;
+    String sHostName;
+    String sDomain;
     String sIP;
-    String sSERVERDESC;
-    String dSERVERID;
-    String dHOSTNAME;
-    String dDOMAIN;
+    String sServerDesc;
+    String dServerID;
+    String dHostName;
+    String dDomain;
     String dIP;
-    String dSERVERDESC;
-    String sDBID;
-    String sDBNAME;
-    String sDBPORT;
-    String sDBTYPE;
-    String sDBINSTANCE;
-    String dDBID;
-    String dDBNAME;
-    String dDBPORT;
-    String dDBTYPE;
-    String dDBINSTANCE;
-    String sLOGINID;
-    String sLOGINNAME;
-    String sLOGINPASS;
-    String dLOGINID;
-    String dLOGINNAME;
-    String dLOGINPASS;
-    String sOWNERID;
-    String sOWNERNAME;
-    String sOWNERPASS;
-    String dOWNERID;
-    String dOWNERNAME;
-    String dOWNERPASS;
-    String sTBNAME;
-    String dTBNAME;
-    int sFIELDUPDATEACTIVE;
-    String sFIELDUPDATENAME;
-    String sFIELDVALUETYPE;
-    String sFIELDVALUEREAD;
-    String sFIELDVALUEUPDATE;
-    int wHEREACTIVE;
-    String wHEREBODY;
-    int aPPENDABLE;
-    int cREATEDEST;
-    int mAXROWS;
-    int mAXROWSRANGE;
-    int mAXROWSERROR;
-    int mAXPCTERROR;
-    int rOLLBACKERROR;
-    int fECEXTACTIVE;
-    int fECEXTEPOCH;
-    String fECEXTFIELD;
-    String fECEXTINI;
-    String fECEXTFIN;
-    int fECEXTINIIN;
-    int fECEXTFININ;
-    String sFIELDUPDATEKEY;
+    String dServerDesc;
+    String sDbID;
+    String sDbName;
+    String sDbPort;
+    String sDbType;
+    String sDbInstance;
+    String dDbID;
+    String dDbName;
+    String dDbPort;
+    String dDbType;
+    String dDbInstance;
+    String sLoginID;
+    String sLoginName;
+    String sLoginPass;
+    String dLoginID;
+    String dLoginName;
+    String dLoginPass;
+    String sOwnerID;
+    String sOwnerName;
+    String sOwnerPass;
+    String dOwnerID;
+    String dOwnerName;
+    String dOwnerPass;
+    String sTbName;
+    String dTbName;
+    int sFieldUpdateActive;
+    String sFieldUpdateName;
+    String sFieldValueType;
+    String sFieldValueRead;
+    String sFieldValueUpdate;
+    int whereActive;
+    String whereBody;
+    int appendable;
+    int deleteWhereActive;
+    String deleteWhereBody;
+    int createDest;
+    int maxRows;
+    int maxRowsRange;
+    int maxRowsError;
+    int maxPctError;
+    int rollbackError;
+    int fecExtActive;
+    int fecExtEpoch;
+    String fecExtField;
+    String fecExtIni;
+    String fecExtFin;
+    int fecExtIniIn;
+    int fecExtFinIn;
+    String sFieldUpdateKey;
     
     List<MovMatch> lstMovMatch = new ArrayList<>();
 
     //Getter and Setter
     //
 
-	public String getmOVID() {
-		return mOVID;
+    
+	public String getMovID() {
+		return movID;
 	}
 
-	public void setmOVID(String mOVID) {
-		this.mOVID = mOVID;
+	public void setMovID(String movID) {
+		this.movID = movID;
 	}
 
-	public String getmOVDESC() {
-		return mOVDESC;
+	public String getMovDesc() {
+		return movDesc;
 	}
 
-	public void setmOVDESC(String mOVDESC) {
-		this.mOVDESC = mOVDESC;
+	public void setMovDesc(String movDesc) {
+		this.movDesc = movDesc;
 	}
 
-	public int getmOVENABLE() {
-		return mOVENABLE;
+	public int getEnable() {
+		return enable;
 	}
 
-	public void setmOVENABLE(int mOVENABLE) {
-		this.mOVENABLE = mOVENABLE;
+	public void setEnable(int enable) {
+		this.enable = enable;
 	}
 
-	public String getcLIID() {
-		return cLIID;
+	public String getCliID() {
+		return cliID;
 	}
 
-	public void setcLIID(String cLIID) {
-		this.cLIID = cLIID;
+	public void setCliID(String cliID) {
+		this.cliID = cliID;
 	}
 
-	public String getcLIDESC() {
-		return cLIDESC;
+	public String getCliDesc() {
+		return cliDesc;
 	}
 
-	public void setcLIDESC(String cLIDESC) {
-		this.cLIDESC = cLIDESC;
+	public void setCliDesc(String cliDesc) {
+		this.cliDesc = cliDesc;
 	}
 
-	public String getsSERVERID() {
-		return sSERVERID;
+	public String getsServerID() {
+		return sServerID;
 	}
 
-	public void setsSERVERID(String sSERVERID) {
-		this.sSERVERID = sSERVERID;
+	public void setsServerID(String sServerID) {
+		this.sServerID = sServerID;
 	}
 
-	public String getsHOSTNAME() {
-		return sHOSTNAME;
+	public String getsHostName() {
+		return sHostName;
 	}
 
-	public void setsHOSTNAME(String sHOSTNAME) {
-		this.sHOSTNAME = sHOSTNAME;
+	public void setsHostName(String sHostName) {
+		this.sHostName = sHostName;
 	}
 
-	public String getsDOMAIN() {
-		return sDOMAIN;
+	public String getsDomain() {
+		return sDomain;
 	}
 
-	public void setsDOMAIN(String sDOMAIN) {
-		this.sDOMAIN = sDOMAIN;
+	public void setsDomain(String sDomain) {
+		this.sDomain = sDomain;
 	}
 
 	public String getsIP() {
@@ -148,36 +151,36 @@ public class Mov {
 		this.sIP = sIP;
 	}
 
-	public String getsSERVERDESC() {
-		return sSERVERDESC;
+	public String getsServerDesc() {
+		return sServerDesc;
 	}
 
-	public void setsSERVERDESC(String sSERVERDESC) {
-		this.sSERVERDESC = sSERVERDESC;
+	public void setsServerDesc(String sServerDesc) {
+		this.sServerDesc = sServerDesc;
 	}
 
-	public String getdSERVERID() {
-		return dSERVERID;
+	public String getdServerID() {
+		return dServerID;
 	}
 
-	public void setdSERVERID(String dSERVERID) {
-		this.dSERVERID = dSERVERID;
+	public void setdServerID(String dServerID) {
+		this.dServerID = dServerID;
 	}
 
-	public String getdHOSTNAME() {
-		return dHOSTNAME;
+	public String getdHostName() {
+		return dHostName;
 	}
 
-	public void setdHOSTNAME(String dHOSTNAME) {
-		this.dHOSTNAME = dHOSTNAME;
+	public void setdHostName(String dHostName) {
+		this.dHostName = dHostName;
 	}
 
-	public String getdDOMAIN() {
-		return dDOMAIN;
+	public String getdDomain() {
+		return dDomain;
 	}
 
-	public void setdDOMAIN(String dDOMAIN) {
-		this.dDOMAIN = dDOMAIN;
+	public void setdDomain(String dDomain) {
+		this.dDomain = dDomain;
 	}
 
 	public String getdIP() {
@@ -188,380 +191,380 @@ public class Mov {
 		this.dIP = dIP;
 	}
 
-	public String getdSERVERDESC() {
-		return dSERVERDESC;
+	public String getdServerDesc() {
+		return dServerDesc;
 	}
 
-	public void setdSERVERDESC(String dSERVERDESC) {
-		this.dSERVERDESC = dSERVERDESC;
+	public void setdServerDesc(String dServerDesc) {
+		this.dServerDesc = dServerDesc;
 	}
 
-	public String getsDBID() {
-		return sDBID;
+	public String getsDbID() {
+		return sDbID;
 	}
 
-	public void setsDBID(String sDBID) {
-		this.sDBID = sDBID;
+	public void setsDbID(String sDbID) {
+		this.sDbID = sDbID;
 	}
 
-	public String getsDBNAME() {
-		return sDBNAME;
+	public String getsDbName() {
+		return sDbName;
 	}
 
-	public void setsDBNAME(String sDBNAME) {
-		this.sDBNAME = sDBNAME;
+	public void setsDbName(String sDbName) {
+		this.sDbName = sDbName;
 	}
 
-	public String getsDBPORT() {
-		return sDBPORT;
+	public String getsDbPort() {
+		return sDbPort;
 	}
 
-	public void setsDBPORT(String sDBPORT) {
-		this.sDBPORT = sDBPORT;
+	public void setsDbPort(String sDbPort) {
+		this.sDbPort = sDbPort;
 	}
 
-	public String getsDBTYPE() {
-		return sDBTYPE;
+	public String getsDbType() {
+		return sDbType;
 	}
 
-	public void setsDBTYPE(String sDBTYPE) {
-		this.sDBTYPE = sDBTYPE;
+	public void setsDbType(String sDbType) {
+		this.sDbType = sDbType;
 	}
 
-	public String getsDBINSTANCE() {
-		return sDBINSTANCE;
+	public String getsDbInstance() {
+		return sDbInstance;
 	}
 
-	public void setsDBINSTANCE(String sDBINSTANCE) {
-		this.sDBINSTANCE = sDBINSTANCE;
+	public void setsDbInstance(String sDbInstance) {
+		this.sDbInstance = sDbInstance;
 	}
 
-	public String getdDBID() {
-		return dDBID;
+	public String getdDbID() {
+		return dDbID;
 	}
 
-	public void setdDBID(String dDBID) {
-		this.dDBID = dDBID;
+	public void setdDbID(String dDbID) {
+		this.dDbID = dDbID;
 	}
 
-	public String getdDBNAME() {
-		return dDBNAME;
+	public String getdDbName() {
+		return dDbName;
 	}
 
-	public void setdDBNAME(String dDBNAME) {
-		this.dDBNAME = dDBNAME;
+	public void setdDbName(String dDbName) {
+		this.dDbName = dDbName;
 	}
 
-	public String getdDBPORT() {
-		return dDBPORT;
+	public String getdDbPort() {
+		return dDbPort;
 	}
 
-	public void setdDBPORT(String dDBPORT) {
-		this.dDBPORT = dDBPORT;
+	public void setdDbPort(String dDbPort) {
+		this.dDbPort = dDbPort;
 	}
 
-	public String getdDBTYPE() {
-		return dDBTYPE;
+	public String getdDbType() {
+		return dDbType;
 	}
 
-	public void setdDBTYPE(String dDBTYPE) {
-		this.dDBTYPE = dDBTYPE;
+	public void setdDbType(String dDbType) {
+		this.dDbType = dDbType;
 	}
 
-	public String getdDBINSTANCE() {
-		return dDBINSTANCE;
+	public String getdDbInstance() {
+		return dDbInstance;
 	}
 
-	public void setdDBINSTANCE(String dDBINSTANCE) {
-		this.dDBINSTANCE = dDBINSTANCE;
+	public void setdDbInstance(String dDbInstance) {
+		this.dDbInstance = dDbInstance;
 	}
 
-	public String getsLOGINID() {
-		return sLOGINID;
+	public String getsLoginID() {
+		return sLoginID;
 	}
 
-	public void setsLOGINID(String sLOGINID) {
-		this.sLOGINID = sLOGINID;
+	public void setsLoginID(String sLoginID) {
+		this.sLoginID = sLoginID;
 	}
 
-	public String getsLOGINNAME() {
-		return sLOGINNAME;
+	public String getsLoginName() {
+		return sLoginName;
 	}
 
-	public void setsLOGINNAME(String sLOGINNAME) {
-		this.sLOGINNAME = sLOGINNAME;
+	public void setsLoginName(String sLoginName) {
+		this.sLoginName = sLoginName;
 	}
 
-	public String getsLOGINPASS() {
-		return sLOGINPASS;
+	public String getsLoginPass() {
+		return sLoginPass;
 	}
 
-	public void setsLOGINPASS(String sLOGINPASS) {
-		this.sLOGINPASS = sLOGINPASS;
+	public void setsLoginPass(String sLoginPass) {
+		this.sLoginPass = sLoginPass;
 	}
 
-	public String getdLOGINID() {
-		return dLOGINID;
+	public String getdLoginID() {
+		return dLoginID;
 	}
 
-	public void setdLOGINID(String dLOGINID) {
-		this.dLOGINID = dLOGINID;
+	public void setdLoginID(String dLoginID) {
+		this.dLoginID = dLoginID;
 	}
 
-	public String getdLOGINNAME() {
-		return dLOGINNAME;
+	public String getdLoginName() {
+		return dLoginName;
 	}
 
-	public void setdLOGINNAME(String dLOGINNAME) {
-		this.dLOGINNAME = dLOGINNAME;
+	public void setdLoginName(String dLoginName) {
+		this.dLoginName = dLoginName;
 	}
 
-	public String getdLOGINPASS() {
-		return dLOGINPASS;
+	public String getdLoginPass() {
+		return dLoginPass;
 	}
 
-	public void setdLOGINPASS(String dLOGINPASS) {
-		this.dLOGINPASS = dLOGINPASS;
+	public void setdLoginPass(String dLoginPass) {
+		this.dLoginPass = dLoginPass;
 	}
 
-	public String getsOWNERID() {
-		return sOWNERID;
+	public String getsOwnerID() {
+		return sOwnerID;
 	}
 
-	public void setsOWNERID(String sOWNERID) {
-		this.sOWNERID = sOWNERID;
+	public void setsOwnerID(String sOwnerID) {
+		this.sOwnerID = sOwnerID;
 	}
 
-	public String getsOWNERNAME() {
-		return sOWNERNAME;
+	public String getsOwnerName() {
+		return sOwnerName;
 	}
 
-	public void setsOWNERNAME(String sOWNERNAME) {
-		this.sOWNERNAME = sOWNERNAME;
+	public void setsOwnerName(String sOwnerName) {
+		this.sOwnerName = sOwnerName;
 	}
 
-	public String getsOWNERPASS() {
-		return sOWNERPASS;
+	public String getsOwnerPass() {
+		return sOwnerPass;
 	}
 
-	public void setsOWNERPASS(String sOWNERPASS) {
-		this.sOWNERPASS = sOWNERPASS;
+	public void setsOwnerPass(String sOwnerPass) {
+		this.sOwnerPass = sOwnerPass;
 	}
 
-	public String getdOWNERID() {
-		return dOWNERID;
+	public String getdOwnerID() {
+		return dOwnerID;
 	}
 
-	public void setdOWNERID(String dOWNERID) {
-		this.dOWNERID = dOWNERID;
+	public void setdOwnerID(String dOwnerID) {
+		this.dOwnerID = dOwnerID;
 	}
 
-	public String getdOWNERNAME() {
-		return dOWNERNAME;
+	public String getdOwnerName() {
+		return dOwnerName;
 	}
 
-	public void setdOWNERNAME(String dOWNERNAME) {
-		this.dOWNERNAME = dOWNERNAME;
+	public void setdOwnerName(String dOwnerName) {
+		this.dOwnerName = dOwnerName;
 	}
 
-	public String getdOWNERPASS() {
-		return dOWNERPASS;
+	public String getdOwnerPass() {
+		return dOwnerPass;
 	}
 
-	public void setdOWNERPASS(String dOWNERPASS) {
-		this.dOWNERPASS = dOWNERPASS;
+	public void setdOwnerPass(String dOwnerPass) {
+		this.dOwnerPass = dOwnerPass;
 	}
 
-	public String getsTBNAME() {
-		return sTBNAME;
+	public String getsTbName() {
+		return sTbName;
 	}
 
-	public void setsTBNAME(String sTBNAME) {
-		this.sTBNAME = sTBNAME;
+	public void setsTbName(String sTbName) {
+		this.sTbName = sTbName;
 	}
 
-	public String getdTBNAME() {
-		return dTBNAME;
+	public String getdTbName() {
+		return dTbName;
 	}
 
-	public void setdTBNAME(String dTBNAME) {
-		this.dTBNAME = dTBNAME;
+	public void setdTbName(String dTbName) {
+		this.dTbName = dTbName;
 	}
 
-	public int getsFIELDUPDATEACTIVE() {
-		return sFIELDUPDATEACTIVE;
+	public int getsFieldUpdateActive() {
+		return sFieldUpdateActive;
 	}
 
-	public void setsFIELDUPDATEACTIVE(int sFIELDUPDATEACTIVE) {
-		this.sFIELDUPDATEACTIVE = sFIELDUPDATEACTIVE;
+	public void setsFieldUpdateActive(int sFieldUpdateActive) {
+		this.sFieldUpdateActive = sFieldUpdateActive;
 	}
 
-	public String getsFIELDUPDATENAME() {
-		return sFIELDUPDATENAME;
+	public String getsFieldUpdateName() {
+		return sFieldUpdateName;
 	}
 
-	public void setsFIELDUPDATENAME(String sFIELDUPDATENAME) {
-		this.sFIELDUPDATENAME = sFIELDUPDATENAME;
+	public void setsFieldUpdateName(String sFieldUpdateName) {
+		this.sFieldUpdateName = sFieldUpdateName;
 	}
 
-	public String getsFIELDVALUETYPE() {
-		return sFIELDVALUETYPE;
+	public String getsFieldValueType() {
+		return sFieldValueType;
 	}
 
-	public void setsFIELDVALUETYPE(String sFIELDVALUETYPE) {
-		this.sFIELDVALUETYPE = sFIELDVALUETYPE;
+	public void setsFieldValueType(String sFieldValueType) {
+		this.sFieldValueType = sFieldValueType;
 	}
 
-	public String getsFIELDVALUEREAD() {
-		return sFIELDVALUEREAD;
+	public String getsFieldValueRead() {
+		return sFieldValueRead;
 	}
 
-	public void setsFIELDVALUEREAD(String sFIELDVALUEREAD) {
-		this.sFIELDVALUEREAD = sFIELDVALUEREAD;
+	public void setsFieldValueRead(String sFieldValueRead) {
+		this.sFieldValueRead = sFieldValueRead;
 	}
 
-	public String getsFIELDVALUEUPDATE() {
-		return sFIELDVALUEUPDATE;
+	public String getsFieldValueUpdate() {
+		return sFieldValueUpdate;
 	}
 
-	public void setsFIELDVALUEUPDATE(String sFIELDVALUEUPDATE) {
-		this.sFIELDVALUEUPDATE = sFIELDVALUEUPDATE;
+	public void setsFieldValueUpdate(String sFieldValueUpdate) {
+		this.sFieldValueUpdate = sFieldValueUpdate;
 	}
 
-	public int getwHEREACTIVE() {
-		return wHEREACTIVE;
+	public int getWhereActive() {
+		return whereActive;
 	}
 
-	public void setwHEREACTIVE(int wHEREACTIVE) {
-		this.wHEREACTIVE = wHEREACTIVE;
+	public void setWhereActive(int whereActive) {
+		this.whereActive = whereActive;
 	}
 
-	public String getwHEREBODY() {
-		return wHEREBODY;
+	public String getWhereBody() {
+		return whereBody;
 	}
 
-	public void setwHEREBODY(String wHEREBODY) {
-		this.wHEREBODY = wHEREBODY;
+	public void setWhereBody(String whereBody) {
+		this.whereBody = whereBody;
 	}
 
-	public int getaPPENDABLE() {
-		return aPPENDABLE;
+	public int getAppendable() {
+		return appendable;
 	}
 
-	public void setaPPENDABLE(int aPPENDABLE) {
-		this.aPPENDABLE = aPPENDABLE;
+	public void setAppendable(int appendable) {
+		this.appendable = appendable;
 	}
 
-	public int getcREATEDEST() {
-		return cREATEDEST;
+	public int getCreateDest() {
+		return createDest;
 	}
 
-	public void setcREATEDEST(int cREATEDEST) {
-		this.cREATEDEST = cREATEDEST;
+	public void setCreateDest(int createDest) {
+		this.createDest = createDest;
 	}
 
-	public int getmAXROWS() {
-		return mAXROWS;
+	public int getMaxRows() {
+		return maxRows;
 	}
 
-	public void setmAXROWS(int mAXROWS) {
-		this.mAXROWS = mAXROWS;
+	public void setMaxRows(int maxRows) {
+		this.maxRows = maxRows;
 	}
 
-	public int getmAXROWSRANGE() {
-		return mAXROWSRANGE;
+	public int getMaxRowsRange() {
+		return maxRowsRange;
 	}
 
-	public void setmAXROWSRANGE(int mAXROWSRANGE) {
-		this.mAXROWSRANGE = mAXROWSRANGE;
+	public void setMaxRowsRange(int maxRowsRange) {
+		this.maxRowsRange = maxRowsRange;
 	}
 
-	public int getmAXROWSERROR() {
-		return mAXROWSERROR;
+	public int getMaxRowsError() {
+		return maxRowsError;
 	}
 
-	public void setmAXROWSERROR(int mAXROWSERROR) {
-		this.mAXROWSERROR = mAXROWSERROR;
+	public void setMaxRowsError(int maxRowsError) {
+		this.maxRowsError = maxRowsError;
 	}
 
-	public int getmAXPCTERROR() {
-		return mAXPCTERROR;
+	public int getMaxPctError() {
+		return maxPctError;
 	}
 
-	public void setmAXPCTERROR(int mAXPCTERROR) {
-		this.mAXPCTERROR = mAXPCTERROR;
+	public void setMaxPctError(int maxPctError) {
+		this.maxPctError = maxPctError;
 	}
 
-	public int getrOLLBACKERROR() {
-		return rOLLBACKERROR;
+	public int getRollbackError() {
+		return rollbackError;
 	}
 
-	public void setrOLLBACKERROR(int rOLLBACKERROR) {
-		this.rOLLBACKERROR = rOLLBACKERROR;
+	public void setRollbackError(int rollbackError) {
+		this.rollbackError = rollbackError;
 	}
 
-	public int getfECEXTACTIVE() {
-		return fECEXTACTIVE;
+	public int getFecExtActive() {
+		return fecExtActive;
 	}
 
-	public void setfECEXTACTIVE(int fECEXTACTIVE) {
-		this.fECEXTACTIVE = fECEXTACTIVE;
+	public void setFecExtActive(int fecExtActive) {
+		this.fecExtActive = fecExtActive;
 	}
 
-	public int getfECEXTEPOCH() {
-		return fECEXTEPOCH;
+	public int getFecExtEpoch() {
+		return fecExtEpoch;
 	}
 
-	public void setfECEXTEPOCH(int fECEXTEPOCH) {
-		this.fECEXTEPOCH = fECEXTEPOCH;
+	public void setFecExtEpoch(int fecExtEpoch) {
+		this.fecExtEpoch = fecExtEpoch;
 	}
 
-	public String getfECEXTFIELD() {
-		return fECEXTFIELD;
+	public String getFecExtField() {
+		return fecExtField;
 	}
 
-	public void setfECEXTFIELD(String fECEXTFIELD) {
-		this.fECEXTFIELD = fECEXTFIELD;
+	public void setFecExtField(String fecExtField) {
+		this.fecExtField = fecExtField;
 	}
 
-	public String getfECEXTINI() {
-		return fECEXTINI;
+	public String getFecExtIni() {
+		return fecExtIni;
 	}
 
-	public void setfECEXTINI(String fECEXTINI) {
-		this.fECEXTINI = fECEXTINI;
+	public void setFecExtIni(String fecExtIni) {
+		this.fecExtIni = fecExtIni;
 	}
 
-	public String getfECEXTFIN() {
-		return fECEXTFIN;
+	public String getFecExtFin() {
+		return fecExtFin;
 	}
 
-	public void setfECEXTFIN(String fECEXTFIN) {
-		this.fECEXTFIN = fECEXTFIN;
+	public void setFecExtFin(String fecExtFin) {
+		this.fecExtFin = fecExtFin;
 	}
 
-	public int getfECEXTINIIN() {
-		return fECEXTINIIN;
+	public int getFecExtIniIn() {
+		return fecExtIniIn;
 	}
 
-	public void setfECEXTINIIN(int fECEXTINIIN) {
-		this.fECEXTINIIN = fECEXTINIIN;
+	public void setFecExtIniIn(int fecExtIniIn) {
+		this.fecExtIniIn = fecExtIniIn;
 	}
 
-	public int getfECEXTFININ() {
-		return fECEXTFININ;
+	public int getFecExtFinIn() {
+		return fecExtFinIn;
 	}
 
-	public void setfECEXTFININ(int fECEXTFININ) {
-		this.fECEXTFININ = fECEXTFININ;
+	public void setFecExtFinIn(int fecExtFinIn) {
+		this.fecExtFinIn = fecExtFinIn;
 	}
 
-	public String getsFIELDUPDATEKEY() {
-		return sFIELDUPDATEKEY;
+	public String getsFieldUpdateKey() {
+		return sFieldUpdateKey;
 	}
 
-	public void setsFIELDUPDATEKEY(String sFIELDUPDATEKEY) {
-		this.sFIELDUPDATEKEY = sFIELDUPDATEKEY;
+	public void setsFieldUpdateKey(String sFieldUpdateKey) {
+		this.sFieldUpdateKey = sFieldUpdateKey;
 	}
 
 	public List<MovMatch> getLstMovMatch() {
@@ -571,5 +574,21 @@ public class Mov {
 	public void setLstMovMatch(List<MovMatch> lstMovMatch) {
 		this.lstMovMatch = lstMovMatch;
 	}
-    
+
+	public int getDeleteWhereActive() {
+		return deleteWhereActive;
+	}
+
+	public void setDeleteWhereActive(int deleteWhereActive) {
+		this.deleteWhereActive = deleteWhereActive;
+	}
+
+	public String getDeleteWhereBody() {
+		return deleteWhereBody;
+	}
+
+	public void setDeleteWhereBody(String deleteWhereBody) {
+		this.deleteWhereBody = deleteWhereBody;
+	}
+
 }

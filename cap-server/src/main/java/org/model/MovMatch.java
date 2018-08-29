@@ -1,73 +1,63 @@
 package org.model;
 
 public class MovMatch {
-	String mOVID;
-	int mOVORDER;
-	String sOURCEFIELD;
-	String sOURCELABEL;
-	int sOURCELENGTH;
-	String sOURCETYPE;
-	String dESTFIELD;
-	int dESTLENGTH;
-	String fIELDTYPE;
-	
+	String movID;
+	int movOrder;
+	String sourceField;
+	int sourceLength;
+	String sourceType;
+	String destField;
+	int destLength;
+	String fieldType;
+
 	//Getter and Setter
 	
-
-	public String getmOVID() {
-		return mOVID;
+	public String getMovID() {
+		return movID;
 	}
-	public void setmOVID(String mOVID) {
-		this.mOVID = mOVID;
+	public void setMovID(String movID) {
+		this.movID = movID;
 	}
-	public int getmOVORDER() {
-		return mOVORDER;
+	public int getMovOrder() {
+		return movOrder;
 	}
-	public void setmOVORDER(int mOVORDER) {
-		this.mOVORDER = mOVORDER;
+	public void setMovOrder(int movOrder) {
+		this.movOrder = movOrder;
 	}
-	public String getsOURCEFIELD() {
-		return sOURCEFIELD;
+	public String getSourceField() {
+		return sourceField;
 	}
-	public void setsOURCEFIELD(String sOURCEFIELD) {
-		this.sOURCEFIELD = sOURCEFIELD;
+	public void setSourceField(String sourceField) {
+		this.sourceField = sourceField;
 	}
-	public String getsOURCELABEL() {
-		return sOURCELABEL;
+	public int getSourceLength() {
+		return sourceLength;
 	}
-	public void setsOURCELABEL(String sOURCELABEL) {
-		this.sOURCELABEL = sOURCELABEL;
+	public void setSourceLength(int sourceLength) {
+		this.sourceLength = sourceLength;
 	}
-	public int getsOURCELENGTH() {
-		return sOURCELENGTH;
+	public String getSourceType() {
+		return sourceType;
 	}
-	public void setsOURCELENGTH(int sOURCELENGTH) {
-		this.sOURCELENGTH = sOURCELENGTH;
+	public void setSourceType(String sourceType) {
+		this.sourceType = sourceType;
 	}
-	public String getsOURCETYPE() {
-		return sOURCETYPE;
+	public String getDestField() {
+		return destField;
 	}
-	public void setsOURCETYPE(String sOURCETYPE) {
-		this.sOURCETYPE = sOURCETYPE;
+	public void setDestField(String destField) {
+		this.destField = destField;
 	}
-	public String getdESTFIELD() {
-		return dESTFIELD;
+	public int getDestLength() {
+		return destLength;
 	}
-	public void setdESTFIELD(String dESTFIELD) {
-		this.dESTFIELD = dESTFIELD;
+	public void setDestLength(int destLength) {
+		this.destLength = destLength;
 	}
-	public int getdESTLENGTH() {
-		return dESTLENGTH;
+	public String getFieldType() {
+		return fieldType;
 	}
-	public void setdESTLENGTH(int dESTLENGTH) {
-		this.dESTLENGTH = dESTLENGTH;
+	public void setFieldType(String fieldType) {
+		this.fieldType = fieldType;
 	}
-	public String getfIELDTYPE() {
-		return fIELDTYPE;
-	}
-	public void setfIELDTYPE(String fIELDTYPE) {
-		this.fIELDTYPE = fIELDTYPE;
-	}
-	
-	
 }

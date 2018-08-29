@@ -10,11 +10,18 @@ public class Group {
 	private int maxTimeExec;
 	private String typeBalance;
 	private String typeRequest;
+	private String catID;
 	
 	//Getter and setter
 	
 	public String getGrpID() {
 		return grpID;
+	}
+	public String getCatID() {
+		return catID;
+	}
+	public void setCatID(String catID) {
+		this.catID = catID;
 	}
 	public void setGrpID(String grpID) {
 		this.grpID = grpID;

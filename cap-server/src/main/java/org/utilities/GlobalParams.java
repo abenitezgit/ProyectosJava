@@ -1,12 +1,14 @@
 package org.utilities;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 import org.model.AppConfig;
 import org.model.Group;
+import org.model.LogMessage;
 import org.model.MonParams;
 import org.model.ProcControl;
 import org.model.Service;
@@ -30,6 +32,10 @@ public class GlobalParams {
 	private Map<String, Group> mapGroupParam = new HashMap<>();
 	
 	ScheduledExecutorService executorThMain = Executors.newSingleThreadScheduledExecutor();
+	
+	private long logID;
+	private long messageID;
+	private LinkedList<LogMessage> linkedLog = new LinkedList<>();
 	
 	//Getter and Setter
 	
@@ -86,5 +92,23 @@ public class GlobalParams {
 	}
 	public void setMapGroupParam(Map<String, Group> mapGroupParam) {
 		this.mapGroupParam = mapGroupParam;
+	}
+	public long getMessageID() {
+		return messageID;
+	}
+	public void setMessageID(long messageID) {
+		this.messageID = messageID;
+	}
+	public long getLogID() {
+		return logID;
+	}
+	public void setLogID(long logID) {
+		this.logID = logID;
+	}
+	public LinkedList<LogMessage> getLinkedLog() {
+		return linkedLog;
+	}
+	public void setLinkedLog(LinkedList<LogMessage> linkedLog) {
+		this.linkedLog = linkedLog;
 	}
 }

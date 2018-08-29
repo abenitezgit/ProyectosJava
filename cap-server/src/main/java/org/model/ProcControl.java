@@ -18,6 +18,8 @@ public class ProcControl {
 	String cliDesc;
 	int errCode;
 	String errMesg;
+	String srvID;
+	String typeExec;
 	Object param;
 	
 	List<Dependence> lstDependences = new ArrayList<>();
@@ -113,6 +115,18 @@ public class ProcControl {
 	}
 	public void setLstDependences(List<Dependence> lstDependences) {
 		this.lstDependences = lstDependences;
+	}
+	public String getSrvID() {
+		return srvID;
+	}
+	public void setSrvID(String srvID) {
+		this.srvID = srvID;
+	}
+	public String getTypeExec() {
+		return typeExec;
+	}
+	public void setTypeExec(String typeExec) {
+		this.typeExec = typeExec;
 	}
 	
 }

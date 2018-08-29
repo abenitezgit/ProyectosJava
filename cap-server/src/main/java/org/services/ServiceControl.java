@@ -13,6 +13,7 @@ import org.dataAccess.DataAccess;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.model.Dependence;
+import org.model.LogMessage;
 import org.model.MonParams;
 import org.model.PGPending;
 import org.model.ProcControl;
@@ -43,18 +44,27 @@ public class ServiceControl {
 	 * thProcess
 	 */
 	
-	public String getMonRequest(JSONObject data) throws Exception {
+	public Object getMonRequest(JSONObject data) throws Exception {
 		try {
 			String method = data.getString("method");
-			String response = "";
+			JSONObject params;
+			
+			Object response = null;
 			String param = "";
 			String param1 = "";
 			
 			switch (method) {
 				case "getProcControl":
-					param = data.getString("status");
-					param1 = data.getString("uStatus");
+					params = data.getJSONObject("params");
+					param = params.getString("status");
+					param1 = params.getString("uStatus");
 					response = fc.getProcControl(param,param1);
+					break;
+				case "getLog":
+					response = fc.getLog();
+					break;
+				case "getServices":
+					response = fc.getServices();
 					break;
 			}
 			
@@ -64,20 +74,64 @@ public class ServiceControl {
 		}
 	}
 	
-	public String getDBrequest(JSONObject data) throws Exception {
+	
+	public Object getDBrequest(JSONObject data) throws Exception {
 		try {
 			String method = data.getString("method");
-			String response = "";
-			String param = "";
+			JSONObject params = data.getJSONObject("params");
+			
+			Object response = null;
 			
 			switch (method) {
 				case "getDBGroup":
-					param = data.getString("grpID");
-					response = dc.getDBGroup(param);
+					response = dc.getDBresources(method, params);
 					break;
 				case "getDBprocGroup":
-					param = data.getString("grpID");
-					response = dc.getDBprocGroup(param);
+					response = dc.getDBresources(method, params);
+					break;
+				case "getDBschedule":
+					response = dc.getDBresources(method, params);
+					break;
+				case "getDBschedDiary":
+					response = dc.getDBresources(method, params);
+					break;
+				case "getDBdiary":
+					response = dc.getDBresources(method, params);
+					break;
+				case "getDBbase":
+					response = dc.getDBresources(method, params);
+					break;
+				case "getDBgroupControl":
+					response = dc.getDBresources(method, params);
+					break;
+				case "getDBprocControl":
+					response = dc.getDBresources(method, params);
+					break;
+				case "getDBclient":
+					response = dc.getDBresources(method, params);
+					break;
+				case "getDBcategory":
+					response = dc.getDBresources(method, params);
+					break;
+				case "getDBprocDep":
+					response = dc.getDBresources(method, params);
+					break;
+				case "addGroup":
+					response = dc.addDBresources(method, params);
+				case "addProcGroup":
+					response = dc.addDBresources(method, params);
+					break;
+				case "addClient":
+					response = dc.addDBresources(method, params);
+					break;
+				case "addCategory":
+					response = dc.addDBresources(method, params);
+					break;
+				case "addDBase":
+					response = dc.addDBresources(method, params);
+					break;
+				case "addDependence":
+					response = dc.addDBresources(method, params);
 					break;
 			}
 			
@@ -86,7 +140,7 @@ public class ServiceControl {
 			throw new Exception(e.getMessage());
 		}
 	}
-	
+
 	public void showMapProcControl() {
 		logger.info("Detalle de Procesos");
 		for (Map.Entry<String, ProcControl> entry : gParams.getMapProcControl().entrySet()) {
@@ -95,9 +149,9 @@ public class ServiceControl {
 	}
 	
 	public void showMapTask() throws Exception {
-		logger.info("Detalle de Task: ");
+		logger.debug("Detalle de Task: ");
 		for (Map.Entry<String, Task> entry : gParams.getMapTask().entrySet()) {
-			logger.info("-->"+mylib.serializeObjectToJSon(entry.getValue(), true));
+			logger.debug("-->"+mylib.serializeObjectToJSon(entry.getValue(), false));
 			//logger.info("--> "+entry.getKey()+" "+entry.getValue().getStatus()+" "+entry.getValue().getuStatus()+" "+ entry.getValue().getSrvID()+ " "+ entry.getValue().getErrCode()+" "+entry.getValue().getErrMesg());
 		}
 	}
@@ -489,6 +543,35 @@ public class ServiceControl {
 
     	}
     }
+    
+    public List<LogMessage> getLogMessage() throws Exception {
+    	try {
+    		List<LogMessage> lstLog = new ArrayList<>();
+    		int numLogs = gParams.getLinkedLog().size();
+    		
+    		if (numLogs>1000) {
+    			numLogs = 1000;
+    		}
+    		
+    		for (int i=0; i<numLogs; i++) {
+    			LogMessage lgm = gParams.getLinkedLog().removeFirst();
+    			lstLog.add(lgm);
+    		}
+    		
+			return lstLog;
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		}
+    }
 
+    public void addMyLog(List<LogMessage> lstLog) throws Exception {
+    	try {
+    		for (LogMessage lgm : lstLog) {
+    			dc.addMyLog(lgm);
+    		}
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		}
+    }
 	
 }

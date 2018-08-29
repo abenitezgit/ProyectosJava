@@ -1,6 +1,6 @@
 package org.model;
 
-import java.sql.Date;
+import java.util.Date;
 
 public class PGPending {
 	
@@ -13,7 +13,8 @@ public class PGPending {
 	Date fecIns;
 	String cliID;
 	String cliDesc;
-	
+	String typeExec;
+
 	
 	public String getCliID() {
 		return cliID;
@@ -68,6 +69,12 @@ public class PGPending {
 	}
 	public void setFecIns(Date fecIns) {
 		this.fecIns = fecIns;
+	}
+	public String getTypeExec() {
+		return typeExec;
+	}
+	public void setTypeExec(String typeExec) {
+		this.typeExec = typeExec;
 	}
 
 }

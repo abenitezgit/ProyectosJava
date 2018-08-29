@@ -15,6 +15,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.model.Dependence;
 import org.model.Group;
+import org.model.LogMessage;
 import org.model.PGPending;
 import org.model.ProcControl;
 import org.model.Service;
@@ -36,10 +37,40 @@ public class FlowControl {
 		da = new DataAccess(gParams);
 		mylib.setLevelLogger(logger, gParams.getAppConfig().getLog4jLevel());
 	}
-
-	public String getProcControl(String status, String uStatus) throws Exception {
+	
+	public List<Service> getServices() throws Exception {
 		try {
-			String response = "";
+			List<Service> lstRows = new ArrayList<>();
+			
+			for(Map.Entry<String, Service> service : gParams.getMapService().entrySet()) {
+				Service srv = service.getValue();
+				lstRows.add(srv);
+			}
+			
+			return lstRows;
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		}
+	}
+
+	public List<LogMessage> getLog() throws Exception {
+		try {
+			List<LogMessage> lstRows = new ArrayList<>();
+			
+			LogMessage lgm = new LogMessage();
+			lgm = gParams.getLinkedLog().removeFirst();
+			
+			lstRows.add(lgm);
+			
+			return lstRows;
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		}
+	}
+	
+	public List<Map<String,Object>> getProcControl(String status, String uStatus) throws Exception {
+		
+		try {
 			
 			Map<String, ProcControl> mpc = new TreeMap<>();
 			
@@ -74,27 +105,33 @@ public class FlowControl {
 						.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 			}
 			
-			JSONArray ja = new JSONArray();
+			List<Map<String,Object>> lstrows = new ArrayList<>();
 			
 			for (Map.Entry<String, ProcControl> entry : mpc.entrySet()) {
-				JSONObject jo = new JSONObject();
 				
-				jo.put("grpID", entry.getValue().getGrpID());
-				jo.put("numSecExec", entry.getValue().getNumSecExec());
-				jo.put("procID", entry.getValue().getProcID());
-				jo.put("status", entry.getValue().getStatus());
-				jo.put("uStatus", entry.getValue().getuStatus());
-				jo.put("fecIns", entry.getValue().getFecIns());
-				jo.put("fecUpdate", entry.getValue().getFecUpdate());
-				jo.put("cliID", entry.getValue().getCliID());
-				jo.put("cliDesc", entry.getValue().getCliDesc());
+				Map<String,Object> cols = new HashMap<>();
 				
-				ja.put(jo);
+				cols.put("cliDesc",entry.getValue().getCliDesc());
+				cols.put("cliID",entry.getValue().getCliID());
+				cols.put("fecIns",entry.getValue().getFecIns());
+				cols.put("fecUpdate",entry.getValue().getFecUpdate());
+				cols.put("grpID",entry.getValue().getGrpID());
+				cols.put("numSecExec",entry.getValue().getNumSecExec());
+				cols.put("procID",entry.getValue().getProcID());
+				cols.put("status",entry.getValue().getStatus());
+				cols.put("uStatus",entry.getValue().getuStatus());
+				cols.put("typeExec", entry.getValue().getTypeExec());
+				
+				if (mylib.isNullOrEmpty(entry.getValue().getSrvID())) {
+					cols.put("srvID", null);
+				} else {
+					cols.put("srvID", entry.getValue().getSrvID());
+				}
+				
+				lstrows.add(cols);
 			}
 			
-			response = ja.toString();
-			
-			return response;
+			return lstrows;
 		} catch (Exception e) {
 			throw new Exception(e.getMessage());
 		}
@@ -248,10 +285,11 @@ public class FlowControl {
 				task.setStatus("ASSIGNED");
 				task.setTaskkey(key);
 				task.setTypeProc(pc.getTypeProc());
+				task.setTypeExec(pc.getTypeExec());
 				
 				gParams.getMapTask().put(key, task);
 				
-				updateMapProcControl(key, "ASSIGNED", 0, "");
+				updateMapProcControl(key, task);
 			} else {
 				logger.warn("El proceso "+pc.getProcID()+" ya se encuentra en el MapTask para ser ejecutado");
 			}
@@ -671,6 +709,7 @@ public class FlowControl {
 				gParams.getMapProcControl().get(key).setFecUpdate(mylib.getDate());
 				gParams.getMapProcControl().get(key).setErrCode(task.getErrCode());
 				gParams.getMapProcControl().get(key).setErrMesg(task.getErrMesg());
+				gParams.getMapProcControl().get(key).setSrvID(task.getSrvID());
 			}
 			
 		} catch (Exception e) {
@@ -765,6 +804,7 @@ public class FlowControl {
 					pc.setCliID(entry.getValue().getCliID());
 					pc.setCliDesc(entry.getValue().getCliDesc());
 					pc.setFecUpdate(mylib.getDate());
+					pc.setTypeExec(entry.getValue().getTypeExec());
 					
 					gParams.getMapProcControl().put(entry.getKey(), pc);
 				}

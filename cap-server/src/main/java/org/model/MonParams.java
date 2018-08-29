@@ -1,6 +1,8 @@
 package org.model;
 
 public class MonParams {
+	long logID;
+	long messageID;
 	String monID;
 	String monHostName;
 	String monIP;
@@ -106,5 +108,17 @@ public class MonParams {
 	}
 	public void setThProcessAction(String thProcessAction) {
 		this.thProcessAction = thProcessAction;
+	}
+	public long getMessageID() {
+		return messageID;
+	}
+	public void setMessageID(long messageID) {
+		this.messageID = messageID;
+	}
+	public long getLogID() {
+		return logID;
+	}
+	public void setLogID(long logID) {
+		this.logID = logID;
 	}
 }	

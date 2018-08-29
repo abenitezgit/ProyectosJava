@@ -9,9 +9,9 @@ public class ExpTable {
 	private String etbDesc;
 	private String etbTableName;
 	private String etbFileName;
-	private String etbFileExt;
 	private String etbFileType;
 	private String etbFileSep;
+	private String etbFilePath;
 	private int etbAppend;
 	private int etbHeader;
 	private int etbWhere_active;
@@ -78,14 +78,6 @@ public class ExpTable {
 
 	public void setEtbFileName(String etbFileName) {
 		this.etbFileName = etbFileName;
-	}
-
-	public String getEtbFileExt() {
-		return etbFileExt;
-	}
-
-	public void setEtbFileExt(String etbFileExt) {
-		this.etbFileExt = etbFileExt;
 	}
 
 	public String getEtbFileType() {
@@ -350,6 +342,14 @@ public class ExpTable {
 
 	public void setFtpUserPass(String ftpUserPass) {
 		this.ftpUserPass = ftpUserPass;
+	}
+
+	public String getEtbFilePath() {
+		return etbFilePath;
+	}
+
+	public void setEtbFilePath(String etbFilePath) {
+		this.etbFilePath = etbFilePath;
 	}
 	
 	
