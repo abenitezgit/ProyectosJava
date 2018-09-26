@@ -2,10 +2,13 @@ package org.utilities;
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+import org.model.AgeGroup;
 import org.model.AppConfig;
 import org.model.Group;
 import org.model.LogMessage;
@@ -30,6 +33,8 @@ public class GlobalParams {
 	private Map<String, ProcControl> mapProcControl = new HashMap<>();
 	private Map<String, String> mapAssignedService = new HashMap<>();
 	private Map<String, Group> mapGroupParam = new HashMap<>();
+	private Map<String, Integer> mapAgeGroupCount = new TreeMap<>();
+	private Map<String, List<AgeGroup>> mapAgeGroup = new TreeMap<>();
 	
 	ScheduledExecutorService executorThMain = Executors.newSingleThreadScheduledExecutor();
 	
@@ -37,10 +42,38 @@ public class GlobalParams {
 	private long messageID;
 	private LinkedList<LogMessage> linkedLog = new LinkedList<>();
 	
+	//Flow Control
+	private boolean swFindNewGroup = true;
+	private boolean swAssignNewTask = true;
+	
 	//Getter and Setter
 	
 	public Map<String, MonParams> getMapMonParams() {
 		return mapMonParams;
+	}
+	public Map<String, List<AgeGroup>> getMapAgeGroup() {
+		return mapAgeGroup;
+	}
+	public void setMapAgeGroup(Map<String, List<AgeGroup>> mapAgeGroup) {
+		this.mapAgeGroup = mapAgeGroup;
+	}
+	public Map<String, Integer> getMapAgeGroupCount() {
+		return mapAgeGroupCount;
+	}
+	public void setMapAgeGroupCount(Map<String, Integer> mapAgeGroupCount) {
+		this.mapAgeGroupCount = mapAgeGroupCount;
+	}
+	public boolean isSwAssignNewTask() {
+		return swAssignNewTask;
+	}
+	public void setSwAssignNewTask(boolean swAssignNewTask) {
+		this.swAssignNewTask = swAssignNewTask;
+	}
+	public boolean isSwFindNewGroup() {
+		return swFindNewGroup;
+	}
+	public void setSwFindNewGroup(boolean swFindNewGroup) {
+		this.swFindNewGroup = swFindNewGroup;
 	}
 	public void setMapMonParams(Map<String, MonParams> mapMonParams) {
 		this.mapMonParams = mapMonParams;

@@ -21,6 +21,7 @@ public class ProcControl {
 	String srvID;
 	String typeExec;
 	Object param;
+	Object txResult;
 	
 	List<Dependence> lstDependences = new ArrayList<>();
 	
@@ -28,6 +29,12 @@ public class ProcControl {
 	
 	public String getGrpID() {
 		return grpID;
+	}
+	public Object getTxResult() {
+		return txResult;
+	}
+	public void setTxResult(Object txResult) {
+		this.txResult = txResult;
 	}
 	public String getCliID() {
 		return cliID;

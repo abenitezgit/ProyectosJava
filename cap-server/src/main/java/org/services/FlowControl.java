@@ -38,6 +38,16 @@ public class FlowControl {
 		mylib.setLevelLogger(logger, gParams.getAppConfig().getLog4jLevel());
 	}
 	
+	public void addAgeGroupCount(String key, int count) {
+		if (gParams.getMapAgeGroupCount().containsKey(key)) {
+			int tmpCount = gParams.getMapAgeGroupCount().get(key);
+			int finalCount = tmpCount + count;
+			gParams.getMapAgeGroupCount().put(key, finalCount);
+		} else {
+			gParams.getMapAgeGroupCount().put(key, count);
+		}
+	}
+	
 	public List<Service> getServices() throws Exception {
 		try {
 			List<Service> lstRows = new ArrayList<>();
@@ -146,6 +156,27 @@ public class FlowControl {
 		}
 	}
 	
+	public void deleteForceProcControl(String grpID, String numSecExec, String procID) throws Exception {
+		try {
+			for(Map.Entry<String, ProcControl> pc : gParams.getMapProcControl().entrySet()) {
+				if (pc.getValue().getGrpID().equals(grpID) && pc.getValue().getNumSecExec().equals(numSecExec)) {
+					if (pc.getValue().getStatus().equals("PENDING")) {
+						if (procID.equals("*")) {
+							gParams.getMapProcControl().remove(pc.getKey());
+						} else {
+							if (pc.getValue().getProcID().equals(procID)) {
+								gParams.getMapProcControl().remove(pc.getKey());
+							}
+						}
+					}
+				}
+			}
+			
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		}
+	}
+	
 	public void deleteProcControl(String key) throws Exception {
 		try {
 			gParams.getMapProcControl().remove(key);
@@ -185,6 +216,51 @@ public class FlowControl {
 		}
 	}
 
+	public synchronized boolean updateForceFinishedProcess(JSONObject params) throws Exception {
+		try {
+			String grpID = params.getString("grpID");
+			String numSecExec = params.getString("numSecExec");
+			String procID = params.getString("procID");
+			
+			for (Map.Entry<String, ProcControl> pc : gParams.getMapProcControl().entrySet()) {
+				if (grpID.equals(pc.getKey().split(":")[0]) && 
+					numSecExec.equals(pc.getKey().split(":")[1])) {
+					
+					ProcControl newPc = pc.getValue();
+					
+					if (procID.equals("*")) {
+						if (pc.getValue().getStatus().equals("PENDING")) {
+							newPc.setErrCode(10);
+							newPc.setErrMesg("Manual Forced Finished");
+							newPc.setFecUpdate(new Date());
+							newPc.setStatus("FINISHED");
+							newPc.setuStatus("SUCCESS");
+							String key = newPc.getGrpID()+":"+newPc.getNumSecExec()+":"+newPc.getProcID();
+							updateMapProcControl(key, newPc);
+						}
+						
+					} else {
+						if (procID.equals(pc.getKey().split(":")[2])) {
+							if (pc.getValue().getStatus().equals("PENDING")) {
+								newPc.setErrCode(10);
+								newPc.setErrMesg("Manual Forced Finished");
+								newPc.setFecUpdate(new Date());
+								newPc.setStatus("FINISHED");
+								newPc.setuStatus("SUCCESS");
+								String key = newPc.getGrpID()+":"+newPc.getNumSecExec()+":"+newPc.getProcID();
+								updateMapProcControl(key, newPc);
+							}
+						}
+					}
+					
+				}
+			}
+			
+			return true;
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		}
+	}
 	
 	private synchronized void updateStatusMapTask(String key, String status) throws Exception {
 		try {
@@ -347,7 +423,7 @@ public class FlowControl {
 			
 			return response;
 		} catch (Exception e) {
-			throw new Exception ("isProcDependFinished: "+e.getMessage());
+			throw new Exception ("isProcDependFinished(): "+e.getMessage());
 		}
 	}
 	
@@ -710,10 +786,39 @@ public class FlowControl {
 				gParams.getMapProcControl().get(key).setErrCode(task.getErrCode());
 				gParams.getMapProcControl().get(key).setErrMesg(task.getErrMesg());
 				gParams.getMapProcControl().get(key).setSrvID(task.getSrvID());
+				gParams.getMapProcControl().get(key).setTxResult(task.getTxResult());
 			}
 			
 		} catch (Exception e) {
 			logger.error("updateMapProcControl(): "+e.getMessage());
+		}
+	}
+	
+	public synchronized void updateMapProcControl(String key, ProcControl pc) throws Exception {
+		try {
+			if (gParams.getMapProcControl().containsKey(key)) {
+				gParams.getMapProcControl().get(key).setCliDesc(pc.getCliDesc());
+				gParams.getMapProcControl().get(key).setCliID(pc.getCliID());
+				gParams.getMapProcControl().get(key).setErrCode(pc.getErrCode());
+				gParams.getMapProcControl().get(key).setErrMesg(pc.getErrMesg());
+				gParams.getMapProcControl().get(key).setFecIns(pc.getFecIns());
+				gParams.getMapProcControl().get(key).setFecUpdate(pc.getFecUpdate());
+				gParams.getMapProcControl().get(key).setGrpID(pc.getGrpID());
+				gParams.getMapProcControl().get(key).setLstDependences(pc.getLstDependences());
+				gParams.getMapProcControl().get(key).setnOrder(pc.getnOrder());
+				gParams.getMapProcControl().get(key).setNumSecExec(pc.getNumSecExec());
+				gParams.getMapProcControl().get(key).setParam(pc.getParam());
+				gParams.getMapProcControl().get(key).setProcID(pc.getProcID());
+				gParams.getMapProcControl().get(key).setSrvID(pc.getSrvID());
+				gParams.getMapProcControl().get(key).setStatus(pc.getStatus());
+				gParams.getMapProcControl().get(key).setTypeExec(pc.getTypeExec());
+				gParams.getMapProcControl().get(key).setTypeProc(pc.getTypeProc());
+				gParams.getMapProcControl().get(key).setuStatus(pc.getuStatus());
+				gParams.getMapProcControl().get(key).setTxResult(pc.getTxResult());
+			}
+			
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
 		}
 	}
 	
@@ -780,7 +885,7 @@ public class FlowControl {
 			}
 			
 		} catch (Exception e) {
-			throw new Exception(e.getMessage());
+			throw new Exception("updateMapGroup(): "+e.getMessage());
 		}
 	}
 	
@@ -810,7 +915,7 @@ public class FlowControl {
 				}
 			}
 		} catch (Exception e) {
-			logger.error("updateMapProcControl: "+e.getMessage());
+			logger.error("updateMapProcControl(): "+e.getMessage());
 		}
 	}
 	

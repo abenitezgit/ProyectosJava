@@ -16,7 +16,7 @@ import com.rutinas.Rutinas;
 /**
  * Copyrigth GBData Ltda.
  * AppName: AppServerInit
- * Version: 1.0.0
+ * Version: 3.0.1
  * Fecha Actualización: 22-05-2018
  * Parametros de Ejecucion: $ java -DmonID=<role> -DpathConfig=<path> -DfileConfig=<file.properties>
  *

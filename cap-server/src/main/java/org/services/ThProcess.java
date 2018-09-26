@@ -32,22 +32,34 @@ public class ThProcess implements Runnable{
     		 * Busca en BD grupos potenciales para activar
     		 */
     		logger.info("Buscando en Metadata Grupos potenciales para activar...");
-    		sc.updateProcessPending();
+    		if (gParams.isSwFindNewGroup()) {
+    			sc.findNewGroupProcess();
+    		} else {
+    			logger.warn("La búsqueda de nuevos Grupos de Proceso está deshabilitada");
+    		}
     		
     		/**
     		 * Recupera los parametros de configuración de cada proceso que aun lo lo tenga
     		 */
     		logger.info("Actualizando Parametros asociados a nuevos procesos...");
-    		sc.updateProcessParams();
+    		if (gParams.isSwFindNewGroup()) {
+    			sc.updateProcessParams();
+    		} else {
+    			logger.warn("La búsqueda de parametros de Proceso está deshabilitada");
+    		}
     		
     		/**
     		 * Genera y/o actualiza la tabla de Task
     		 */
     		logger.info("Asignando TASK a procesos en estado PENDING...");
-    		sc.updateTask();
+    		if (gParams.isSwAssignNewTask()) {
+    			sc.assignNewTask();
+    		} else {
+    			logger.warn("La asignacion de nuevos Task está deshabilitada");
+    		}
     		
     		/**
-    		 * Assigna Nuevas Task a capClient disponibles para cuendo estos ejecuten el Sync se lleven las tareas que les corresponden
+    		 * Muestra Task y Procesos activos
     		 */
     		sc.showMapProcControl();
     		sc.showMapTask();
@@ -62,7 +74,7 @@ public class ThProcess implements Runnable{
     		 */
     		logger.info("Terminado Ciclo Servicio");
 
-    	} catch (Throwable e) {
+    	} catch (Exception e) {
     		logger.error(e.getMessage());
     		logger.error(e.getStackTrace());
     	}

@@ -3,14 +3,17 @@ package org.dataAccess;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.model.AgeGroupStat;
 import org.model.Category;
 import org.model.Client;
 import org.model.DBase;
@@ -181,6 +184,44 @@ public class DataAccess {
 		}
 	}
 	
+	public boolean deleteDBresources(String method, Object params) throws Exception {
+		try {
+			List<SPparam> spParams = new ArrayList<>();
+			String spName = "";
+
+			boolean exitStatus = false;
+			
+			switch(method) {
+				case "deleteGroupControl":
+					JSONObject joGroup = (JSONObject) params;
+					
+					spParams.add(new SPparam(joGroup.getString("grpID")));
+					spParams.add(new SPparam(joGroup.getString("numSecExec")));
+					
+					spName = "sp_del_groupControl";
+
+					break;
+			}
+			
+			dbConn.open();
+			
+			if (dbConn.isConnected()) {
+				if (dbConn.executeProcedure(spName, spParams)) {
+					exitStatus = true;
+				}
+				
+				dbConn.close();
+			}
+
+			
+			return exitStatus;
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		}
+	}
+
+
+	
 	public List<Map<String,Object>> getDBresources(String method, Object params) throws Exception {
 		List<Map<String,Object>> rows = new ArrayList<>();
 		try {
@@ -238,8 +279,9 @@ public class DataAccess {
 					break;
 				case "getDBprocControl":
 					joParams = (JSONObject) params;
-					param = joParams.getString("grpID");
-					spParams.add(new SPparam(param));
+					spParams.add(new SPparam(joParams.getString("grpID")));
+					spParams.add(new SPparam(joParams.getString("numSecExec")));
+					spParams.add(new SPparam(joParams.getString("procID")));
 					spName = "sp_get_dbProcControl";
 					break;
 				case "getDBclient":
@@ -342,6 +384,202 @@ public class DataAccess {
 
 	}
 	
+	public List<Map<String,Object>> getAgeGroupDayHourAlert(int vDay, int vHour) throws Exception {
+		try {
+			Map<String,Object> cols = new HashMap<>();
+			List<Map<String,Object>> lstRows = new ArrayList<>();
+			
+			dbConn.open();
+			
+			if (dbConn.isConnected()) {
+				String vSql = "call srvConf.sp_get_ageGroupDayHourStat("+vDay+","+vHour+")";
+				if (dbConn.executeQuery(vSql)) {
+					ResultSet rs = dbConn.getQuery();
+					
+					Calendar cal = Calendar.getInstance();
+					int hourOfDay = cal.get(Calendar.HOUR_OF_DAY);
+					int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
+					int minuteOfHour = cal.get(Calendar.MINUTE);
+					
+					while (rs.next()) {
+						
+						cols = new HashMap<>();
+						
+						String grpID = rs.getString("grpID");
+						String numSecExec = rs.getString("numSecExec");
+						int day = rs.getInt("nDay");
+						int hour = rs.getInt("nHour");
+						int minute = rs.getInt("nMinute");
+						String uStatus = Objects.isNull(rs.getString("uStatus")) ? "NULL":rs.getString("uStatus") ;
+						String typeExec = Objects.isNull(rs.getString("typeExec")) ? "NULL":rs.getString("typeExec") ;
+						
+						if (!uStatus.equals("SUCESS")) {
+							if (day<dayOfMonth) {
+								cols.put("grpID", grpID);
+								cols.put("numSecExec", numSecExec);
+								cols.put("uStatus", uStatus);
+								cols.put("typeExec", typeExec);
+								lstRows.add(cols);
+							} else if (day==dayOfMonth) {
+								if (hour<hourOfDay) {
+									cols.put("grpID", grpID);
+									cols.put("numSecExec", numSecExec);
+									cols.put("uStatus", uStatus);
+									cols.put("typeExec", typeExec);
+									lstRows.add(cols);
+								} else if (hour==hourOfDay) {
+									if (minute<minuteOfHour) {
+										cols.put("grpID", grpID);
+										cols.put("numSecExec", numSecExec);
+										cols.put("uStatus", uStatus);
+										cols.put("typeExec", typeExec);
+										lstRows.add(cols);
+									}
+								}
+							}
+						} else if (typeExec.equals("MANUAL")) {
+							cols.put("grpID", grpID);
+							cols.put("numSecExec", numSecExec);
+							cols.put("uStatus", uStatus);
+							cols.put("typeExec", typeExec);
+							lstRows.add(cols);
+						}
+					}
+				}
+			}
+			
+			return lstRows;
+		} catch (Exception e) {
+			throw new Exception("getAgeGroupDayHourAlert(): "+e.getMessage());
+		}
+	}
+	
+	public List<Map<String,Object>> getAgeGroupStat() throws Exception {
+
+		Map<String, AgeGroupStat> mapAgeGroupStat = new TreeMap<>();
+		
+		try {
+			
+			int initDay;
+			
+			dbConn.open();
+			
+			if (dbConn.isConnected()) {
+				
+				String vSql0 = "call sp_get_ageGroupDay(0)";
+				
+				if (dbConn.executeQuery(vSql0)) {
+					
+					String vSql = "call srvConf.sp_get_ageGroupStat()";
+					if (dbConn.executeQuery(vSql)) {
+						ResultSet rs = dbConn.getQuery();
+						
+						boolean firstRow = true;
+						
+						Calendar cal = Calendar.getInstance();
+						int hourOfDay = cal.get(Calendar.HOUR_OF_DAY);
+						int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
+						int minuteOfHour = cal.get(Calendar.MINUTE);
+						
+						while (rs.next()) {
+							
+							int day = rs.getInt("nDay");
+							int hour = rs.getInt("nHour");
+							int minute = rs.getInt("nMinute");
+							int numGroups = rs.getInt("nCount");
+							String uStatus = Objects.isNull(rs.getString("uStatus")) ? "NULL":rs.getString("uStatus") ;
+							String typeExec = Objects.isNull(rs.getString("typeExec")) ? "NULL":rs.getString("typeExec") ;
+							
+							if (firstRow) {
+								initDay = day;
+								firstRow = false;
+							}
+		
+							String key = String.format("%02d", day)+":"+String.format("%02d", hour);
+							
+							AgeGroupStat ags = new AgeGroupStat();
+							
+							if (mapAgeGroupStat.containsKey(key)) {
+								ags = mapAgeGroupStat.get(key);
+							}
+							
+							ags.setnGroups(ags.getnGroups()+numGroups);
+							
+							if (!uStatus.equals("SUCESS")) {
+								if (day<dayOfMonth) {
+									ags.setAlerts(ags.getAlerts()+numGroups);
+								} else if (day==dayOfMonth) {
+									if (hour<hourOfDay) {
+										ags.setAlerts(ags.getAlerts()+numGroups);
+									} else if (hour==hourOfDay) {
+										if (minute<minuteOfHour) {
+											ags.setAlerts(ags.getAlerts()+numGroups);
+										}
+									}
+								}
+							} else if (typeExec.equals("MANUAL")) {
+								ags.setAlerts(ags.getAlerts()+numGroups);
+							}
+							
+							ags.setnDay(day);
+							ags.setnHour(hour);
+							
+							mapAgeGroupStat.put(key, ags);
+							
+							//System.out.println(mylib.serializeObjectToJSon(mapAgeGroupStat.get(key), false));
+							
+						}
+						//System.out.println(dayOfMonth);
+						
+					}
+				} else {
+					throw new Exception("getAgeGroupWeek(): No es posible ejecutar SP");
+					//System.out.println("Error");
+				}
+				dbConn.close();
+			}
+
+			int itDay = 0;
+			Map<String, AgeGroupStat> mapAgeGrStatFinal = new TreeMap<>();
+			
+			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGroupStat.entrySet()) {
+				int Day = Integer.valueOf(entry.getKey().split(":")[0]);
+				
+				if (itDay!=Day) {
+					for (int i=0; i<=23; i++) {
+						String getKey = entry.getKey().split(":")[0]+":"+String.format("%02d", i);
+						System.out.println(getKey);
+						if (!mapAgeGroupStat.containsKey(getKey)) {
+							AgeGroupStat ags = new AgeGroupStat();
+							ags.setAlerts(0);
+							ags.setnDay(Day);
+							ags.setnGroups(0);
+							ags.setnHour(i);
+							mapAgeGrStatFinal.put(getKey, ags);
+						} else {
+							mapAgeGrStatFinal.put(getKey, mapAgeGroupStat.get(getKey));
+						}
+					}
+					itDay = Day;
+				}
+			}
+			
+			List<Map<String,Object>> lstObjects = new ArrayList<>();
+			
+			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGrStatFinal.entrySet()) {
+				JSONObject jo = new JSONObject(mylib.serializeObjectToJSon(entry.getValue(), false));
+				Map<String,Object> cols = new HashMap<>();
+				cols = jo.toMap();
+				lstObjects.add(cols);
+			}
+			
+			return lstObjects;
+		} catch (Exception e) {
+			throw new Exception("getAgeGroupWeek(): "+e.getMessage());
+		}
+	}
+
+	
 	public String getServiceParam(String srvID) throws Exception {
 		try {
 			String response="";
@@ -420,13 +658,17 @@ public class DataAccess {
 						group = (Group) mylib.serializeJSonStringToObject(strGroup, Group.class);
 					}
 					rs.close();
+				} else {
+					throw new Exception("getGroupParam(): No es posible ejecutar query");
 				}
 				dbConn.close();
+			} else {
+				throw new Exception("getGroupParam(): No es posible conectarse a MD");
 			}
 
 			return group;
 		} catch (Exception e) {
-			throw new Exception(e.getMessage());
+			throw new Exception("getGroupParam(): "+e.getMessage());
 		} finally {
 			if (dbConn.isConnected()) {
 				dbConn.close();
@@ -462,8 +704,8 @@ public class DataAccess {
 		}
 	}
 	
-	public Map<String, PGPending> getActiveGroup() {
-		final String module = "getActiveGroup()";
+	public Map<String, PGPending> addGroupActiveManual(String grpID) {
+		final String module = "addGroupActiveManual()";
 		String logmsg = module + " - ";
 		Map<String, PGPending> mp = new HashMap<>();
 		
@@ -471,7 +713,7 @@ public class DataAccess {
 			logger.info(logmsg+"Conectando a Metadata...");
 			dbConn.open();
 			if (dbConn.isConnected()) {
-				String vSql = "call srvConf.sp_get_groupActiveServer("+ gParams.getMapMonParams().get(gParams.getAppConfig().getMonID()).getAgeGapMinute() +")";
+				String vSql = "call srvConf.sp_add_groupActiveManual('"+ grpID +"')";
 				logger.info(logmsg+"Ejecutando: "+vSql);
 				if (dbConn.executeQuery(vSql)) {
 					logger.info(logmsg+"Ejecucion Exitosa");
@@ -515,8 +757,61 @@ public class DataAccess {
 			} catch (Exception e) {}
 		}
 	}
+	
+	public Map<String, PGPending> getActiveGroup() throws Exception {
+		final String module = "getActiveGroup()";
+		String logmsg = module + " - ";
+		Map<String, PGPending> mp = new HashMap<>();
+		
+		try {
+			logger.info(logmsg+"Conectando a Metadata...");
+			dbConn.open();
+			if (dbConn.isConnected()) {
+				String vSql = "call srvConf.sp_get_groupActiveServer("+ gParams.getMapMonParams().get(gParams.getAppConfig().getMonID()).getAgeGapMinute() +")";
+				logger.info(logmsg+"Ejecutando: "+vSql);
+				if (dbConn.executeQuery(vSql)) {
+					logger.info(logmsg+"Ejecucion Exitosa");
+					logger.info(logmsg+"Recuperando Grupos y procesos asociados...");
+					ResultSet rs = dbConn.getQuery();
+					while (rs.next()) {
+						PGPending pg = new PGPending();
+						pg.setFecIns(mylib.getDate());
+						pg.setGrpID(rs.getString("GRPID"));
+						pg.setnOrder(rs.getInt("NORDER"));
+						pg.setNumSecExec(rs.getString("NUMSECEXEC"));
+						pg.setProcID(rs.getString("PROCID"));
+						pg.setStatus(rs.getString("STATUS"));
+						pg.setTypeProc(rs.getString("TYPEPROC"));
+						pg.setCliID(rs.getString("CLIID"));
+						pg.setCliDesc(rs.getString("CLIDESC"));
+						pg.setTypeExec(rs.getString("TYPEEXEC"));
+						
+						String key = pg.getGrpID()+":"+pg.getNumSecExec()+":"+pg.getProcID();
+						mp.put(key, pg);
+					}
+					rs.close();
+				} else {
+					throw new Exception("getActiveGroup(): No es posible ejecutar Query");
+				}
+				dbConn.close();
+			} else {
+				throw new Exception("getActiveGroup(): No es posible conectarse de MD");
+			}
+			return mp;
+		} catch (Exception e) {
+			throw new Exception("getActiveGroup(): "+e.getMessage());
+		} finally {
+			try {
+				if (dbConn.isConnected()) {
+					dbConn.close(); 
+				}
+			} catch (Exception e) {
+				throw new Exception("getActiveGroup(): No es posible cerra conexión a MD");
+			}
+		}
+	}
 
-	public Object getProcessParam(String procID, String procType)  {
+	public Object getProcessParam(String procID, String procType) throws Exception {
 		final String module="getProcessParam()";
 		String logmsg = module+" - ";
 		
@@ -539,19 +834,15 @@ public class DataAccess {
 						if (dbConn.executeQuery(vSql)) {
 							ResultSet rs = dbConn.getQuery();
 							if (rs.next()) {
-								try {
-									String resp = rs.getString("resp");
-									logger.info(logmsg+"Respuesta de la query: "+resp);
-									
-									logger.info(logmsg+"Serializando respuesta en objeto clase Ftp()");
-									ftp = (Ftp) mylib.serializeJSonStringToObject(resp, Ftp.class);
-									
-									logger.info(logmsg+"Se ha serializado correctamente el objeto clase Ftp()");
-																		
-									params = ftp;
-								} catch (Exception e) {
-									logger.error(logmsg+"No es posible recuperar parametros de proceso: "+e.getLocalizedMessage());
-								}
+								String resp = rs.getString("resp");
+								logger.info(logmsg+"Respuesta de la query: "+resp);
+								
+								logger.info(logmsg+"Serializando respuesta en objeto clase Ftp()");
+								ftp = (Ftp) mylib.serializeJSonStringToObject(resp, Ftp.class);
+								
+								logger.info(logmsg+"Se ha serializado correctamente el objeto clase Ftp()");
+																	
+								params = ftp;
 							}
 							rs.close();
 						}
@@ -566,45 +857,41 @@ public class DataAccess {
 						if (dbConn.executeQuery(vSql)) {
 							ResultSet rs = dbConn.getQuery();
 							if (rs.next()) {
-								try {
-									String resp = rs.getString("resp");
-									logger.info(logmsg+"Respuesta de la query: "+resp);
-									
-									logger.info(logmsg+"Serializando respuesta en objeto clase Mov()");
-									mov = (Mov) mylib.serializeJSonStringToObject(resp, Mov.class);
-									
-									logger.info(logmsg+"Se ha serializado correctamente el objeto clase Mov()");
-									
-									
-									//Busca Match de Campos
+								String resp = rs.getString("resp");
+								logger.info(logmsg+"Respuesta de la query: "+resp);
+								
+								logger.info(logmsg+"Serializando respuesta en objeto clase Mov()");
+								mov = (Mov) mylib.serializeJSonStringToObject(resp, Mov.class);
+								
+								logger.info(logmsg+"Se ha serializado correctamente el objeto clase Mov()");
+								
+								
+								//Busca Match de Campos
 
-									String vSql2 = "call sp_get_movMatch('"+procID+"')";
-									logger.info(logmsg+"Ejecutando query: "+vSql2);
-									if (dbConn.executeQuery(vSql2)) {
-										ResultSet rs2 = dbConn.getQuery();
-										while (rs2.next()) {
-											MovMatch movMatch = new MovMatch();
-											resp = rs2.getString("resp");
-											logger.info(logmsg+"Respuesta de la query: "+resp);
-											
-											logger.info(logmsg+"Serializando respuesta en objeto clase MovMatch()");
-											movMatch = (MovMatch) mylib.serializeJSonStringToObject(resp, MovMatch.class);
-									
-											logger.info(logmsg+"Se ha serializado correctamente el objeto clase MovMatch()");
-											
-											lstMovMatch.add(movMatch);
-										}
-										rs2.close();
+								String vSql2 = "call sp_get_movMatch('"+procID+"')";
+								logger.info(logmsg+"Ejecutando query: "+vSql2);
+								if (dbConn.executeQuery(vSql2)) {
+									ResultSet rs2 = dbConn.getQuery();
+									while (rs2.next()) {
+										MovMatch movMatch = new MovMatch();
+										resp = rs2.getString("resp");
+										logger.info(logmsg+"Respuesta de la query: "+resp);
+										
+										logger.info(logmsg+"Serializando respuesta en objeto clase MovMatch()");
+										movMatch = (MovMatch) mylib.serializeJSonStringToObject(resp, MovMatch.class);
+								
+										logger.info(logmsg+"Se ha serializado correctamente el objeto clase MovMatch()");
+										
+										lstMovMatch.add(movMatch);
 									}
-									
-									//Asignacion de Lista de Campos al Mov
-									mov.setLstMovMatch(lstMovMatch);
-									
-									//Asigancion de objeto de respuesta
-									params = mov;
-								} catch (Exception e) {
-									logger.error(logmsg+"No es posible recuperar parámetros de proceso: "+e.getLocalizedMessage());
+									rs2.close();
 								}
+								
+								//Asignacion de Lista de Campos al Mov
+								mov.setLstMovMatch(lstMovMatch);
+								
+								//Asigancion de objeto de respuesta
+								params = mov;
 							}
 							rs.close();
 						}
@@ -619,41 +906,37 @@ public class DataAccess {
 						if (dbConn.executeQuery(vSql)) {
 							ResultSet rs = dbConn.getQuery();
 							if (rs.next()) {
-								try {
-									String resp = rs.getString("resp");
-									logger.info(logmsg+"Respuesta de la query: "+resp);
-									
-									logger.info(logmsg+"Serializando respuesta en objeto clase Osp()");
-									osp = (Osp) mylib.serializeJSonStringToObject(resp, Osp.class);
-									
-									logger.info(logmsg+"Se ha serializado correctamente el objeto clase Osp()");
-									
-									//Busca Parametros del OSP
-									String vSql2 = "call sp_get_ospParams('"+procID+"')";
-									logger.info(logmsg+"Ejecutando query: "+vSql2);
-									if (dbConn.executeQuery(vSql2)) {
-										ResultSet rs2 = dbConn.getQuery();
-										while (rs2.next()) {
-											OspParam ospParam = new OspParam();
-											resp = rs2.getString("resp");
-											logger.info(logmsg+"Respuesta de la query: "+resp);
-											
-											logger.info(logmsg+"Serializando respuesta en objeto clase OspParams()");
-											ospParam = (OspParam) mylib.serializeJSonStringToObject(resp, OspParam.class);
-											
-											logger.info(logmsg+"Se ha serializado correctamente el objeto clase OspParams()");
-											
-											mapOspParam.put(String.format("%03d", ospParam.getOrder()), ospParam);
-										}
-										rs2.close();
+								String resp = rs.getString("resp");
+								logger.info(logmsg+"Respuesta de la query: "+resp);
+								
+								logger.info(logmsg+"Serializando respuesta en objeto clase Osp()");
+								osp = (Osp) mylib.serializeJSonStringToObject(resp, Osp.class);
+								
+								logger.info(logmsg+"Se ha serializado correctamente el objeto clase Osp()");
+								
+								//Busca Parametros del OSP
+								String vSql2 = "call sp_get_ospParams('"+procID+"')";
+								logger.info(logmsg+"Ejecutando query: "+vSql2);
+								if (dbConn.executeQuery(vSql2)) {
+									ResultSet rs2 = dbConn.getQuery();
+									while (rs2.next()) {
+										OspParam ospParam = new OspParam();
+										resp = rs2.getString("resp");
+										logger.info(logmsg+"Respuesta de la query: "+resp);
+										
+										logger.info(logmsg+"Serializando respuesta en objeto clase OspParams()");
+										ospParam = (OspParam) mylib.serializeJSonStringToObject(resp, OspParam.class);
+										
+										logger.info(logmsg+"Se ha serializado correctamente el objeto clase OspParams()");
+										
+										mapOspParam.put(String.format("%03d", ospParam.getOrder()), ospParam);
 									}
-									
-									osp.setMapOspParam(mapOspParam);
-									
-									params = osp;
-								} catch (Exception e) {
-									logger.error(logmsg+"No es posible recuperar parametros de proceso: "+e.getLocalizedMessage());
+									rs2.close();
 								}
+								
+								osp.setMapOspParam(mapOspParam);
+								
+								params = osp;
 							}
 							rs.close();
 						}
@@ -668,41 +951,37 @@ public class DataAccess {
 						if (dbConn.executeQuery(vSql)) {
 							ResultSet rs = dbConn.getQuery();
 							if (rs.next()) {
-								try {
-									String resp = rs.getString("resp");
-									logger.info(logmsg+"Respuesta de la query: "+resp);
-									
-									logger.info(logmsg+"Serializando respuesta en objeto clase ExpTable()");
-									etb = (ExpTable) mylib.serializeJSonStringToObject(resp, ExpTable.class);
-									
-									logger.info(logmsg+"Se ha serializado correctamente el objeto clase ExpTable()");
-									
-									//Busca Parametros del ExpTable
-									String vSql2 = "call sp_get_expMatch('"+procID+"')";
-									logger.info(logmsg+"Ejecutando query: "+vSql2);
-									if (dbConn.executeQuery(vSql2)) {
-										ResultSet rs2 = dbConn.getQuery();
-										while (rs2.next()) {
-											ExpTableParam etbParam = new ExpTableParam();
-											resp = rs2.getString("resp");
-											logger.info(logmsg+"Respuesta de la query: "+resp);
-											
-											logger.info(logmsg+"Serializando respuesta en objeto clase ExpTableParam()");
-											etbParam = (ExpTableParam) mylib.serializeJSonStringToObject(resp, ExpTableParam.class);
-											
-											logger.info(logmsg+"Se ha serializado correctamente el objeto clase ExpTableParam()");
-											
-											mapEtbParam.put(String.format("%03d", etbParam.getEtbOrder()), etbParam);
-										}
-										rs2.close();
+								String resp = rs.getString("resp");
+								logger.info(logmsg+"Respuesta de la query: "+resp);
+								
+								logger.info(logmsg+"Serializando respuesta en objeto clase ExpTable()");
+								etb = (ExpTable) mylib.serializeJSonStringToObject(resp, ExpTable.class);
+								
+								logger.info(logmsg+"Se ha serializado correctamente el objeto clase ExpTable()");
+								
+								//Busca Parametros del ExpTable
+								String vSql2 = "call sp_get_expMatch('"+procID+"')";
+								logger.info(logmsg+"Ejecutando query: "+vSql2);
+								if (dbConn.executeQuery(vSql2)) {
+									ResultSet rs2 = dbConn.getQuery();
+									while (rs2.next()) {
+										ExpTableParam etbParam = new ExpTableParam();
+										resp = rs2.getString("resp");
+										logger.info(logmsg+"Respuesta de la query: "+resp);
+										
+										logger.info(logmsg+"Serializando respuesta en objeto clase ExpTableParam()");
+										etbParam = (ExpTableParam) mylib.serializeJSonStringToObject(resp, ExpTableParam.class);
+										
+										logger.info(logmsg+"Se ha serializado correctamente el objeto clase ExpTableParam()");
+										
+										mapEtbParam.put(String.format("%03d", etbParam.getEtbOrder()), etbParam);
 									}
-									
-									etb.setMapEtbParam(mapEtbParam);
-									
-									params = etb;
-								} catch (Exception e) {
-									logger.error(logmsg+"No es posible recuperar parametros de proceso: "+e.getLocalizedMessage());
+									rs2.close();
 								}
+								
+								etb.setMapEtbParam(mapEtbParam);
+								
+								params = etb;
 							}
 							rs.close();
 						}
@@ -718,48 +997,44 @@ public class DataAccess {
 						if (dbConn.executeQuery(vSql)) {
 							ResultSet rs = dbConn.getQuery();
 							if (rs.next()) {
-								try {
-									String resp = rs.getString("resp");
-									logger.info(logmsg+"Respuesta de la query: "+resp);
-									
-									logger.info(logmsg+"Serializando respuesta en objeto clase LoadTable()");
-									ltb = (LoadTable) mylib.serializeJSonStringToObject(resp, LoadTable.class);
-									
-									logger.info(logmsg+"Se ha serializado correctamente el objeto clase LoadTable()");
-									
-									//Busca Parametros del LoadTable
-									String vSql2 = "call sp_get_ltbMatch('"+procID+"')";
-									logger.info(logmsg+"Ejecutando query: "+vSql2);
-									if (dbConn.executeQuery(vSql2)) {
-										ResultSet rs2 = dbConn.getQuery();
-										while (rs2.next()) {
-											LoadTableParam ltbParam = new LoadTableParam();
-											resp = rs2.getString("resp");
-											logger.info(logmsg+"Respuesta de la query: "+resp);
-											
-											logger.info(logmsg+"Serializando respuesta en objeto clase LoadTableParam()");
-											ltbParam = (LoadTableParam) mylib.serializeJSonStringToObject(resp, LoadTableParam.class);
-											
-											logger.info(logmsg+"Se ha serializado correctamente el objeto clase LoadTableParam()");
-											
-											mapLtbParam.put(ltbParam.getFileLoadOrder(), ltbParam);
-										}
-										rs2.close();
+								String resp = rs.getString("resp");
+								logger.info(logmsg+"Respuesta de la query: "+resp);
+								
+								logger.info(logmsg+"Serializando respuesta en objeto clase LoadTable()");
+								ltb = (LoadTable) mylib.serializeJSonStringToObject(resp, LoadTable.class);
+								
+								logger.info(logmsg+"Se ha serializado correctamente el objeto clase LoadTable()");
+								
+								//Busca Parametros del LoadTable
+								String vSql2 = "call sp_get_ltbMatch('"+procID+"')";
+								logger.info(logmsg+"Ejecutando query: "+vSql2);
+								if (dbConn.executeQuery(vSql2)) {
+									ResultSet rs2 = dbConn.getQuery();
+									while (rs2.next()) {
+										LoadTableParam ltbParam = new LoadTableParam();
+										resp = rs2.getString("resp");
+										logger.info(logmsg+"Respuesta de la query: "+resp);
+										
+										logger.info(logmsg+"Serializando respuesta en objeto clase LoadTableParam()");
+										ltbParam = (LoadTableParam) mylib.serializeJSonStringToObject(resp, LoadTableParam.class);
+										
+										logger.info(logmsg+"Se ha serializado correctamente el objeto clase LoadTableParam()");
+										
+										mapLtbParam.put(ltbParam.getFileLoadOrder(), ltbParam);
 									}
-									
-									ltb.setMapLtbParam(mapLtbParam);
-									
-									params = ltb;
-								} catch (Exception e) {
-									logger.error(logmsg+"No es posible recuperar parametros de proceso: "+e.getLocalizedMessage());
+									rs2.close();
 								}
+								
+								ltb.setMapLtbParam(mapLtbParam);
+								
+								params = ltb;
 							}
 							rs.close();
 						}
 						
 						break;
 					default:
-						logger.error("getProcessParam: tipo de proceso no encontrado");
+						throw new Exception("getProcessParam(): Tipoe de Proceso no encontrado");
 				}
 				
 				dbConn.close();
@@ -767,14 +1042,15 @@ public class DataAccess {
 			return params;
 			
 		} catch (Exception e) {
-			logger.error(logmsg+"Error general: "+e.getMessage());
-			return null;
+			throw new Exception("getProcessParam(): "+e.getMessage());
 		} finally {
 			try {
 				if (dbConn.isConnected()) {
 					dbConn.close(); 
 				}
-			} catch (Exception e) {}
+			} catch (Exception e) {
+				throw new Exception("getProcessParam(): "+e.getMessage());
+			}
 		}
 	}
 
@@ -867,6 +1143,30 @@ public class DataAccess {
 			spParams.add(new SPparam(pc.getuStatus()));
 			spParams.add(new SPparam(pc.getErrCode()));
 			spParams.add(new SPparam(pc.getErrMesg()));
+			
+			if(pc.getTxResult()!=null) {
+				String strTxResult = "";
+				switch(pc.getTypeProc()) {
+					case "MOV":
+						String strMovResult = mylib.serializeObjectToJSon(pc.getTxResult(), false);
+						strTxResult = strMovResult;
+						break;
+					case "LTB":
+						String strLtbResult = mylib.serializeObjectToJSon(pc.getTxResult(), false);
+						strTxResult = strLtbResult;
+						break;
+					case "ETB":
+						String strEtbResult = mylib.serializeObjectToJSon(pc.getTxResult(), false);
+						strTxResult = strEtbResult;
+						break;
+					default:
+						break;
+				}
+				
+				spParams.add(new SPparam(strTxResult));
+			} else {
+				spParams.add(new SPparam(""));
+			}
 			
 			logger.info("SP Proc Update Name: "+spName);
 			for (SPparam param : spParams) {

@@ -7,10 +7,17 @@ public class LoadTableParam {
 	private int filePosFin;
 	private int fileLoadOrder;
 	private String tbFieldName;
+	private String tbFieldValue;
 	private String tbFieldDataType;
 	private int tbFieldLength;
 	private int tbLoadFromFile;
 	
+	public String getTbFieldValue() {
+		return tbFieldValue;
+	}
+	public void setTbFieldValue(String tbFieldValue) {
+		this.tbFieldValue = tbFieldValue;
+	}
 	public int getTbLoadFromFile() {
 		return tbLoadFromFile;
 	}

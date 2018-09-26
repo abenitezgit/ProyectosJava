@@ -14,7 +14,7 @@ public class LoadTable {
 	private String ltbFileSep;
 	private String ltbTableName;
 	private int ltbAppend;
-	private int lbtHeader;
+	private int ltbHeader;
 	private int ltbMaxRows;
 	private int deleteWhereActive;
 	private String deleteWhereBody;
@@ -42,6 +42,13 @@ public class LoadTable {
 	
 	private Map<Integer, LoadTableParam> mapLtbParam = new TreeMap<>();
 	
+	
+	public int getLtbHeader() {
+		return ltbHeader;
+	}
+	public void setLtbHeader(int ltbHeader) {
+		this.ltbHeader = ltbHeader;
+	}
 	public int getLtbLoadFixed() {
 		return ltbLoadFixed;
 	}
@@ -185,12 +192,6 @@ public class LoadTable {
 	}
 	public void setLtbAppend(int ltbAppend) {
 		this.ltbAppend = ltbAppend;
-	}
-	public int getLbtHeader() {
-		return lbtHeader;
-	}
-	public void setLbtHeader(int lbtHeader) {
-		this.lbtHeader = lbtHeader;
 	}
 	public int getLtbMaxRows() {
 		return ltbMaxRows;
