@@ -3,6 +3,7 @@ package org.services;
 import java.io.FileWriter;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -33,6 +34,12 @@ public class ServiceETB {
 		this.etb = etb;
 		this.mylog = mylog;
 		this.logger = mylog.getLogger();
+	}
+	
+	private Date fecTask;
+	
+	public void setFecTask(Date fecTask) {
+		this.fecTask = fecTask;
 	}
 	
 	public List<String> getLstExportFiles() {
@@ -332,7 +339,7 @@ public class ServiceETB {
 		try {
 			String pathFileName="";
 			
-			String fileName = mylib.parseFnParam(etb.getEtbFileName());
+			String fileName = mylib.parseFnParam(etb.getEtbFileName(), fecTask);
 			
 			if (etb.getEtbMultiFiles()==0) {
 				pathFileName = fileName;

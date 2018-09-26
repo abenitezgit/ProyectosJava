@@ -54,6 +54,10 @@ public class ThFTP extends Thread {
 			mylog.info("Instanciando Clase ServiceoFTP...");
 			ServiceFTP serviceFtp = new ServiceFTP(gParams, ftp, mylog);
 			
+			mylog.info("Seteando fecha de Proceso...");
+			String numSecExec = taskID.split(":")[1];
+			serviceFtp.setFecTask(mylib.getDate(numSecExec, "yyyyMMddHHmm"));
+			
 			if (ftp.getFtpAction().equals("UPLOAD")) {
 				if (ftp.getFtpSecure()==1) {
 					mylog.info("Ejecutando Secure Upload Ftp...");

@@ -89,7 +89,7 @@ public class SocketService {
 					
 			return result;
 		} catch (Exception e) {
-			throw new Exception("getServiceParams(): "+e.getMessage());
+			throw new Exception("syncTaskProcess(): "+e.getMessage());
 		} 
 	}
 

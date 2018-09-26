@@ -56,6 +56,11 @@ public class ThETB extends Thread {
 
 			mylog.info("Instanciando Clase ServiceoETB...");
 			ServiceETB serviceEtb = new ServiceETB(gParams, etb, mylog);
+			
+			mylog.info("Seteando fecha de Proceso...");
+			String numSecExec = taskID.split(":")[1];
+			serviceEtb.setFecTask(mylib.getDate(numSecExec, "yyyyMMddHHmm"));
+
 
 			mylog.info("Ejecutando Exportación...");
 			

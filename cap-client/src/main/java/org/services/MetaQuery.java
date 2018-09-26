@@ -185,12 +185,10 @@ public class MetaQuery {
 				strVsql.append(fileName);
 				
 				if (!mylib.isNullOrEmpty(whereBody)) {
-					strVsql.append(" where ");
 					strVsql.append(whereBody);
 				}
 				
 				if (!mylib.isNullOrEmpty(orderBody)) {
-					strVsql.append(" order by ");
 					strVsql.append(orderBody);
 				}
 				

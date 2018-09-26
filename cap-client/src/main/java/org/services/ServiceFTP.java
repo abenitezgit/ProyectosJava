@@ -1,5 +1,7 @@
 package org.services;
 
+import java.util.Date;
+
 import org.apache.log4j.Logger;
 import org.model.Ftp;
 import org.utilities.GlobalParams;
@@ -26,7 +28,11 @@ public class ServiceFTP {
 		this.utils = new MyUtils(gParams);
 	}
 
-
+	private Date fecTask;
+	
+	public void setFecTask(Date fecTask) {
+		this.fecTask = fecTask;
+	}
 	
 	public boolean sendFtpFiles() throws Exception {
 		final int FTP_STATUS_OK = 200;
@@ -56,8 +62,8 @@ public class ServiceFTP {
 					ftpProc.setLocalPath(gParams.getAppConfig().getWorkPath());
 				}
 				
-				String localFile = mylib.parseFnParam(ftpProc.getLocalFile());
-				String remoteFile = mylib.parseFnParam(ftpProc.getRemoteFile());
+				String localFile = mylib.parseFnParam(ftpProc.getLocalFile(), fecTask);
+				String remoteFile = mylib.parseFnParam(ftpProc.getRemoteFile(), fecTask);
 
 				String localPath = utils.getFilePath(ftpProc.getLocalPath());
 				String localPathFileName = localPath+"/"+localFile;
@@ -116,8 +122,8 @@ public class ServiceFTP {
 					ftpProc.setLocalPath(gParams.getAppConfig().getWorkPath());
 				}
 				
-				String localFile = mylib.parseFnParam(ftpProc.getLocalFile());
-				String remoteFile = mylib.parseFnParam(ftpProc.getRemoteFile());
+				String localFile = mylib.parseFnParam(ftpProc.getLocalFile(), fecTask);
+				String remoteFile = mylib.parseFnParam(ftpProc.getRemoteFile(), fecTask);
 
 				String localPath = utils.getFilePath(ftpProc.getLocalPath());
 				String localPathFileName = localPath+"/"+localFile;
@@ -170,8 +176,8 @@ public class ServiceFTP {
 					ftpProc.setLocalPath(gParams.getAppConfig().getWorkPath());
 				}
 				
-				String localFile = mylib.parseFnParam(ftpProc.getLocalFile());
-				String remoteFile = mylib.parseFnParam(ftpProc.getRemoteFile());
+				String localFile = mylib.parseFnParam(ftpProc.getLocalFile(), fecTask);
+				String remoteFile = mylib.parseFnParam(ftpProc.getRemoteFile(), fecTask);
 
 				String localPath = utils.getFilePath(ftpProc.getLocalPath());
 				String localPathFileName = localPath+"/"+localFile;
@@ -221,8 +227,8 @@ public class ServiceFTP {
 					ftpProc.setLocalPath(gParams.getAppConfig().getWorkPath());
 				}
 				
-				String localFile = mylib.parseFnParam(ftpProc.getLocalFile());
-				String remoteFile = mylib.parseFnParam(ftpProc.getRemoteFile());
+				String localFile = mylib.parseFnParam(ftpProc.getLocalFile(), fecTask);
+				String remoteFile = mylib.parseFnParam(ftpProc.getRemoteFile(), fecTask);
 
 				String localPath = utils.getFilePath(ftpProc.getLocalPath());
 				String localPathFileName = localPath+"/"+localFile;

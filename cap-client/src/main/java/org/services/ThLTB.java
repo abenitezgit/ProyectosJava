@@ -56,26 +56,28 @@ public class ThLTB extends Thread {
 
 			mylog.info("Instanciando Clase ServiceoLTB...");
 			ServiceLTB serviceLtb = new ServiceLTB(gParams, ltb, mylog);
+			
+			mylog.info("Seteando fecha de Proceso...");
+			String numSecExec = taskID.split(":")[1];
+			serviceLtb.setFecTask(mylib.getDate(numSecExec, "yyyyMMddHHmm"));
 
-//			mylog.info("Generando Parsea de Parametros de OSP...");
-//			serviceOsp.genParsedOspParams();
-//
-//			mylog.info("Ejecutando Store Procedure...");
-//			if (serviceOsp.execute()) {
-//				fc.updateStatusSuccessTask(task.getTaskkey());
-//				mylog.info("Termino SUCCESS Ejecucion TaskID: "+task.getTaskkey());
-//			} else {
-//				fc.updateStatusErrorTask(task.getTaskkey(),90,"Error desconocido");
-//				mylog.error("Termino ERROR Ejecucion TaskID: "+task.getTaskkey());
-//			}
-//		
-//			fc.removeUsedThreadProc(task.getTypeProc());
-//			mylog.info("Finalizando Ejecución de Store Procedure");
+
+			mylog.info("Ejecutando Carga...");
+			if (serviceLtb.execute()) {
+				fc.updateStatusSuccessTask(task.getTaskkey(), serviceLtb.getTxResult());
+				mylog.info("Termino SUCCESS Ejecucion TaskID: "+task.getTaskkey());
+			} else {
+				fc.updateStatusErrorTask(task.getTaskkey(),90,"Error desconocido", serviceLtb.getTxResult());
+				mylog.error("Termino ERROR Ejecucion TaskID: "+task.getTaskkey());
+			}
+		
+			fc.removeUsedThreadProc(task.getTypeProc());
+			mylog.info("Finalizando Ejecución de Carga de Datos");
 		} catch (Exception e) {
 			try {
 				fc.updateStatusErrorTask(task.getTaskkey(), 90, e.getMessage().toString());
 				fc.removeUsedThreadProc(task.getTypeProc());
-				mylog.error("Exception error en Ejecución de Store Procedure: "+e.getMessage().toString());
+				mylog.error("Exception error en Ejecución de Carga de Datos: "+e.getMessage().toString());
 			} catch (Exception er) {}
 		} 
     }

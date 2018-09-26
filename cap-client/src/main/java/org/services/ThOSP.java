@@ -62,6 +62,10 @@ public class ThOSP extends Thread {
 			mylog.info("Generando Parsea de Parametros de OSP...");
 			serviceOsp.genParsedOspParams();
 
+			mylog.info("Seteando fecha de Proceso...");
+			String numSecExec = taskID.split(":")[1];
+			serviceOsp.setFecTask(mylib.getDate(numSecExec, "yyyyMMddHHmm"));
+			
 			mylog.info("Ejecutando Store Procedure...");
 			if (serviceOsp.execute()) {
 				fc.updateStatusSuccessTask(task.getTaskkey());

@@ -80,6 +80,17 @@ public class ServiceControl {
 							logger.info("Esperando por Free Thread ETB...");
 						}
 						break;
+					case "LTB":
+						if (fc.isExistFreeThread(typeProc)) {
+							Thread thLTB = new ThLTB(gParams, entry.getValue());
+							fc.addUsedThreadProc(typeProc);
+							fc.updateStatusTask(entry.getKey(),"RUNNING");
+							thLTB.run();
+							
+						} else {
+							logger.info("Esperando por Free Thread LTB...");
+						}
+						break;
 					case "FTP":
 						if (fc.isExistFreeThread(typeProc)) {
 							Thread thFTP = new ThFTP(gParams, entry.getValue());

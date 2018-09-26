@@ -7,13 +7,17 @@ import java.nio.file.Paths;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 import org.apache.log4j.Logger;
 import org.model.LoadTable;
 import org.model.LoadTableParam;
+import org.model.LtbResult;
 import org.utilities.GlobalParams;
 import org.utilities.MyLogger;
 
@@ -29,12 +33,23 @@ public class ServiceLTB {
 	LoadTable ltb;
 	
 	List<String> lstExportFiles = new ArrayList<>();
+	private Object txResult;
 	
 	public ServiceLTB(GlobalParams m, LoadTable ltb, MyLogger mylog) {
 		this.ltb = ltb;
 		this.mylog = mylog;
 		this.logger = mylog.getLogger();
 		this.gParams = m;
+	}
+	
+	private Date fecTask;
+	
+	public void setFecTask(Date fecTask) {
+		this.fecTask = fecTask;
+	}
+	
+	public Object getTxResult() {
+		return txResult;
 	}
 	
 	public List<String> getLstExportFiles() {
@@ -60,7 +75,7 @@ public class ServiceLTB {
 			
 			mylog.info("Validando Archivo a Cargar...");
 			
-			String fileName = mylib.parseFnParam(ltb.getLtbFileName());
+			String fileName = mylib.parseFnParam(ltb.getLtbFileName(), fecTask);
 			String fileType = ltb.getLtbFileType();
 			
 			String pathFileName = getLocalFilePath()+"/"+fileName;
@@ -84,7 +99,7 @@ public class ServiceLTB {
 			}
 			
 			//Datos a usar
-			String tbName = new MetaQuery().parseSqlTableName(ltb.getDbType(), ltb.getDbName(), ltb.getTbName(), ltb.getOwnerName());
+			String tbName = new MetaQuery().parseSqlTableName(ltb.getDbType(), ltb.getDbName(), ltb.getLtbTableName(), ltb.getOwnerName());
 			
 			//Valida si hay que borrar datos de destino
 			if (ltb.getLtbAppend()==0) {
@@ -98,14 +113,14 @@ public class ServiceLTB {
 				//Borra Datos de la Tabla Destino
 				dConn.executeUpdate(delSql);
 				
-				mylog.info("Datos borrados exitosamente de Tabla Destino: "+ltb.getTbName());
+				mylog.info("Datos borrados exitosamente de Tabla Destino: "+ltb.getLtbTableName());
 			}
 			
 			
 			//Preparando la sentencia de inserción
-			dConn.getConnection().setAutoCommit(false);
-			String cols="";
-			String vals="";
+			dConn.getConnection().setAutoCommit(true);
+			StringBuilder cols = new StringBuilder();
+			StringBuilder vals = new StringBuilder();
 			genColsVals(ltb, cols, vals);
 			String strPrep = "insert into "+ tbName + "(" + cols + ") VALUES (" + vals	+ ")";
 			PreparedStatement psInsertar = dConn.getConnection().prepareStatement(strPrep);
@@ -117,18 +132,21 @@ public class ServiceLTB {
 		    			Paths.get(pathFileName), StandardCharsets.UTF_8);
 		    
 		    if (!lines.isEmpty()) {
+		    	List<Map<String,Object>> lstRows = new ArrayList<>();
+		    	
 		    	Iterator<String> itr = lines.iterator();
 
-	    		if (ltb.getLtbAppend()==1) {
-	    			itr.hasNext();
+	    		if (ltb.getLtbHeader()==1) {
+	    			itr.next();
 	    		}
 		    	
 		    	int rowsRead = 0;
 		    	
+		    	//Inicia la conformación de la Lista de Filas que serán cargadas
 			    while (itr.hasNext()) {
 		    		rowsRead++;
 		    		
-		    		itr.next();
+		    		String rowLine = itr.next();
 
 		    		//Si hay definido maxRows, entonces termina la carga
 		    		if (ltb.getLtbMaxRows()>0) {
@@ -136,40 +154,179 @@ public class ServiceLTB {
 		    				break;
 		    			}
 		    		}
+		    		
+		    		if (ltb.getLtbLoadFixed()==1) {
+		    			parseFixedRow(rowLine, lstRows);
+		    		} else {
+		    			parseDynamicRow(rowLine, lstRows);
+		    		}
+		    		
 			    }
-		    	
+			    
+	    		//Inicia Carga de Datos en BD Destino
+			    int rowsInserted=0;
+	    		for(int i=0; i<lstRows.size(); i++) {
+	    			try {
+	    				addInsertBatch(lstRows.get(i), psInsertar);
+	    				rowsInserted++;
+	    			} catch (Exception e) {
+						mylog.error("Error insertarndo fila: "+mylib.serializeObjectToJSon(lstRows.get(i), false));
+					}
+	    		}
+	    		
+	    		mylog.info("Rows Leídas: "+rowsRead);
+	    		mylog.info("Rows Inserted: "+rowsInserted);
+	    		mylog.info("Rows Error: "+(rowsRead-rowsInserted));
+	    		
+	    		LtbResult lrs = new LtbResult();
+	    		lrs.setRowsError((rowsRead-rowsInserted));
+	    		lrs.setRowsInserted(rowsInserted);
+	    		lrs.setRowsRead(rowsRead);
+	    		
+	    		txResult = lrs;
+	    		
+	    		exitStatus = true;
 		    	
 		    } else {
 		    	mylog.error("Archivo de carga se encuentra vacío");
 		    	throw new Exception("Archivo de carga se encuentra vacío");
 		    }
 		    
-		    
-			
-			
 			return exitStatus;
 		} catch (Exception e) {
 			throw new Exception("execute(): "+e.getMessage());
 		}
 	}
 	
-	public void gen(LoadTable ltb, String line) throws Exception {
+    private void addInsertBatch(Map<String,Object> cols, PreparedStatement psInsertar) throws Exception {
 		try {
-			if (ltb.getLtbLoadFixed()==1) {
-				
-			}
 			
-			for(Map.Entry<Integer, LoadTableParam> param : ltb.getMapLtbParam().entrySet()) {
-				if (param.getValue().getTbLoadFromFile()==1) {
-					if (ltb.getLtbLoadFixed()==1) {
-						String fieldValue = line.substring(param.getValue().getFilePosIni(),param.getValue().getFilePosFin());
-					} else {
-						String fieldValue = 
-					}
+			int nOrder = 1;
+			
+			for(Map.Entry<String, Object> col : cols.entrySet()) {
+
+				String typeName = col.getValue().getClass().getSimpleName().toUpperCase();
+				
+				switch (typeName) {
+					case "STRING":
+						String varcharField = (String) col.getValue();
+						psInsertar.setString(nOrder, varcharField);
+						break;
+					case "NVARCHAR":
+						String nVarcharField = (String) col.getValue();
+						psInsertar.setNString(nOrder, nVarcharField);
+						break;
+					case "NCHAR":
+						String nCharField = (String) col.getValue();
+						psInsertar.setNString(nOrder, nCharField);
+						break;
+					case "CHAR":
+						String charField = (String) col.getValue();
+						psInsertar.setString(nOrder, charField);
+						break;
+					case "INTEGER":
+						int intField = (int) col.getValue();
+						psInsertar.setInt(nOrder, intField);
+						break;
+					case "NUMERIC":
+						int numericField = (int) col.getValue();
+						psInsertar.setInt(nOrder, numericField);
+						break;
+					default:
+						throw new Exception("Error executeUpdate: Tipo de datos de columna no definido: "+ typeName);
 				}
 				
-				
+				nOrder++;
 			}
+				
+			//psInsertar.addBatch();
+			psInsertar.execute();
+			
+		} catch (Exception e) {
+			throw new Exception("Error addInsertBatch: "+e.getMessage());
+		}
+}
+
+	
+	private void parseDynamicRow(String rowLine, List<Map<String,Object>> mapRows) throws Exception {
+		try {
+			Map<String,Object> row = new HashMap<>();
+			for (Map.Entry<Integer, LoadTableParam> param : ltb.getMapLtbParam().entrySet()) {
+				if (param.getValue().getEnable()==1) {
+					String fieldDataType = param.getValue().getTbFieldDataType();
+					String fieldName = param.getValue().getTbFieldName();
+					int loadOrder = param.getValue().getFileLoadOrder()-1;
+					
+				    StringTokenizer st = new StringTokenizer(rowLine,ltb.getLtbFileSep());
+				    int numTokens = st.countTokens();
+				   
+				    Object[] fields = new Object[numTokens];
+				    
+				    for (int i=0; i<numTokens; i++) {
+				    	fields[i] = st.nextToken();
+				    }
+
+					Object fieldValue;
+					if (param.getValue().getTbLoadFromFile()==1) {
+						fieldValue = parseField(fields[loadOrder],fieldDataType);
+					} else {
+						fieldValue = parseField(param.getValue().getTbFieldValue(),fieldDataType);
+					}
+					row.put(fieldName, fieldValue);
+				}
+			}
+			mapRows.add(row);
+			
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		}
+	}
+	
+	private void parseFixedRow(String rowLine, List<Map<String,Object>> mapRows) throws Exception {
+		try {
+			Map<String,Object> row = new HashMap<>();
+			for (Map.Entry<Integer, LoadTableParam> param : ltb.getMapLtbParam().entrySet()) {
+				if (param.getValue().getEnable()==1) {
+					String fieldDataType = param.getValue().getTbFieldDataType();
+					String fieldName = param.getValue().getTbFieldName();
+					Object fieldValue;
+					if (param.getValue().getTbLoadFromFile()==1) {
+						fieldValue = parseField(rowLine.substring(param.getValue().getFilePosIni(), param.getValue().getFilePosFin()),fieldDataType);
+					} else {
+						fieldValue = parseField(param.getValue().getTbFieldValue(),fieldDataType);
+					}
+					row.put(fieldName, fieldValue);
+				}
+			}
+			mapRows.add(row);
+			
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		}
+	}
+	
+	private Object parseField(Object fieldValue, String type) throws Exception {
+		try {
+			Object response;
+			switch (type) {
+				case "VARCHAR":
+					String varcharValue = String.valueOf(fieldValue);
+					response = varcharValue;
+					break;
+				case "INTEGER":
+					int intValue = Integer.valueOf((String) fieldValue);
+					response = intValue;
+					break;
+				case "DATE":
+					Date dateValue = (Date) fieldValue;
+					response = dateValue;
+					break;
+				default:
+					response = (String) fieldValue;
+					break;
+			}
+			
+			return response;
 		} catch (Exception e) {
 			throw new Exception(e.getMessage());
 		}
@@ -198,7 +355,7 @@ public class ServiceLTB {
 				
 				mylog.info("Bajando archivo de carga del sitio ftp...");
 				
-				String fileName = mylib.parseFnParam(ltb.getLtbFileName());
+				String fileName = mylib.parseFnParam(ltb.getLtbFileName(), fecTask);
 				String localPathFileName = getLocalFilePath()+"/"+fileName;
 				String remotePathFileName = getRemoteFilePath()+"/"+fileName;
 				
@@ -244,7 +401,7 @@ public class ServiceLTB {
 				
 				mylog.info("Bajando archivo del sitio sftp...");
 				
-				String fileName = mylib.parseFnParam(ltb.getLtbFileName());
+				String fileName = mylib.parseFnParam(ltb.getLtbFileName(), fecTask);
 				String localPathFileName = getLocalFilePath()+"/"+fileName;
 				String remotePathFileName = getRemoteFilePath()+"/"+fileName;
 				
@@ -294,17 +451,17 @@ public class ServiceLTB {
 		return filePath;
 	}
 	
-    private void genColsVals(LoadTable ltb, String cols, String vals) throws Exception {
+    private void genColsVals(LoadTable ltb, StringBuilder cols, StringBuilder vals) throws Exception {
 		try {
 			List<String> lstCols = new ArrayList<>();
 			List<String> lstVals = new ArrayList<>();
-			for (Map.Entry<String, LoadTableParam> params : ltb.getMapLtbParam().entrySet()) {
+			for (Map.Entry<Integer, LoadTableParam> params : ltb.getMapLtbParam().entrySet()) {
 				//Genera Columnas y Variables Bound
-				lstCols.add(params.getValue().getLtbFieldName());
+				lstCols.add(params.getValue().getTbFieldName());
 				lstVals.add("?");
 			}
-			cols = String.join(",", lstCols);
-			vals = String.join(",", lstVals);
+			cols.append(String.join(",", lstCols));
+			vals.append(String.join(",", lstVals));
 		} catch (Exception e) {
 			throw new Exception("Error genColsVals: "+e.getMessage());
 		}

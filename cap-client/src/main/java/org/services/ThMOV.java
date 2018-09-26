@@ -57,10 +57,10 @@ public class ThMOV extends Thread {
 
 			mylog.info("Ejecutando Data Moving...");
 			if (sMov.execute()) {
-				fc.updateStatusSuccessTask(task.getTaskkey());
+				fc.updateStatusSuccessTask(task.getTaskkey(), sMov.getTxResult());
 				mylog.info("Termino SUCCESS Ejecucion TaskID: "+task.getTaskkey());
 			} else {
-				fc.updateStatusErrorTask(task.getTaskkey(),90,"Error desconocido");
+				fc.updateStatusErrorTask(task.getTaskkey(),90,"Error desconocido", sMov.getTxResult());
 				mylog.error("Termino ERROR Ejecucion TaskID: "+task.getTaskkey());
 			}
 		

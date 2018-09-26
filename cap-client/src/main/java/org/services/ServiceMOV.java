@@ -6,11 +6,14 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
 import org.model.Mov;
 import org.model.MovMatch;
+import org.model.MovResult;
 import org.utilities.MyLogger;
 
 import com.rutinas.Rutinas;
@@ -24,6 +27,7 @@ public class ServiceMOV {
 	
 	private int statusCode=0;
 	private String statusMesg="";
+	private Object txResult;
 	PreparedStatement psInsertar = null;
 	PreparedStatement psUpdate = null;
 	
@@ -31,6 +35,16 @@ public class ServiceMOV {
 		this.mov = mov;
 		this.mylog = mylog;
 		this.logger = mylog.getLogger();
+	}
+	
+	private Date fecTask;
+	
+	public void setFecTask(Date fecTask) {
+		this.fecTask = fecTask;
+	}
+	
+	public Object getTxResult() {
+		return txResult;
 	}
 	
 	public boolean execute() throws Exception {
@@ -108,6 +122,7 @@ public class ServiceMOV {
     		long maxPctError = mov.getMaxPctError();
     		int maxRowsError = mov.getMaxRowsError();
     		int rowsItera=0;
+    		long pctError = 0;
     		
     		mylog.info("Limite de Filas a Extraer: " + mov.getMaxRows());
     		mylog.info("Maximas Filas permitidas con error: " + maxRowsError);
@@ -148,10 +163,14 @@ public class ServiceMOV {
     				rowsRead++;
     				rowsItera++;
     				
+    				addInsertBatch(rsmd, rs, mov);
+    				
     				//Realiza la inserción del rango definido de resgistros por batch
     				if (rowsItera==rowsRange) {
     					try {
     						psInsertar.executeBatch();
+    						dConn.getConnection().commit();
+    						
     						if (mov.getsFieldUpdateActive()==1) {
     							psUpdate.executeBatch();
     						}
@@ -159,7 +178,6 @@ public class ServiceMOV {
     							if (mov.getsFieldUpdateActive()==1) {
     								sConn.getConnection().commit();
     							}
-    							dConn.getConnection().commit();
     						}
     						rowsLoad = rowsLoad + rowsItera;
     						mylog.info("Filas recorridas		: "+rowsRead);
@@ -174,20 +192,15 @@ public class ServiceMOV {
 	    					rowsItera=0;
     						continue;
     					}
-    					
-    				} else {
-    					addInsertBatch(rsmd, rs, mov);
-    					if (mov.getsFieldUpdateActive()==1) {
-    						addUpdateBatch(psUpdate, rs, mov);
-    					}
     				}
     			}
 
     			//Analiza si existen datos que aun no se han insertado
 				if (rowsItera>0) {
-					
 					try {
 						psInsertar.executeBatch();
+						dConn.getConnection().commit();
+						
 						if (mov.getsFieldUpdateActive()==1) {
 							psUpdate.executeBatch();
 						}
@@ -195,7 +208,6 @@ public class ServiceMOV {
 							if (mov.getsFieldUpdateActive()==1) {
 								sConn.getConnection().commit();
 							}
-							dConn.getConnection().commit();
 						}
 						rowsLoad = rowsLoad + rowsItera;
 						mylog.info("Filas recorridas		: "+rowsRead);
@@ -211,7 +223,7 @@ public class ServiceMOV {
 
     			//Analiza PCT Error
 				if (maxPctError>0) {
-					long pctError = (rowsError/rowsRead)*100;
+					pctError = (rowsError/rowsRead)*100;
 					if (pctError>=maxPctError) {
 						statusCode = 99;
 						statusMesg = "Ha excesido el "+maxPctError+"% de error permitido, encontrando un "+pctError+"% de error de carga";
@@ -261,6 +273,19 @@ public class ServiceMOV {
     			mylog.error("Codigo Error: "+statusCode+ " Mesg: "+statusMesg);
     			mylog.error("Finalizando con ERROR Ejecución MOV: "+mov.getMovID());
     		}
+    		
+
+    		//Genera Tx Result para el proceso
+    		MovResult mr = new MovResult();
+    		mr.setMaxPctError(maxPctError);
+    		mr.setMaxRowsError(maxRowsError);
+    		mr.setPctError(pctError);
+    		mr.setRowsError(rowsError);
+    		mr.setRowsLoad(rowsLoad);
+    		mr.setRowsRead(rowsRead);
+    		
+    		txResult = mr;
+    		
     		return exitStatus;
     	} catch (Exception e) {
     		throw new Exception(e.getMessage());

@@ -2,7 +2,6 @@ package org.services;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
@@ -49,7 +48,7 @@ public class FlowControl {
 			
 			return simpleMap;
 		} catch (Exception e) {
-			throw new Exception(e.getMessage());
+			throw new Exception("getSimpleMapTask()"+e.getMessage());
 		}
 	}
 	
@@ -89,7 +88,18 @@ public class FlowControl {
 		}
 		
 	}
-	
+
+	public synchronized void updateStatusSuccessTask(String key, Object txResult) throws Exception {
+		if (gParams.getMapTask().containsKey(key)) {
+			gParams.getMapTask().get(key).setStatus("FINISHED");
+			gParams.getMapTask().get(key).setuStatus("SUCCESS");
+			gParams.getMapTask().get(key).setFecUpdate(mylib.getDate());
+			gParams.getMapTask().get(key).setFecFinished(mylib.getDate());
+			gParams.getMapTask().get(key).setTxResult(txResult);
+		}
+		
+	}
+
 	public synchronized void updateStatusErrorTask(String key, int errCode, String errMesg) throws Exception {
 		if (gParams.getMapTask().containsKey(key)) {
 			gParams.getMapTask().get(key).setStatus("FINISHED");
@@ -101,7 +111,20 @@ public class FlowControl {
 		}
 		
 	}
-	
+
+	public synchronized void updateStatusErrorTask(String key, int errCode, String errMesg, Object txResult) throws Exception {
+		if (gParams.getMapTask().containsKey(key)) {
+			gParams.getMapTask().get(key).setStatus("FINISHED");
+			gParams.getMapTask().get(key).setuStatus("ERROR");
+			gParams.getMapTask().get(key).setFecUpdate(mylib.getDate());
+			gParams.getMapTask().get(key).setFecFinished(mylib.getDate());
+			gParams.getMapTask().get(key).setErrCode(errCode);
+			gParams.getMapTask().get(key).setErrMesg(errMesg);
+			gParams.getMapTask().get(key).setTxResult(txResult);
+		}
+		
+	}
+
 	public synchronized void updateStatusTask(String key, String status) throws Exception {
 		try {
 			if (gParams.getMapTask().containsKey(key)) {

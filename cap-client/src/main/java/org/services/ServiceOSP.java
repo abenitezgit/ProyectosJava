@@ -1,6 +1,7 @@
 package org.services;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import org.apache.log4j.Logger;
@@ -26,6 +27,11 @@ public class ServiceOSP {
 	//variables de intercambio
 	private boolean existParams;
 	private List<SPparam> parsedParams = new ArrayList<>();
+	private Date fecTask;
+	
+	public void setFecTask(Date fecTask) {
+		this.fecTask = fecTask;
+	}
 	
 	public boolean execute() throws Exception {
 		try {
@@ -82,7 +88,7 @@ public class ServiceOSP {
 					
 					if (type.equals("FN")) {
 						type = "IN";
-						value = mylib.parseFnParam(value);
+						value = mylib.parseFnParam(value, fecTask);
 					}
 					
 					mylog.info("Parsed: "+type+"&"+dataType+"&"+value);
