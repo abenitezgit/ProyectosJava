@@ -17,4 +17,5 @@ public class DataRequest {
 	public void setParam(Object param) {
 		this.param = param;
 	}
+	
 }

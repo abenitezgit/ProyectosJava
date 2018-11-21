@@ -13,6 +13,7 @@ import com.rutinas.Rutinas;
 
 import cap.implement.MainServiceImpl;
 import cap.model.DataRequest;
+import cap.model.DataResponse;
 import cap.services.DBService;
 import cap.services.IMainService;
 import cap.utiles.GlobalParams;
@@ -42,27 +43,39 @@ public class DBResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     public Response groupManage(String dataInput) {
-    		try {
-    			String response = "";
-    			
-    			logger.info("Inicio DB Request...");
-    			logger.info("DataInput: "+dataInput);
-    			
-    			logger.info("Serializando DataInput...");
-    			DataRequest dr = (DataRequest) mylib.serializeJSonStringToObject(dataInput, DataRequest.class);
-    			
-    			logger.info("Recuperando parametros de configuración...");
-    			IMainService ms = new MainServiceImpl(gParams);
-    			ms.initComponents();
-    			
-    			response = dbs.getDBRequest(dr.getMethod(), dr.getParam());
-    			
-    			logger.info("Enviando respuesta...");
-    			return Response.ok().entity(response).build();
-    		} catch (Exception e) {
-    			logger.error(e.getMessage());
-    			return Response.status(500).entity(e.getMessage()).build();
-    		}
+		DataResponse dResponse = new DataResponse();
+		try {
+			logger.info("Inicio DB Request...");
+			logger.info("DataInput: "+dataInput);
+			
+			logger.info("Serializando DataInput...");
+			DataRequest dRequest = (DataRequest) mylib.serializeJSonStringToObject(dataInput, DataRequest.class);
+			
+			logger.info("Recuperando parametros de configuración...");
+			IMainService ms = new MainServiceImpl(gParams);
+			ms.initComponents();
+			
+			dResponse = dbs.getDBRequest(dRequest);
+				
+			String strResponse = mylib.serializeObjectToJSon(dResponse, false);
+			
+			logger.info("Enviando respuesta...");
+			return Response.ok().entity(strResponse).build();
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			dResponse.setCode(500);
+			dResponse.setMessage(e.getMessage());
+			dResponse.setStatus("ERROR");
+			String strError=e.getMessage();
+			try {
+				strError = mylib.serializeObjectToJSon(dResponse, false);
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			
+			return Response.status(500).entity(strError).build();
+		}
     	
     }
 }

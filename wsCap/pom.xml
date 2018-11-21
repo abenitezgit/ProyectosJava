@@ -36,8 +36,18 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+    
+    
 
     <dependencies>
+    <!-- https://mvnrepository.com/artifact/com.sun.jersey.contribs/jersey-multipart -->
+        	<dependency>
+    		<groupId>org.apache.httpcomponents</groupId>
+    		<artifactId>httpclient</artifactId>
+    		<version>4.4</version>
+		</dependency>
+    
+    
          <dependency>
 		    <groupId>log4j</groupId>
 		    <artifactId>log4j</artifactId>
@@ -53,8 +63,19 @@
 		    <artifactId>json</artifactId>
 		    <version>20160810</version>
 		</dependency>
-    
-        <dependency>
+    	
+		<dependency>
+		    <groupId>mysql</groupId>
+		    <artifactId>mysql-connector-java</artifactId>
+		    <version>5.1.44</version>
+		</dependency>
+
+    	<dependency>
+    		<groupId>org.glassfish.jersey.core</groupId>
+    		<artifactId>jersey-common</artifactId>
+    	</dependency>
+
+    	<dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-servlet-core</artifactId>
             <!-- use the following artifactId if you don't need servlet 2.x compatibility -->

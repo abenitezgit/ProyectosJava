@@ -13,7 +13,7 @@ import com.rutinas.Rutinas;
 
 import cap.implement.MainServiceImpl;
 import cap.model.DataRequest;
-import cap.services.DBService;
+import cap.model.DataResponse;
 import cap.services.IMainService;
 import cap.services.MonService;
 import cap.utiles.GlobalParams;
@@ -43,26 +43,38 @@ public class MonResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     public Response groupManage(String dataInput) {
+    		DataResponse dResponse = new DataResponse();
     		try {
-    			String response = "";
-    			
     			logger.info("Inicio Mon Request...");
     			logger.info("DataInput: "+dataInput);
     			
     			logger.info("Serializando DataInput...");
-    			DataRequest dr = (DataRequest) mylib.serializeJSonStringToObject(dataInput, DataRequest.class);
+    			DataRequest dRequest = (DataRequest) mylib.serializeJSonStringToObject(dataInput, DataRequest.class);
     			
     			logger.info("Recuperando parametros de configuración...");
     			IMainService ms = new MainServiceImpl(gParams);
     			ms.initComponents();
     			
-    			response = mons.getMonRequest(dr.getMethod(), dr.getParam());
+    			dResponse = mons.getMonRequest(dRequest);
+    			
+    			String strResponse = mylib.serializeObjectToJSon(dResponse, false);
     			
     			logger.info("Enviando respuesta...");
-    			return Response.ok().entity(response).build();
+    			return Response.ok().entity(strResponse).build();
     		} catch (Exception e) {
     			logger.error(e.getMessage());
-    			return Response.status(500).entity(e.getMessage()).build();
+    			dResponse.setCode(500);
+    			dResponse.setMessage(e.getMessage());
+    			dResponse.setStatus("ERROR");
+    			String strError=e.getMessage();
+    			try {
+					strError = mylib.serializeObjectToJSon(dResponse, false);
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+    			
+    			return Response.status(500).entity(strError).build();
     		}
     	
     }

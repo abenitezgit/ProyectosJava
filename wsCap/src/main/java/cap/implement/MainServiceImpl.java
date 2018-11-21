@@ -4,15 +4,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.Properties;
 
-import com.rutinas.Rutinas;
-
 import cap.model.Config;
 import cap.services.IMainService;
-import cap.services.IMonService;
 import cap.utiles.GlobalParams;
 
 public class MainServiceImpl implements IMainService {
-	Rutinas mylib = new Rutinas();
 	GlobalParams gParams;
 	
 	public MainServiceImpl(GlobalParams m) {
@@ -52,6 +48,14 @@ public class MainServiceImpl implements IMainService {
 			config.setUrlBase(f.getProperty("urlBase"));
 			config.setUrlPort(f.getProperty("urlPort"));
 			config.setUrlServer(f.getProperty("urlServer"));
+			config.setDbHostName(f.getProperty("dbHostName"));
+			config.setDbIP(f.getProperty("dbIP"));
+			config.setDbName(f.getProperty("dbName"));
+			config.setDbPort(f.getProperty("dbPort"));
+			config.setDbUser(f.getProperty("dbUser"));
+			config.setDbPass(f.getProperty("dbPass"));
+			config.setDbTimeOut(Integer.valueOf(f.getProperty("dbTimeOut")));
+			config.setDbType(f.getProperty("dbType"));
 			
 			gParams.setConfig(config);
 		} catch (Exception e) {
@@ -62,11 +66,11 @@ public class MainServiceImpl implements IMainService {
 
 	@Override
 	public String getMapProc() {
-		IMonService ims = new MonServiceImpl(gParams);
+		//IMonService ims = new MonServiceImpl(gParams);
 		
-		String response = ims.getMapProc();
+		//String response = ims.getMapProc();
 		
-		return response;
+		return "";
 	}
 	
 }

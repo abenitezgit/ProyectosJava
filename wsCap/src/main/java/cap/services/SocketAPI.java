@@ -12,7 +12,7 @@ public class SocketAPI {
 	private String serverIP;
 	private int port;
 	private String request;
-	private String response;
+	private Object response;
 	private Socket skClient;
 	private int statusCode;
 	private String status;
@@ -67,8 +67,14 @@ public class SocketAPI {
             setMessage(jo.getJSONObject("header").getString("message"));
             
             try {
-            	setResponse(jo.getString("response"));
-            } catch (Exception e) {}
+            	/**
+            	 * Preparado para retornar siempre un object
+            	 * Este se debe validar en la capa de servicio
+            	 */
+            	setResponse(jo.get("response"));
+            } catch (Exception e) {
+            	System.out.println(e.getMessage());
+            }
             
             
             inpStr.close();
@@ -108,11 +114,11 @@ public class SocketAPI {
 		this.request = request;
 	}
 
-	public String getResponse() {
+	public Object getResponse() {
 		return response;
 	}
 
-	public void setResponse(String response) {
+	public void setResponse(Object response) {
 		this.response = response;
 	}
 
