@@ -8,6 +8,7 @@ public class ProcControl {
 	String grpID;
 	String numSecExec;
 	String procID;
+	String procDesc;
 	String typeProc;
 	int nOrder;
 	Date fecIns;
@@ -29,6 +30,12 @@ public class ProcControl {
 	
 	public String getGrpID() {
 		return grpID;
+	}
+	public String getProcDesc() {
+		return procDesc;
+	}
+	public void setProcDesc(String procDesc) {
+		this.procDesc = procDesc;
 	}
 	public Object getTxResult() {
 		return txResult;

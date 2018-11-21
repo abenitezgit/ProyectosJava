@@ -35,6 +35,7 @@ public class GlobalParams {
 	private Map<String, Group> mapGroupParam = new HashMap<>();
 	private Map<String, Integer> mapAgeGroupCount = new TreeMap<>();
 	private Map<String, List<AgeGroup>> mapAgeGroup = new TreeMap<>();
+	private LinkedList<ProcControl> lstForceCancelProcess = new LinkedList<>();
 	
 	ScheduledExecutorService executorThMain = Executors.newSingleThreadScheduledExecutor();
 	
@@ -50,6 +51,12 @@ public class GlobalParams {
 	
 	public Map<String, MonParams> getMapMonParams() {
 		return mapMonParams;
+	}
+	public LinkedList<ProcControl> getLstForceCancelProcess() {
+		return lstForceCancelProcess;
+	}
+	public void setLstForceCancelProcess(LinkedList<ProcControl> lstForceCancelProcess) {
+		this.lstForceCancelProcess = lstForceCancelProcess;
 	}
 	public Map<String, List<AgeGroup>> getMapAgeGroup() {
 		return mapAgeGroup;

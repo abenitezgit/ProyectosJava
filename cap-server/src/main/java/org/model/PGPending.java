@@ -7,6 +7,7 @@ public class PGPending {
 	String grpID;
 	String numSecExec;
 	String procID;
+	String procDesc;
 	String typeProc;
 	int nOrder;
 	String status;
@@ -15,9 +16,16 @@ public class PGPending {
 	String cliDesc;
 	String typeExec;
 
+	//Getter and setter
 	
 	public String getCliID() {
 		return cliID;
+	}
+	public String getProcDesc() {
+		return procDesc;
+	}
+	public void setProcDesc(String procDesc) {
+		this.procDesc = procDesc;
 	}
 	public void setCliID(String cliID) {
 		this.cliID = cliID;

@@ -14,6 +14,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.model.AgeGroupStat;
+import org.model.BackTable;
 import org.model.Category;
 import org.model.Client;
 import org.model.DBase;
@@ -62,13 +63,54 @@ public class DataAccess {
 		dbConn.open();
 	}
 	
-	public void close() throws Exception {
-		dbConn.close();
+	public void close()  {
+		try {
+			dbConn.close();
+		} catch (Exception e) {}
 	}
 	
-	public boolean isConnected() throws Exception {
-		
-		return dbConn.isConnected();
+	public boolean isConnected()  {
+		try {
+			return dbConn.isConnected();
+		} catch (Exception e) {
+			return false;
+		}
+	}
+	
+	public boolean executeQuery(String vSql) throws Exception {
+		try {
+			dbConn.open();
+			
+			if (dbConn.isConnected()) {
+				dbConn.executeQuery(vSql);
+				
+				dbConn.close();
+			}
+
+			return true;
+			
+			
+		} catch (Exception e) {
+			throw new Exception("executeQuery(): "+e.getMessage());
+		}
+	}
+	
+	public boolean getAgeGroupWeek() throws Exception {
+		try {
+			
+			dbConn.open();
+			
+			if (dbConn.isConnected()) {
+				String vSql = "call sp_get_ageGroupWeek()";
+				dbConn.executeQuery(vSql);
+				
+				dbConn.close();
+			}
+
+			return true;
+		} catch (Exception e) {
+			throw new Exception("getAgeGroupWeek(): "+e.getMessage());
+		}
 	}
 	
 	public boolean addDBresources(String method, Object param) throws Exception {
@@ -95,6 +137,41 @@ public class DataAccess {
 					spParams.add(new SPparam(group.getCatID()));
 					
 					spName = "sp_add_group";
+					
+					break;
+				case "addDiary":
+					JSONObject joDiary = (JSONObject) param;
+					
+					spParams.add(new SPparam(joDiary.getString("ageID")));
+					spParams.add(new SPparam(joDiary.getString("ageDesc")));
+					spParams.add(new SPparam(joDiary.getString("month")));
+					spParams.add(new SPparam(joDiary.getString("dayOfMonth")));
+					spParams.add(new SPparam(joDiary.getString("dayOfWeek")));
+					spParams.add(new SPparam(joDiary.getString("hourOfDay")));
+					spParams.add(new SPparam(joDiary.getString("minute")));
+					
+					spName = "sp_add_diary";
+					
+					break;
+				case "addSchedule":
+					JSONObject joSchedule = (JSONObject) param;
+					
+					spParams.add(new SPparam(joSchedule.getString("horID")));
+					spParams.add(new SPparam(joSchedule.getString("horDesc")));
+					spParams.add(new SPparam(1));
+					
+					spName = "sp_add_schedule";
+					
+					break;
+				case "addSchedDiary":
+					JSONObject joSchedDiary = (JSONObject) param;
+					
+					spParams.add(new SPparam(joSchedDiary.getString("horID")));
+					spParams.add(new SPparam(joSchedDiary.getString("ageID")));
+					spParams.add(new SPparam(1));
+					spParams.add(new SPparam(1));
+					
+					spName = "sp_add_schedDiary";
 					
 					break;
 				case "addProcGroup":
@@ -181,6 +258,33 @@ public class DataAccess {
 			return resultStat;
 		} catch (Exception e) {
 			throw new Exception("addDBresource(): "+e.getMessage());
+		}
+	}
+	
+	
+	public Map<String,Object> getCountGroups() throws Exception {
+		try {
+			Map<String,Object> cols = new HashMap<>();
+			
+			dbConn.open();
+			
+			if (dbConn.isConnected()) {
+				String vSql = "call sp_get_countGroup()";
+				if (dbConn.executeQuery(vSql)) {
+					ResultSet rs = dbConn.getQuery();
+					if (rs.next()) {
+						cols.put("numGroups", rs.getInt("numGroups"));
+						cols.put("numActiveGroups", rs.getInt("numActiveGroups"));
+						cols.put("numInactiveGroups", rs.getInt("numInactiveGroups"));
+					}
+				}
+				
+				dbConn.close();
+			}
+
+			return cols;
+		} catch (Exception e) {
+			throw new Exception("getCountGroups(): "+e.getMessage());
 		}
 	}
 	
@@ -273,8 +377,9 @@ public class DataAccess {
 					break;
 				case "getDBgroupControl":
 					joParams = (JSONObject) params;
-					param = joParams.getString("grpID");
-					spParams.add(new SPparam(param));
+					spParams.add(new SPparam(joParams.getString("grpID")));
+					spParams.add(new SPparam(joParams.getString("uStatus")));
+					spParams.add(new SPparam(joParams.getString("cliID")));
 					spName = "sp_get_dbGroupControl";
 					break;
 				case "getDBprocControl":
@@ -370,6 +475,9 @@ public class DataAccess {
 						lstDep.add(d);
 					}
 					rs.close();
+					
+				} else {
+					throw new Exception("getProcDependences(): No es posible ejecutar query: "+vSql);
 				}
 			} 			
 			
@@ -454,7 +562,115 @@ public class DataAccess {
 		}
 	}
 	
-	public List<Map<String,Object>> getAgeGroupStat() throws Exception {
+	public List<Map<String,Object>> getAgeGroupDayHourAlert2(int vDay, int vHour) throws Exception {
+		try {
+			Map<String,Object> cols = new HashMap<>();
+			List<Map<String,Object>> lstRows = new ArrayList<>();
+			
+			dbConn.open();
+			
+			if (dbConn.isConnected()) {
+				String vSql = "call srvConf.sp_get_ageGroupDayHourStat3("+vDay+","+vHour+")";
+				if (dbConn.executeQuery(vSql)) {
+					ResultSet rs = dbConn.getQuery();
+					
+					while (rs.next()) {
+						
+						cols = new HashMap<>();
+						
+						String campo1 = rs.getString("campo1");
+						String campo2 = rs.getString("campo2");
+						String grpID = rs.getString("grpID");
+						String numSecExec = rs.getString("numSecExec");
+						String grpDesc = rs.getString("grpDesc");
+						String horDesc = rs.getString("horDesc");
+						String cliDesc = rs.getString("cliDesc");
+						int maxTimeExec = rs.getInt("maxTimeExec");
+						String typeBalance = rs.getString("typeBalance");
+						String typeRequest = rs.getString("typeRequest");
+						String uStatus = Objects.isNull(rs.getString("uStatus")) ? "NULL":rs.getString("uStatus") ;
+						int errCode = Objects.isNull(rs.getInt("errCode")) ? 0:rs.getInt("errCode") ;
+						String errMesg = Objects.isNull(rs.getString("errMesg")) ? "NULL":rs.getString("errMesg") ;
+						String fecUpdate = Objects.isNull(rs.getDate("fecUpdate")) ? "NULL":rs.getString("fecUpdate") ;
+						
+						cols.put("campo1", campo1);
+						cols.put("campo2", campo2);
+						cols.put("grpID", grpID);
+						cols.put("numSecExec", numSecExec);
+						cols.put("grpDesc", grpDesc);
+						cols.put("horDesc", horDesc);
+						cols.put("cliDesc", cliDesc);
+						cols.put("maxTimeExec", maxTimeExec);
+						cols.put("typeBalance", typeBalance);
+						cols.put("typeRequest", typeRequest);
+						cols.put("uStatus", uStatus);
+						cols.put("errCode", errCode);
+						cols.put("errMesg", errMesg);
+						cols.put("fecUpdate", fecUpdate);
+						
+						
+						lstRows.add(cols);
+					}
+				}
+			}
+			
+			return lstRows;
+		} catch (Exception e) {
+			throw new Exception("getAgeGroupDayHourAlert2(): "+e.getMessage());
+		}
+	}
+
+	public List<Map<String,Object>> getActualGroupDayHour(int vDay, int vHour) throws Exception {
+		try {
+			Map<String,Object> cols = new HashMap<>();
+			List<Map<String,Object>> lstRows = new ArrayList<>();
+			
+			dbConn.open();
+			
+			if (dbConn.isConnected()) {
+				String vSql = "call srvConf.sp_get_actualGroupDayHour("+vDay+","+vHour+")";
+				if (dbConn.executeQuery(vSql)) {
+					ResultSet rs = dbConn.getQuery();
+					
+					while (rs.next()) {
+						
+						cols = new HashMap<>();
+						
+						String campo1 = rs.getString("campo1");
+						String campo2 = rs.getString("campo2");
+						String grpID = rs.getString("grpID");
+						String numSecExec = rs.getString("numSecExec");
+						String grpDesc = rs.getString("grpDesc");
+						String horDesc = rs.getString("horDesc");
+						String cliDesc = rs.getString("cliDesc");
+						int maxTimeExec = rs.getInt("maxTimeExec");
+						String typeBalance = rs.getString("typeBalance");
+						String typeRequest = rs.getString("typeRequest");
+						
+						cols.put("campo1", campo1);
+						cols.put("campo2", campo2);
+						cols.put("grpID", grpID);
+						cols.put("numSecExec", numSecExec);
+						cols.put("grpDesc", grpDesc);
+						cols.put("horDesc", horDesc);
+						cols.put("cliDesc", cliDesc);
+						cols.put("maxTimeExec", maxTimeExec);
+						cols.put("typeBalance", typeBalance);
+						cols.put("typeRequest", typeRequest);
+						
+						
+						lstRows.add(cols);
+					}
+				}
+			}
+			
+			return lstRows;
+		} catch (Exception e) {
+			throw new Exception("getActualGroupDayHour(): "+e.getMessage());
+		}
+	}
+
+	public List<Object> getAgeGroupStat() throws Exception {
 
 		Map<String, AgeGroupStat> mapAgeGroupStat = new TreeMap<>();
 		
@@ -466,114 +682,451 @@ public class DataAccess {
 			
 			if (dbConn.isConnected()) {
 				
-				String vSql0 = "call sp_get_ageGroupDay(0)";
-				
-				if (dbConn.executeQuery(vSql0)) {
+				String vSql = "call srvConf.sp_get_ageGroupStat()";
+				if (dbConn.executeQuery(vSql)) {
+					ResultSet rs = dbConn.getQuery();
 					
-					String vSql = "call srvConf.sp_get_ageGroupStat()";
-					if (dbConn.executeQuery(vSql)) {
-						ResultSet rs = dbConn.getQuery();
+					boolean firstRow = true;
+					
+					Calendar cal = Calendar.getInstance();
+					int hourOfDay = cal.get(Calendar.HOUR_OF_DAY);
+					int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
+					int minuteOfHour = cal.get(Calendar.MINUTE);
+					
+					while (rs.next()) {
 						
-						boolean firstRow = true;
+						int day = rs.getInt("nDay");
+						int hour = rs.getInt("nHour");
+						int minute = rs.getInt("nMinute");
+						int numGroups = rs.getInt("nCount");
+						String uStatus = Objects.isNull(rs.getString("uStatus")) ? "NULL":rs.getString("uStatus") ;
+						String typeExec = Objects.isNull(rs.getString("typeExec")) ? "NULL":rs.getString("typeExec") ;
 						
-						Calendar cal = Calendar.getInstance();
-						int hourOfDay = cal.get(Calendar.HOUR_OF_DAY);
-						int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
-						int minuteOfHour = cal.get(Calendar.MINUTE);
+						if (firstRow) {
+							initDay = day;
+							firstRow = false;
+						}
+	
+						String key = String.format("%02d", day)+":"+String.format("%02d", hour);
 						
-						while (rs.next()) {
-							
-							int day = rs.getInt("nDay");
-							int hour = rs.getInt("nHour");
-							int minute = rs.getInt("nMinute");
-							int numGroups = rs.getInt("nCount");
-							String uStatus = Objects.isNull(rs.getString("uStatus")) ? "NULL":rs.getString("uStatus") ;
-							String typeExec = Objects.isNull(rs.getString("typeExec")) ? "NULL":rs.getString("typeExec") ;
-							
-							if (firstRow) {
-								initDay = day;
-								firstRow = false;
-							}
-		
-							String key = String.format("%02d", day)+":"+String.format("%02d", hour);
-							
-							AgeGroupStat ags = new AgeGroupStat();
-							
-							if (mapAgeGroupStat.containsKey(key)) {
-								ags = mapAgeGroupStat.get(key);
-							}
-							
-							ags.setnGroups(ags.getnGroups()+numGroups);
-							
-							if (!uStatus.equals("SUCESS")) {
-								if (day<dayOfMonth) {
+						AgeGroupStat ags = new AgeGroupStat();
+						
+						if (mapAgeGroupStat.containsKey(key)) {
+							ags = mapAgeGroupStat.get(key);
+						}
+						
+						ags.setnGroups(ags.getnGroups()+numGroups);
+						
+						if (!uStatus.equals("SUCCESS")) {
+							if (day<dayOfMonth) {
+								ags.setAlerts(ags.getAlerts()+numGroups);
+							} else if (day==dayOfMonth) {
+								if (hour<hourOfDay) {
 									ags.setAlerts(ags.getAlerts()+numGroups);
-								} else if (day==dayOfMonth) {
-									if (hour<hourOfDay) {
+								} else if (hour==hourOfDay) {
+									if (minute<minuteOfHour) {
 										ags.setAlerts(ags.getAlerts()+numGroups);
-									} else if (hour==hourOfDay) {
-										if (minute<minuteOfHour) {
-											ags.setAlerts(ags.getAlerts()+numGroups);
-										}
 									}
 								}
-							} else if (typeExec.equals("MANUAL")) {
-								ags.setAlerts(ags.getAlerts()+numGroups);
 							}
-							
-							ags.setnDay(day);
-							ags.setnHour(hour);
-							
-							mapAgeGroupStat.put(key, ags);
-							
-							//System.out.println(mylib.serializeObjectToJSon(mapAgeGroupStat.get(key), false));
-							
+						} else if (typeExec.equals("MANUAL")) {
+							//ags.setAlerts(ags.getAlerts()+numGroups);
 						}
-						//System.out.println(dayOfMonth);
+						
+						ags.setnDay(day);
+						ags.setnHour(hour);
+						
+						mapAgeGroupStat.put(key, ags);
+						
+						//System.out.println(mylib.serializeObjectToJSon(mapAgeGroupStat.get(key), false));
 						
 					}
+					//System.out.println(dayOfMonth);
+					
 				} else {
-					throw new Exception("getAgeGroupWeek(): No es posible ejecutar SP");
-					//System.out.println("Error");
+					throw new Exception("Nos es posible ejecutar sp sp_get_ageGroupStat()");
 				}
 				dbConn.close();
 			}
+			
 
 			int itDay = 0;
-			Map<String, AgeGroupStat> mapAgeGrStatFinal = new TreeMap<>();
+			Map<String, AgeGroupStat> mapAgeGrStatFinal00 = new TreeMap<>();
+			Map<String, AgeGroupStat> mapAgeGrStatFinal01 = new TreeMap<>();
+			Map<String, AgeGroupStat> mapAgeGrStatFinal02 = new TreeMap<>();
+			Map<String, AgeGroupStat> mapAgeGrStatFinal03 = new TreeMap<>();
+			Map<String, AgeGroupStat> mapAgeGrStatFinal04 = new TreeMap<>();
+			Map<String, AgeGroupStat> mapAgeGrStatFinal05 = new TreeMap<>();
+			Map<String, AgeGroupStat> mapAgeGrStatFinal06 = new TreeMap<>();
+			Map<String, AgeGroupStat> mapAgeGrStatFinal07 = new TreeMap<>();
+			Map<String, AgeGroupStat> mapAgeGrStatFinal08 = new TreeMap<>();
+			Map<String, AgeGroupStat> mapAgeGrStatFinal09 = new TreeMap<>();
+			Map<String, AgeGroupStat> mapAgeGrStatFinal10 = new TreeMap<>();
+			Map<String, AgeGroupStat> mapAgeGrStatFinal11 = new TreeMap<>();
+			Map<String, AgeGroupStat> mapAgeGrStatFinal12 = new TreeMap<>();
+			Map<String, AgeGroupStat> mapAgeGrStatFinal13 = new TreeMap<>();
+			Map<String, AgeGroupStat> mapAgeGrStatFinal14 = new TreeMap<>();
+			Map<String, AgeGroupStat> mapAgeGrStatFinal15 = new TreeMap<>();
+			Map<String, AgeGroupStat> mapAgeGrStatFinal16 = new TreeMap<>();
+			Map<String, AgeGroupStat> mapAgeGrStatFinal17 = new TreeMap<>();
+			Map<String, AgeGroupStat> mapAgeGrStatFinal18 = new TreeMap<>();
+			Map<String, AgeGroupStat> mapAgeGrStatFinal19 = new TreeMap<>();
+			Map<String, AgeGroupStat> mapAgeGrStatFinal20 = new TreeMap<>();
+			Map<String, AgeGroupStat> mapAgeGrStatFinal21 = new TreeMap<>();
+			Map<String, AgeGroupStat> mapAgeGrStatFinal22 = new TreeMap<>();
+			Map<String, AgeGroupStat> mapAgeGrStatFinal23 = new TreeMap<>();
 			
 			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGroupStat.entrySet()) {
 				int Day = Integer.valueOf(entry.getKey().split(":")[0]);
+				int Hour = Integer.valueOf(entry.getKey().split(":")[1]);
 				
 				if (itDay!=Day) {
 					for (int i=0; i<=23; i++) {
+						Map<String, AgeGroupStat> mapAgeGrStatFinal = new TreeMap<>();
 						String getKey = entry.getKey().split(":")[0]+":"+String.format("%02d", i);
-						System.out.println(getKey);
 						if (!mapAgeGroupStat.containsKey(getKey)) {
 							AgeGroupStat ags = new AgeGroupStat();
 							ags.setAlerts(0);
 							ags.setnDay(Day);
 							ags.setnGroups(0);
 							ags.setnHour(i);
+							
 							mapAgeGrStatFinal.put(getKey, ags);
 						} else {
 							mapAgeGrStatFinal.put(getKey, mapAgeGroupStat.get(getKey));
+						}
+						
+						switch(i) {
+							case 0:
+								mapAgeGrStatFinal00.put(getKey,mapAgeGrStatFinal.get(getKey));
+								break;
+							case 1:
+								mapAgeGrStatFinal01.put(getKey,mapAgeGrStatFinal.get(getKey));
+								break;
+							case 2:
+								mapAgeGrStatFinal02.put(getKey,mapAgeGrStatFinal.get(getKey));
+								break;
+							case 3:
+								mapAgeGrStatFinal03.put(getKey,mapAgeGrStatFinal.get(getKey));
+								break;
+							case 4:
+								mapAgeGrStatFinal04.put(getKey,mapAgeGrStatFinal.get(getKey));
+								break;
+							case 5:
+								mapAgeGrStatFinal05.put(getKey,mapAgeGrStatFinal.get(getKey));
+								break;
+							case 6:
+								mapAgeGrStatFinal06.put(getKey,mapAgeGrStatFinal.get(getKey));
+								break;
+							case 7:
+								mapAgeGrStatFinal07.put(getKey,mapAgeGrStatFinal.get(getKey));
+								break;
+							case 8:
+								mapAgeGrStatFinal08.put(getKey,mapAgeGrStatFinal.get(getKey));
+								break;
+							case 9:
+								mapAgeGrStatFinal09.put(getKey,mapAgeGrStatFinal.get(getKey));
+								break;
+							case 10:
+								mapAgeGrStatFinal10.put(getKey,mapAgeGrStatFinal.get(getKey));
+								break;
+							case 11:
+								mapAgeGrStatFinal11.put(getKey,mapAgeGrStatFinal.get(getKey));
+								break;
+							case 12:
+								mapAgeGrStatFinal12.put(getKey,mapAgeGrStatFinal.get(getKey));
+								break;
+							case 13:
+								mapAgeGrStatFinal13.put(getKey,mapAgeGrStatFinal.get(getKey));
+								break;
+							case 14:
+								mapAgeGrStatFinal14.put(getKey,mapAgeGrStatFinal.get(getKey));
+								break;
+							case 15:
+								mapAgeGrStatFinal15.put(getKey,mapAgeGrStatFinal.get(getKey));
+								break;
+							case 16:
+								mapAgeGrStatFinal16.put(getKey,mapAgeGrStatFinal.get(getKey));
+								break;
+							case 17:
+								mapAgeGrStatFinal17.put(getKey,mapAgeGrStatFinal.get(getKey));
+								break;
+							case 18:
+								mapAgeGrStatFinal18.put(getKey,mapAgeGrStatFinal.get(getKey));
+								break;
+							case 19:
+								mapAgeGrStatFinal19.put(getKey,mapAgeGrStatFinal.get(getKey));
+								break;
+							case 20:
+								mapAgeGrStatFinal20.put(getKey,mapAgeGrStatFinal.get(getKey));
+								break;
+							case 21:
+								mapAgeGrStatFinal21.put(getKey,mapAgeGrStatFinal.get(getKey));
+								break;
+							case 22:
+								mapAgeGrStatFinal22.put(getKey,mapAgeGrStatFinal.get(getKey));
+								break;
+							case 23:
+								mapAgeGrStatFinal23.put(getKey,mapAgeGrStatFinal.get(getKey));
+								break;
 						}
 					}
 					itDay = Day;
 				}
 			}
+			List<Map<String,Object>> lstObjects;
+			List<Object> lstListObjects = new ArrayList<>();
 			
-			List<Map<String,Object>> lstObjects = new ArrayList<>();
-			
-			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGrStatFinal.entrySet()) {
+			lstObjects = new ArrayList<>();
+			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGrStatFinal00.entrySet()) {
 				JSONObject jo = new JSONObject(mylib.serializeObjectToJSon(entry.getValue(), false));
 				Map<String,Object> cols = new HashMap<>();
 				cols = jo.toMap();
 				lstObjects.add(cols);
 			}
+			lstListObjects.add(lstObjects);
+
+			lstObjects = new ArrayList<>();
+			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGrStatFinal01.entrySet()) {
+				JSONObject jo = new JSONObject(mylib.serializeObjectToJSon(entry.getValue(), false));
+				Map<String,Object> cols = new HashMap<>();
+				cols = jo.toMap();
+				lstObjects.add(cols);
+			}
+			lstListObjects.add(lstObjects);
+
+			lstObjects = new ArrayList<>();
+			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGrStatFinal02.entrySet()) {
+				JSONObject jo = new JSONObject(mylib.serializeObjectToJSon(entry.getValue(), false));
+				Map<String,Object> cols = new HashMap<>();
+				cols = jo.toMap();
+				lstObjects.add(cols);
+			}
+			lstListObjects.add(lstObjects);
+
+			lstObjects = new ArrayList<>();
+			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGrStatFinal03.entrySet()) {
+				JSONObject jo = new JSONObject(mylib.serializeObjectToJSon(entry.getValue(), false));
+				Map<String,Object> cols = new HashMap<>();
+				cols = jo.toMap();
+				lstObjects.add(cols);
+			}
+			lstListObjects.add(lstObjects);
+
+			lstObjects = new ArrayList<>();
+			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGrStatFinal04.entrySet()) {
+				JSONObject jo = new JSONObject(mylib.serializeObjectToJSon(entry.getValue(), false));
+				Map<String,Object> cols = new HashMap<>();
+				cols = jo.toMap();
+				lstObjects.add(cols);
+			}
+			lstListObjects.add(lstObjects);
+
+			lstObjects = new ArrayList<>();
+			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGrStatFinal05.entrySet()) {
+				JSONObject jo = new JSONObject(mylib.serializeObjectToJSon(entry.getValue(), false));
+				Map<String,Object> cols = new HashMap<>();
+				cols = jo.toMap();
+				lstObjects.add(cols);
+			}
+			lstListObjects.add(lstObjects);
+
+			lstObjects = new ArrayList<>();
+			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGrStatFinal06.entrySet()) {
+				JSONObject jo = new JSONObject(mylib.serializeObjectToJSon(entry.getValue(), false));
+				Map<String,Object> cols = new HashMap<>();
+				cols = jo.toMap();
+				lstObjects.add(cols);
+			}
+			lstListObjects.add(lstObjects);
+
+			lstObjects = new ArrayList<>();
+			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGrStatFinal07.entrySet()) {
+				JSONObject jo = new JSONObject(mylib.serializeObjectToJSon(entry.getValue(), false));
+				Map<String,Object> cols = new HashMap<>();
+				cols = jo.toMap();
+				lstObjects.add(cols);
+			}
+			lstListObjects.add(lstObjects);
+
+			lstObjects = new ArrayList<>();
+			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGrStatFinal08.entrySet()) {
+				JSONObject jo = new JSONObject(mylib.serializeObjectToJSon(entry.getValue(), false));
+				Map<String,Object> cols = new HashMap<>();
+				cols = jo.toMap();
+				lstObjects.add(cols);
+			}
+			lstListObjects.add(lstObjects);
+
+			lstObjects = new ArrayList<>();
+			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGrStatFinal09.entrySet()) {
+				JSONObject jo = new JSONObject(mylib.serializeObjectToJSon(entry.getValue(), false));
+				Map<String,Object> cols = new HashMap<>();
+				cols = jo.toMap();
+				lstObjects.add(cols);
+			}
+			lstListObjects.add(lstObjects);
+
+			lstObjects = new ArrayList<>();
+			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGrStatFinal10.entrySet()) {
+				JSONObject jo = new JSONObject(mylib.serializeObjectToJSon(entry.getValue(), false));
+				Map<String,Object> cols = new HashMap<>();
+				cols = jo.toMap();
+				lstObjects.add(cols);
+			}
+			lstListObjects.add(lstObjects);
+
+			lstObjects = new ArrayList<>();
+			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGrStatFinal11.entrySet()) {
+				JSONObject jo = new JSONObject(mylib.serializeObjectToJSon(entry.getValue(), false));
+				Map<String,Object> cols = new HashMap<>();
+				cols = jo.toMap();
+				lstObjects.add(cols);
+			}
+			lstListObjects.add(lstObjects);
+
+			lstObjects = new ArrayList<>();
+			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGrStatFinal12.entrySet()) {
+				JSONObject jo = new JSONObject(mylib.serializeObjectToJSon(entry.getValue(), false));
+				Map<String,Object> cols = new HashMap<>();
+				cols = jo.toMap();
+				lstObjects.add(cols);
+			}
+			lstListObjects.add(lstObjects);
+
+			lstObjects = new ArrayList<>();
+			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGrStatFinal13.entrySet()) {
+				JSONObject jo = new JSONObject(mylib.serializeObjectToJSon(entry.getValue(), false));
+				Map<String,Object> cols = new HashMap<>();
+				cols = jo.toMap();
+				lstObjects.add(cols);
+			}
+			lstListObjects.add(lstObjects);
+
+			lstObjects = new ArrayList<>();
+			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGrStatFinal14.entrySet()) {
+				JSONObject jo = new JSONObject(mylib.serializeObjectToJSon(entry.getValue(), false));
+				Map<String,Object> cols = new HashMap<>();
+				cols = jo.toMap();
+				lstObjects.add(cols);
+			}
+			lstListObjects.add(lstObjects);
+
+			lstObjects = new ArrayList<>();
+			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGrStatFinal15.entrySet()) {
+				JSONObject jo = new JSONObject(mylib.serializeObjectToJSon(entry.getValue(), false));
+				Map<String,Object> cols = new HashMap<>();
+				cols = jo.toMap();
+				lstObjects.add(cols);
+			}
+			lstListObjects.add(lstObjects);
+
+			lstObjects = new ArrayList<>();
+			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGrStatFinal16.entrySet()) {
+				JSONObject jo = new JSONObject(mylib.serializeObjectToJSon(entry.getValue(), false));
+				Map<String,Object> cols = new HashMap<>();
+				cols = jo.toMap();
+				lstObjects.add(cols);
+			}
+			lstListObjects.add(lstObjects);
+
+			lstObjects = new ArrayList<>();
+			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGrStatFinal17.entrySet()) {
+				JSONObject jo = new JSONObject(mylib.serializeObjectToJSon(entry.getValue(), false));
+				Map<String,Object> cols = new HashMap<>();
+				cols = jo.toMap();
+				lstObjects.add(cols);
+			}
+			lstListObjects.add(lstObjects);
+
+			lstObjects = new ArrayList<>();
+			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGrStatFinal18.entrySet()) {
+				JSONObject jo = new JSONObject(mylib.serializeObjectToJSon(entry.getValue(), false));
+				Map<String,Object> cols = new HashMap<>();
+				cols = jo.toMap();
+				lstObjects.add(cols);
+			}
+			lstListObjects.add(lstObjects);
+
+			lstObjects = new ArrayList<>();
+			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGrStatFinal19.entrySet()) {
+				JSONObject jo = new JSONObject(mylib.serializeObjectToJSon(entry.getValue(), false));
+				Map<String,Object> cols = new HashMap<>();
+				cols = jo.toMap();
+				lstObjects.add(cols);
+			}
+			lstListObjects.add(lstObjects);
+
+			lstObjects = new ArrayList<>();
+			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGrStatFinal20.entrySet()) {
+				JSONObject jo = new JSONObject(mylib.serializeObjectToJSon(entry.getValue(), false));
+				Map<String,Object> cols = new HashMap<>();
+				cols = jo.toMap();
+				lstObjects.add(cols);
+			}
+			lstListObjects.add(lstObjects);
+
+			lstObjects = new ArrayList<>();
+			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGrStatFinal21.entrySet()) {
+				JSONObject jo = new JSONObject(mylib.serializeObjectToJSon(entry.getValue(), false));
+				Map<String,Object> cols = new HashMap<>();
+				cols = jo.toMap();
+				lstObjects.add(cols);
+			}
+			lstListObjects.add(lstObjects);
+
+			lstObjects = new ArrayList<>();
+			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGrStatFinal22.entrySet()) {
+				JSONObject jo = new JSONObject(mylib.serializeObjectToJSon(entry.getValue(), false));
+				Map<String,Object> cols = new HashMap<>();
+				cols = jo.toMap();
+				lstObjects.add(cols);
+			}
+			lstListObjects.add(lstObjects);
+
+			lstObjects = new ArrayList<>();
+			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGrStatFinal23.entrySet()) {
+				JSONObject jo = new JSONObject(mylib.serializeObjectToJSon(entry.getValue(), false));
+				Map<String,Object> cols = new HashMap<>();
+				cols = jo.toMap();
+				lstObjects.add(cols);
+			}
+			lstListObjects.add(lstObjects);
+
+//			Map<String, AgeGroupStat> mapAgeGrStatFinal = new TreeMap<>();
+//			
+//			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGroupStat.entrySet()) {
+//				int Day = Integer.valueOf(entry.getKey().split(":")[0]);
+//				
+//				if (itDay!=Day) {
+//					for (int i=0; i<=23; i++) {
+//						String getKey = entry.getKey().split(":")[0]+":"+String.format("%02d", i);
+//						System.out.println(getKey);
+//						if (!mapAgeGroupStat.containsKey(getKey)) {
+//							AgeGroupStat ags = new AgeGroupStat();
+//							ags.setAlerts(0);
+//							ags.setnDay(Day);
+//							ags.setnGroups(0);
+//							ags.setnHour(i);
+//							mapAgeGrStatFinal.put(getKey, ags);
+//						} else {
+//							mapAgeGrStatFinal.put(getKey, mapAgeGroupStat.get(getKey));
+//						}
+//					}
+//					itDay = Day;
+//				}
+//			}
+//			
+//			List<Map<String,Object>> lstObjects = new ArrayList<>();
+//			
+//			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGrStatFinal.entrySet()) {
+//				JSONObject jo = new JSONObject(mylib.serializeObjectToJSon(entry.getValue(), false));
+//				Map<String,Object> cols = new HashMap<>();
+//				cols = jo.toMap();
+//				lstObjects.add(cols);
+//			}
 			
-			return lstObjects;
+			return lstListObjects;
 		} catch (Exception e) {
 			throw new Exception("getAgeGroupWeek(): "+e.getMessage());
 		}
@@ -726,6 +1279,7 @@ public class DataAccess {
 						pg.setnOrder(rs.getInt("NORDER"));
 						pg.setNumSecExec(rs.getString("NUMSECEXEC"));
 						pg.setProcID(rs.getString("PROCID"));
+						pg.setProcDesc(rs.getString("PROCDESC"));
 						pg.setStatus(rs.getString("STATUS"));
 						pg.setTypeProc(rs.getString("TYPEPROC"));
 						pg.setCliID(rs.getString("CLIID"));
@@ -757,7 +1311,172 @@ public class DataAccess {
 			} catch (Exception e) {}
 		}
 	}
-	
+
+	public Map<String, PGPending> addGroupActiveManualActual(String grpID, String numSecExec) {
+		final String module = "addGroupActiveManualActual()";
+		String logmsg = module + " - ";
+		Map<String, PGPending> mp = new HashMap<>();
+		
+		try {
+			logger.info(logmsg+"Conectando a Metadata...");
+			dbConn.open();
+			if (dbConn.isConnected()) {
+				String vSql = "call srvConf.sp_add_groupActiveManualActual('"+ grpID +"','"+numSecExec+"')";
+				logger.info(logmsg+"Ejecutando: "+vSql);
+				if (dbConn.executeQuery(vSql)) {
+					logger.info(logmsg+"Ejecucion Exitosa");
+					logger.info(logmsg+"Recuperando Grupos y procesos asociados...");
+					ResultSet rs = dbConn.getQuery();
+					while (rs.next()) {
+						PGPending pg = new PGPending();
+						pg.setFecIns(mylib.getDate());
+						pg.setGrpID(rs.getString("GRPID"));
+						pg.setnOrder(rs.getInt("NORDER"));
+						pg.setNumSecExec(rs.getString("NUMSECEXEC"));
+						pg.setProcID(rs.getString("PROCID"));
+						pg.setProcDesc(rs.getString("PROCDESC"));
+						pg.setStatus(rs.getString("STATUS"));
+						pg.setTypeProc(rs.getString("TYPEPROC"));
+						pg.setCliID(rs.getString("CLIID"));
+						pg.setCliDesc(rs.getString("CLIDESC"));
+						pg.setTypeExec(rs.getString("TYPEEXEC"));
+						
+						String key = pg.getGrpID()+":"+pg.getNumSecExec()+":"+pg.getProcID();
+						mp.put(key, pg);
+					}
+					rs.close();
+				} else {
+					logger.info(logmsg+"No pudo ejecutar query");
+				}
+				dbConn.close();
+			} else {
+				logger.error(logmsg+"No pudo conectarse a Metadata");
+				//setDBAccess(false);
+			}
+			return mp;
+		} catch (Exception e) {
+			//setDBAccess(false);
+			logger.error(logmsg+"Error general: "+e.getMessage());
+			return null;
+		} finally {
+			try {
+				if (dbConn.isConnected()) {
+					dbConn.close(); 
+				}
+			} catch (Exception e) {}
+		}
+	}
+
+	public Map<String, PGPending> addProcActiveManualActual(String grpID, String numSecExec, String procID) {
+		final String module = "addProcActiveManualActual()";
+		String logmsg = module + " - ";
+		Map<String, PGPending> mp = new HashMap<>();
+		
+		try {
+			logger.info(logmsg+"Conectando a Metadata...");
+			dbConn.open();
+			if (dbConn.isConnected()) {
+				String vSql = "call srvConf.sp_add_procActiveManualActual('"+ grpID +"','"+numSecExec+"','"+procID+"')";
+				logger.info(logmsg+"Ejecutando: "+vSql);
+				if (dbConn.executeQuery(vSql)) {
+					logger.info(logmsg+"Ejecucion Exitosa");
+					logger.info(logmsg+"Recuperando Grupos y procesos asociados...");
+					ResultSet rs = dbConn.getQuery();
+					while (rs.next()) {
+						PGPending pg = new PGPending();
+						pg.setFecIns(mylib.getDate());
+						pg.setGrpID(rs.getString("GRPID"));
+						pg.setnOrder(rs.getInt("NORDER"));
+						pg.setNumSecExec(rs.getString("NUMSECEXEC"));
+						pg.setProcID(rs.getString("PROCID"));
+						pg.setProcDesc(rs.getString("PROCDESC"));
+						pg.setStatus(rs.getString("STATUS"));
+						pg.setTypeProc(rs.getString("TYPEPROC"));
+						pg.setCliID(rs.getString("CLIID"));
+						pg.setCliDesc(rs.getString("CLIDESC"));
+						pg.setTypeExec(rs.getString("TYPEEXEC"));
+						
+						String key = pg.getGrpID()+":"+pg.getNumSecExec()+":"+pg.getProcID();
+						mp.put(key, pg);
+					}
+					rs.close();
+				} else {
+					logger.info(logmsg+"No pudo ejecutar query");
+				}
+				dbConn.close();
+			} else {
+				logger.error(logmsg+"No pudo conectarse a Metadata");
+				//setDBAccess(false);
+			}
+			return mp;
+		} catch (Exception e) {
+			//setDBAccess(false);
+			logger.error(logmsg+"Error general: "+e.getMessage());
+			return null;
+		} finally {
+			try {
+				if (dbConn.isConnected()) {
+					dbConn.close(); 
+				}
+			} catch (Exception e) {}
+		}
+	}
+
+	public Map<String, PGPending> addProcActiveManual(String grpID, String procID) {
+		final String module = "addProcActiveManual()";
+		String logmsg = module + " - ";
+		Map<String, PGPending> mp = new HashMap<>();
+		
+		try {
+			logger.info(logmsg+"Conectando a Metadata...");
+			dbConn.open();
+			if (dbConn.isConnected()) {
+				String vSql = "call srvConf.sp_add_procActiveManual('"+ grpID +"','"+procID+"')";
+				logger.info(logmsg+"Ejecutando: "+vSql);
+				if (dbConn.executeQuery(vSql)) {
+					logger.info(logmsg+"Ejecucion Exitosa");
+					logger.info(logmsg+"Recuperando proceso asociado...");
+					ResultSet rs = dbConn.getQuery();
+					while (rs.next()) {
+						PGPending pg = new PGPending();
+						pg.setFecIns(mylib.getDate());
+						pg.setGrpID(rs.getString("GRPID"));
+						pg.setnOrder(rs.getInt("NORDER"));
+						pg.setNumSecExec(rs.getString("NUMSECEXEC"));
+						pg.setProcID(rs.getString("PROCID"));
+						pg.setProcDesc(rs.getString("PROCDESC"));
+						pg.setStatus(rs.getString("STATUS"));
+						pg.setTypeProc(rs.getString("TYPEPROC"));
+						pg.setCliID(rs.getString("CLIID"));
+						pg.setCliDesc(rs.getString("CLIDESC"));
+						pg.setTypeExec(rs.getString("TYPEEXEC"));
+						
+						String key = pg.getGrpID()+":"+pg.getNumSecExec()+":"+pg.getProcID();
+						mp.put(key, pg);
+					}
+					rs.close();
+				} else {
+					logger.info(logmsg+"No pudo ejecutar query");
+				}
+				dbConn.close();
+			} else {
+				logger.error(logmsg+"No pudo conectarse a Metadata");
+				//setDBAccess(false);
+			}
+			return mp;
+		} catch (Exception e) {
+			//setDBAccess(false);
+			logger.error(logmsg+"Error general: "+e.getMessage());
+			return null;
+		} finally {
+			try {
+				if (dbConn.isConnected()) {
+					dbConn.close(); 
+				}
+			} catch (Exception e) {}
+		}
+	}
+
 	public Map<String, PGPending> getActiveGroup() throws Exception {
 		final String module = "getActiveGroup()";
 		String logmsg = module + " - ";
@@ -780,6 +1499,7 @@ public class DataAccess {
 						pg.setnOrder(rs.getInt("NORDER"));
 						pg.setNumSecExec(rs.getString("NUMSECEXEC"));
 						pg.setProcID(rs.getString("PROCID"));
+						pg.setProcDesc(rs.getString("PROCDESC"));
 						pg.setStatus(rs.getString("STATUS"));
 						pg.setTypeProc(rs.getString("TYPEPROC"));
 						pg.setCliID(rs.getString("CLIID"));
@@ -819,32 +1539,37 @@ public class DataAccess {
 			String vSql="";
 			Object params = null;
 			
-			logger.info(logmsg+"Recuperando parámetros de proceso "+procType+" "+procID);
-			
-			logger.info(logmsg+"Conectando a Metadata...");
+			logger.debug(logmsg+"Conectando a Metadata...");
 			dbConn.open();
 			if (dbConn.isConnected()) {
-				logger.info(logmsg+"Conexión establecida a Metadata!");
+				logger.debug(logmsg+"Conexión establecida a Metadata!");
 				switch(procType) {
 					case "FTP":
 						Ftp ftp = new Ftp();
 						
 						vSql = "call sp_get_ftp('"+procID+"')";
-						logger.info(logmsg+"Ejecutando query: "+vSql);
+						logger.debug(logmsg+"Ejecutando query: "+vSql);
 						if (dbConn.executeQuery(vSql)) {
 							ResultSet rs = dbConn.getQuery();
 							if (rs.next()) {
 								String resp = rs.getString("resp");
-								logger.info(logmsg+"Respuesta de la query: "+resp);
+								logger.debug(logmsg+"Respuesta de la query: "+resp);
 								
-								logger.info(logmsg+"Serializando respuesta en objeto clase Ftp()");
+								logger.debug(logmsg+"Serializando respuesta en objeto clase Ftp()");
 								ftp = (Ftp) mylib.serializeJSonStringToObject(resp, Ftp.class);
 								
-								logger.info(logmsg+"Se ha serializado correctamente el objeto clase Ftp()");
+								logger.debug(logmsg+"Se ha serializado correctamente el objeto clase Ftp()");
 																	
 								params = ftp;
 							}
 							rs.close();
+							
+							if (mylib.isNullOrEmpty(params)) {
+								throw new Exception("getProcessParam(): No hay parametros recuperados del proceso: "+procID);	
+							}
+							
+						} else {
+							throw new Exception("getProcessParam(): Error ejecutando query: "+vSql);
 						}
 						
 						break;
@@ -853,38 +1578,45 @@ public class DataAccess {
 						List<MovMatch> lstMovMatch = new ArrayList<>();
 						
 						vSql = "call sp_get_mov('"+procID+"')";
-						logger.info(logmsg+"Ejecutando query: "+vSql);
+						logger.debug(logmsg+"Ejecutando query: "+vSql);
 						if (dbConn.executeQuery(vSql)) {
 							ResultSet rs = dbConn.getQuery();
 							if (rs.next()) {
 								String resp = rs.getString("resp");
-								logger.info(logmsg+"Respuesta de la query: "+resp);
+								logger.debug(logmsg+"Respuesta de la query: "+resp);
 								
-								logger.info(logmsg+"Serializando respuesta en objeto clase Mov()");
+								logger.debug(logmsg+"Serializando respuesta en objeto clase Mov()");
 								mov = (Mov) mylib.serializeJSonStringToObject(resp, Mov.class);
 								
-								logger.info(logmsg+"Se ha serializado correctamente el objeto clase Mov()");
+								logger.debug(logmsg+"Se ha serializado correctamente el objeto clase Mov()");
 								
 								
 								//Busca Match de Campos
 
 								String vSql2 = "call sp_get_movMatch('"+procID+"')";
-								logger.info(logmsg+"Ejecutando query: "+vSql2);
+								logger.debug(logmsg+"Ejecutando query: "+vSql2);
 								if (dbConn.executeQuery(vSql2)) {
 									ResultSet rs2 = dbConn.getQuery();
 									while (rs2.next()) {
 										MovMatch movMatch = new MovMatch();
 										resp = rs2.getString("resp");
-										logger.info(logmsg+"Respuesta de la query: "+resp);
+										logger.debug(logmsg+"Respuesta de la query: "+resp);
 										
-										logger.info(logmsg+"Serializando respuesta en objeto clase MovMatch()");
+										logger.debug(logmsg+"Serializando respuesta en objeto clase MovMatch()");
 										movMatch = (MovMatch) mylib.serializeJSonStringToObject(resp, MovMatch.class);
 								
-										logger.info(logmsg+"Se ha serializado correctamente el objeto clase MovMatch()");
+										logger.debug(logmsg+"Se ha serializado correctamente el objeto clase MovMatch()");
 										
 										lstMovMatch.add(movMatch);
 									}
 									rs2.close();
+									
+									if (lstMovMatch.size()==0) {
+										throw new Exception("getProcessParam(): No es posible recuperar match de campos del proceso: "+procID);
+									}
+									
+								} else {
+									throw new Exception("getProcessParam(): Error ejecutando query: "+vSql2);
 								}
 								
 								//Asignacion de Lista de Campos al Mov
@@ -894,6 +1626,13 @@ public class DataAccess {
 								params = mov;
 							}
 							rs.close();
+							
+							if (mylib.isNullOrEmpty(params)) {
+								throw new Exception("getProcessParam(): No hay parametros recuperados del proceso: "+procID);	
+							}
+
+						} else {
+							throw new Exception("getProcessParam(): Error ejecutando query: "+vSql);
 						}
 						
 						break;
@@ -902,36 +1641,39 @@ public class DataAccess {
 						Map<String, OspParam> mapOspParam = new TreeMap<>();
 						
 						vSql = "call sp_get_osp('"+procID+"')";
-						logger.info(logmsg+"Ejecutando query: "+vSql);
+						logger.debug(logmsg+"Ejecutando query: "+vSql);
 						if (dbConn.executeQuery(vSql)) {
 							ResultSet rs = dbConn.getQuery();
 							if (rs.next()) {
 								String resp = rs.getString("resp");
-								logger.info(logmsg+"Respuesta de la query: "+resp);
+								logger.debug(logmsg+"Respuesta de la query: "+resp);
 								
-								logger.info(logmsg+"Serializando respuesta en objeto clase Osp()");
+								logger.debug(logmsg+"Serializando respuesta en objeto clase Osp()");
 								osp = (Osp) mylib.serializeJSonStringToObject(resp, Osp.class);
 								
-								logger.info(logmsg+"Se ha serializado correctamente el objeto clase Osp()");
+								logger.debug(logmsg+"Se ha serializado correctamente el objeto clase Osp()");
 								
 								//Busca Parametros del OSP
 								String vSql2 = "call sp_get_ospParams('"+procID+"')";
-								logger.info(logmsg+"Ejecutando query: "+vSql2);
+								logger.debug(logmsg+"Ejecutando query: "+vSql2);
 								if (dbConn.executeQuery(vSql2)) {
 									ResultSet rs2 = dbConn.getQuery();
 									while (rs2.next()) {
 										OspParam ospParam = new OspParam();
 										resp = rs2.getString("resp");
-										logger.info(logmsg+"Respuesta de la query: "+resp);
+										logger.debug(logmsg+"Respuesta de la query: "+resp);
 										
-										logger.info(logmsg+"Serializando respuesta en objeto clase OspParams()");
+										logger.debug(logmsg+"Serializando respuesta en objeto clase OspParams()");
 										ospParam = (OspParam) mylib.serializeJSonStringToObject(resp, OspParam.class);
 										
-										logger.info(logmsg+"Se ha serializado correctamente el objeto clase OspParams()");
+										logger.debug(logmsg+"Se ha serializado correctamente el objeto clase OspParams()");
 										
 										mapOspParam.put(String.format("%03d", ospParam.getOrder()), ospParam);
 									}
 									rs2.close();
+									
+								} else {
+									throw new Exception("getProcessParam(): Error ejecutando query: "+vSql2);
 								}
 								
 								osp.setMapOspParam(mapOspParam);
@@ -939,6 +1681,13 @@ public class DataAccess {
 								params = osp;
 							}
 							rs.close();
+							
+							if (mylib.isNullOrEmpty(params)) {
+								throw new Exception("getProcessParam(): No hay parametros recuperados del proceso: "+procID);	
+							}
+
+						} else {
+							throw new Exception("getProcessParam(): Error ejecutando query: "+vSql);
 						}
 						
 						break;
@@ -947,36 +1696,43 @@ public class DataAccess {
 						Map<String, ExpTableParam> mapEtbParam = new TreeMap<>();
 						
 						vSql = "call sp_get_exp('"+procID+"')";
-						logger.info(logmsg+"Ejecutando query: "+vSql);
+						logger.debug(logmsg+"Ejecutando query: "+vSql);
 						if (dbConn.executeQuery(vSql)) {
 							ResultSet rs = dbConn.getQuery();
 							if (rs.next()) {
 								String resp = rs.getString("resp");
-								logger.info(logmsg+"Respuesta de la query: "+resp);
+								logger.debug(logmsg+"Respuesta de la query: "+resp);
 								
-								logger.info(logmsg+"Serializando respuesta en objeto clase ExpTable()");
+								logger.debug(logmsg+"Serializando respuesta en objeto clase ExpTable()");
 								etb = (ExpTable) mylib.serializeJSonStringToObject(resp, ExpTable.class);
 								
-								logger.info(logmsg+"Se ha serializado correctamente el objeto clase ExpTable()");
+								logger.debug(logmsg+"Se ha serializado correctamente el objeto clase ExpTable()");
 								
 								//Busca Parametros del ExpTable
 								String vSql2 = "call sp_get_expMatch('"+procID+"')";
-								logger.info(logmsg+"Ejecutando query: "+vSql2);
+								logger.debug(logmsg+"Ejecutando query: "+vSql2);
 								if (dbConn.executeQuery(vSql2)) {
 									ResultSet rs2 = dbConn.getQuery();
 									while (rs2.next()) {
 										ExpTableParam etbParam = new ExpTableParam();
 										resp = rs2.getString("resp");
-										logger.info(logmsg+"Respuesta de la query: "+resp);
+										logger.debug(logmsg+"Respuesta de la query: "+resp);
 										
-										logger.info(logmsg+"Serializando respuesta en objeto clase ExpTableParam()");
+										logger.debug(logmsg+"Serializando respuesta en objeto clase ExpTableParam()");
 										etbParam = (ExpTableParam) mylib.serializeJSonStringToObject(resp, ExpTableParam.class);
 										
-										logger.info(logmsg+"Se ha serializado correctamente el objeto clase ExpTableParam()");
+										logger.debug(logmsg+"Se ha serializado correctamente el objeto clase ExpTableParam()");
 										
 										mapEtbParam.put(String.format("%03d", etbParam.getEtbOrder()), etbParam);
 									}
 									rs2.close();
+									
+									if (mapEtbParam.size()==0) {
+										throw new Exception("getProcessParam(): No es posible recuperar parametros del proceso: "+procID);
+									}
+									
+								} else {
+									throw new Exception("getProcessParam(): Error ejecutando query: "+vSql2);
 								}
 								
 								etb.setMapEtbParam(mapEtbParam);
@@ -984,6 +1740,43 @@ public class DataAccess {
 								params = etb;
 							}
 							rs.close();
+							
+							if (mylib.isNullOrEmpty(params)) {
+								throw new Exception("getProcessParam(): No hay parametros recuperados del proceso: "+procID);	
+							}
+							
+						} else {
+							throw new Exception("getProcessParam(): Error ejecutando query: "+vSql);
+						}
+						
+						break;
+
+					case "BTB":
+						BackTable btb = new BackTable();
+						
+						vSql = "call sp_get_btb('"+procID+"')";
+						logger.debug(logmsg+"Ejecutando query: "+vSql);
+						if (dbConn.executeQuery(vSql)) {
+							ResultSet rs = dbConn.getQuery();
+							if (rs.next()) {
+								String resp = rs.getString("resp");
+								logger.debug(logmsg+"Respuesta de la query: "+resp);
+								
+								logger.debug(logmsg+"Serializando respuesta en objeto clase BackTable()");
+								btb = (BackTable) mylib.serializeJSonStringToObject(resp, BackTable.class);
+								
+								logger.debug(logmsg+"Se ha serializado correctamente el objeto clase BackTable()");
+																
+								params = btb;
+							}
+							rs.close();
+							
+							if (mylib.isNullOrEmpty(params)) {
+								throw new Exception("getProcessParam(): No hay parametros recuperados del proceso: "+procID);	
+							}
+
+						} else {
+							throw new Exception("getProcessParam(): Error ejecutando query: "+vSql);
 						}
 						
 						break;
@@ -993,36 +1786,43 @@ public class DataAccess {
 						Map<Integer, LoadTableParam> mapLtbParam = new TreeMap<>();
 						
 						vSql = "call sp_get_ltb('"+procID+"')";
-						logger.info(logmsg+"Ejecutando query: "+vSql);
+						logger.debug(logmsg+"Ejecutando query: "+vSql);
 						if (dbConn.executeQuery(vSql)) {
 							ResultSet rs = dbConn.getQuery();
 							if (rs.next()) {
 								String resp = rs.getString("resp");
-								logger.info(logmsg+"Respuesta de la query: "+resp);
+								logger.debug(logmsg+"Respuesta de la query: "+resp);
 								
-								logger.info(logmsg+"Serializando respuesta en objeto clase LoadTable()");
+								logger.debug(logmsg+"Serializando respuesta en objeto clase LoadTable()");
 								ltb = (LoadTable) mylib.serializeJSonStringToObject(resp, LoadTable.class);
 								
-								logger.info(logmsg+"Se ha serializado correctamente el objeto clase LoadTable()");
+								logger.debug(logmsg+"Se ha serializado correctamente el objeto clase LoadTable()");
 								
 								//Busca Parametros del LoadTable
 								String vSql2 = "call sp_get_ltbMatch('"+procID+"')";
-								logger.info(logmsg+"Ejecutando query: "+vSql2);
+								logger.debug(logmsg+"Ejecutando query: "+vSql2);
 								if (dbConn.executeQuery(vSql2)) {
 									ResultSet rs2 = dbConn.getQuery();
 									while (rs2.next()) {
 										LoadTableParam ltbParam = new LoadTableParam();
 										resp = rs2.getString("resp");
-										logger.info(logmsg+"Respuesta de la query: "+resp);
+										logger.debug(logmsg+"Respuesta de la query: "+resp);
 										
-										logger.info(logmsg+"Serializando respuesta en objeto clase LoadTableParam()");
+										logger.debug(logmsg+"Serializando respuesta en objeto clase LoadTableParam()");
 										ltbParam = (LoadTableParam) mylib.serializeJSonStringToObject(resp, LoadTableParam.class);
 										
-										logger.info(logmsg+"Se ha serializado correctamente el objeto clase LoadTableParam()");
+										logger.debug(logmsg+"Se ha serializado correctamente el objeto clase LoadTableParam()");
 										
 										mapLtbParam.put(ltbParam.getFileLoadOrder(), ltbParam);
 									}
 									rs2.close();
+									
+									if (mapLtbParam.size()==0) {
+										throw new Exception("getProcessParam(): No es posible recuperar parametros del proceso: "+procID);
+									}
+									
+								} else {
+									throw new Exception("getProcessParam(): Error ejecutando query: "+vSql2);
 								}
 								
 								ltb.setMapLtbParam(mapLtbParam);
@@ -1030,11 +1830,18 @@ public class DataAccess {
 								params = ltb;
 							}
 							rs.close();
+							
+							if (mylib.isNullOrEmpty(params)) {
+								throw new Exception("getProcessParam(): No hay parametros recuperados del proceso: "+procID);	
+							}
+
+						} else {
+							throw new Exception("getProcessParam(): Error ejecutando query: "+vSql);
 						}
 						
 						break;
 					default:
-						throw new Exception("getProcessParam(): Tipoe de Proceso no encontrado");
+						throw new Exception("getProcessParam(): Tipo de Proceso "+procType+" no se encuentrs definido");
 				}
 				
 				dbConn.close();
@@ -1071,6 +1878,7 @@ public class DataAccess {
 				spParams.add(new SPparam(uStatus));
 				spParams.add(new SPparam(errCode));
 				spParams.add(new SPparam(errMesg));
+				spParams.add(new SPparam(""));
 				
 				for (SPparam param : spParams) {
 					logger.debug("List Param: "+param.getValue());

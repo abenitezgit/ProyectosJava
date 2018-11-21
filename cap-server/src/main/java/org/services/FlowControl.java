@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
@@ -38,6 +39,23 @@ public class FlowControl {
 		mylib.setLevelLogger(logger, gParams.getAppConfig().getLog4jLevel());
 	}
 	
+	public int getCountRunningProcs() {
+		return gParams.getMapProcControl().size();
+	}
+
+	public int getCountRunningGroups() {
+		int numGroups =0;
+		Map<String,Integer> mapGroup = new HashMap<>();
+		if (gParams.getMapProcControl().size()>0) {
+			for(Map.Entry<String, ProcControl> entry : gParams.getMapProcControl().entrySet()) {
+				mapGroup.put(entry.getValue().getGrpID(),1);
+			}
+			numGroups = mapGroup.size();
+		} 
+		
+		return numGroups;
+	}
+
 	public void addAgeGroupCount(String key, int count) {
 		if (gParams.getMapAgeGroupCount().containsKey(key)) {
 			int tmpCount = gParams.getMapAgeGroupCount().get(key);
@@ -116,6 +134,7 @@ public class FlowControl {
 			}
 			
 			List<Map<String,Object>> lstrows = new ArrayList<>();
+			Map<String,Map<String,Object>> mapOrder = new TreeMap<>();
 			
 			for (Map.Entry<String, ProcControl> entry : mpc.entrySet()) {
 				
@@ -128,9 +147,16 @@ public class FlowControl {
 				cols.put("grpID",entry.getValue().getGrpID());
 				cols.put("numSecExec",entry.getValue().getNumSecExec());
 				cols.put("procID",entry.getValue().getProcID());
+				cols.put("procDesc", entry.getValue().getProcDesc());
 				cols.put("status",entry.getValue().getStatus());
 				cols.put("uStatus",entry.getValue().getuStatus());
 				cols.put("typeExec", entry.getValue().getTypeExec());
+				cols.put("nOrder", entry.getValue().getnOrder());
+				if (!Objects.isNull(entry.getValue().getErrMesg())) {
+					cols.put("errMesg", entry.getValue().getErrMesg());	
+				} else {
+					cols.put("errMesg","");
+				}
 				
 				if (mylib.isNullOrEmpty(entry.getValue().getSrvID())) {
 					cols.put("srvID", null);
@@ -138,7 +164,15 @@ public class FlowControl {
 					cols.put("srvID", entry.getValue().getSrvID());
 				}
 				
-				lstrows.add(cols);
+				String key = cols.get("grpID")+":"+cols.get("numSecExec")+":"+cols.get("nOrder")+":"+cols.get("procID")+":"+cols.get("fecUpdate"+":"+cols.get("status"));
+				mapOrder.put(key, cols);
+				//lstrows.add(cols);
+				
+			}
+			
+			for(Map.Entry<String, Map<String,Object>> process : mapOrder.entrySet()) {
+				lstrows.add(process.getValue());
+				
 			}
 			
 			return lstrows;
@@ -215,53 +249,20 @@ public class FlowControl {
 			throw new Exception("updateTaskProcess(): "+e.getMessage()+ " "+e.getClass());
 		}
 	}
-
-	public synchronized boolean updateForceFinishedProcess(JSONObject params) throws Exception {
+	
+	public void updateForceCancelProcess(String key) throws Exception {
 		try {
-			String grpID = params.getString("grpID");
-			String numSecExec = params.getString("numSecExec");
-			String procID = params.getString("procID");
-			
-			for (Map.Entry<String, ProcControl> pc : gParams.getMapProcControl().entrySet()) {
-				if (grpID.equals(pc.getKey().split(":")[0]) && 
-					numSecExec.equals(pc.getKey().split(":")[1])) {
-					
-					ProcControl newPc = pc.getValue();
-					
-					if (procID.equals("*")) {
-						if (pc.getValue().getStatus().equals("PENDING")) {
-							newPc.setErrCode(10);
-							newPc.setErrMesg("Manual Forced Finished");
-							newPc.setFecUpdate(new Date());
-							newPc.setStatus("FINISHED");
-							newPc.setuStatus("SUCCESS");
-							String key = newPc.getGrpID()+":"+newPc.getNumSecExec()+":"+newPc.getProcID();
-							updateMapProcControl(key, newPc);
-						}
-						
-					} else {
-						if (procID.equals(pc.getKey().split(":")[2])) {
-							if (pc.getValue().getStatus().equals("PENDING")) {
-								newPc.setErrCode(10);
-								newPc.setErrMesg("Manual Forced Finished");
-								newPc.setFecUpdate(new Date());
-								newPc.setStatus("FINISHED");
-								newPc.setuStatus("SUCCESS");
-								String key = newPc.getGrpID()+":"+newPc.getNumSecExec()+":"+newPc.getProcID();
-								updateMapProcControl(key, newPc);
-							}
-						}
-					}
-					
-				}
+			if (gParams.getMapProcControl().containsKey(key)) {
+				gParams.getMapProcControl().get(key).setStatus("FINISHED");
+				gParams.getMapProcControl().get(key).setuStatus("CANCEL");
+				gParams.getMapProcControl().get(key).setFecUpdate(mylib.getDate());
 			}
 			
-			return true;
 		} catch (Exception e) {
-			throw new Exception(e.getMessage());
+			throw new Exception("updateForceCancelProcess(): "+e.getMessage());
 		}
 	}
-	
+
 	private synchronized void updateStatusMapTask(String key, String status) throws Exception {
 		try {
 			if (gParams.getMapTask().containsKey(key)) {
@@ -359,6 +360,7 @@ public class FlowControl {
 				task.setProcID(pc.getProcID());
 				task.setSrvID(srvID);
 				task.setStatus("ASSIGNED");
+				task.setuStatus("ASSIGNED");
 				task.setTaskkey(key);
 				task.setTypeProc(pc.getTypeProc());
 				task.setTypeExec(pc.getTypeExec());
@@ -375,7 +377,6 @@ public class FlowControl {
 	}
 
 	public boolean isProcDependFinished(ProcControl pc) throws Exception {
-		final String logmsg = "isProcDependFinished() - ";
 		try {
 			boolean response = true;
 
@@ -390,13 +391,9 @@ public class FlowControl {
 					
 					String key = grpID+":"+numSecExec+":"+procID;
 					
-					logger.info(logmsg+"-> Valida Status ProcID: "+key);
-					
 					if (gParams.getMapProcControl().containsKey(key)) {
 						ProcControl pcS = gParams.getMapProcControl().get(key);
 						
-						logger.info(logmsg+"----> Status ProcID: "+key+" "+pcS.getStatus()+" "+pcS.getuStatus()+" c:"+critical );
-
 						if (pcS.getStatus().equals("FINISHED")) {
 							if (pcS.getuStatus().equals("SUCCESS")) {
 								response = response && true;
@@ -413,8 +410,10 @@ public class FlowControl {
 						}
 						
 					} else {
-						//Ha ocurrido un problema ya que siempre debería encontrar un proceso
-						response = response && false;
+						if (pc.getTypeExec().equals("AUTO")) {
+							//Ha ocurrido un problema ya que siempre debería encontrar un proceso
+							response = response && false;
+						}
 					}
 				} // end for
 			} else {
@@ -438,7 +437,7 @@ public class FlowControl {
 			}
 			
 		} catch (Exception e) {
-			throw new Exception ("updateProcDependence: "+e.getMessage());
+			throw new Exception ("updateProcDependence(): "+e.getMessage());
 		}
 	}
 	
@@ -707,7 +706,7 @@ public class FlowControl {
 						Date fecUpdate = mylib.getDate(entry.getValue().getFecStatus(),"yyyy-MM-dd hh:mm:ss");
 						int txpMain = entry.getValue().getTxpMain();
 						
-						//Valida si el servicio se ha respotado en txpMain
+						//Valida si el servicio se ha reportado en txpMain
 						if (mylib.getMinuteDiff(fecNow, fecUpdate)<=txpMain) {
 							
 							//Obtiene los clientes y tipos de procesos que puede ejecutar
@@ -903,6 +902,7 @@ public class FlowControl {
 					pc.setnOrder(entry.getValue().getnOrder());
 					pc.setNumSecExec(entry.getValue().getNumSecExec());
 					pc.setProcID(entry.getValue().getProcID());
+					pc.setProcDesc(entry.getValue().getProcDesc());
 					pc.setStatus(entry.getValue().getStatus());
 					pc.setTypeProc(entry.getValue().getTypeProc());
 					pc.setuStatus("PENDING");

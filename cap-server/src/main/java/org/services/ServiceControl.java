@@ -66,9 +66,9 @@ public class ServiceControl {
 				case "getServices":
 					response = fc.getServices();
 					break;
-				case "updFinishedProcess":
+				case "forceCancelProcess":
 					params = data.getJSONObject("params");
-					response = fc.updateForceFinishedProcess(params);
+					response = addForceCancelProcess(params);
 					break;
 			}
 			
@@ -78,6 +78,74 @@ public class ServiceControl {
 		}
 	}
 	
+	public boolean addForceCancelProcess(JSONObject params) {
+		try {
+			String grpID = params.getString("grpID");
+			String numSecExec = params.getString("numSecExec");
+			String procID = params.getString("procID");
+			
+			ProcControl pc = new ProcControl();
+			pc.setGrpID(grpID);
+			pc.setNumSecExec(numSecExec);
+			pc.setProcID(procID);
+			
+			if (gParams.getLstForceCancelProcess().size()==0) {
+				gParams.getLstForceCancelProcess().add(pc);
+			} else {
+				boolean isExist = false;
+				for (int i=0; i<gParams.getLstForceCancelProcess().size(); i++) {
+					if (gParams.getLstForceCancelProcess().get(i).getGrpID().equals(grpID) && 
+							gParams.getLstForceCancelProcess().get(i).getNumSecExec().equals(numSecExec) &&
+							gParams.getLstForceCancelProcess().get(i).getProcID().equals(procID)) {
+						isExist = true;
+					}
+				}
+				if (!isExist) {
+					gParams.getLstForceCancelProcess().add(pc);
+				}
+			}
+			
+			return true;
+		} catch (Exception e) {
+			logger.error("addForceCancelProcess(): "+e.getMessage());
+			return false;
+		}
+	}
+	
+	public List<Map<String,Object>> getDashboard() throws Exception {
+		try {
+			List<Map<String,Object>> lstRows = new ArrayList<>();
+			List<Map<String,Object>> lstGroups = new ArrayList<>();
+			List<Map<String,Object>> lstProcs = new ArrayList<>();
+			Map<String,Object> mapTotales = dc.getCountGroups();
+			
+			int numRunningGroups = fc.getCountRunningGroups();
+			int numRunningProcs = fc.getCountRunningProcs();
+			
+			JSONObject params = new JSONObject();
+			params.put("grpID", "*");
+			params.put("uStatus", "*");
+			params.put("cliID", "*");
+			lstGroups = dc.getDBresources("getDBgroupControl", params);
+			
+			params = new JSONObject();
+			params.put("grpID", "GRP00572");
+			params.put("numSecExec", "*");
+			params.put("procID", "*");
+			lstProcs = dc.getDBresources("getDBprocControl", params);
+			
+			mapTotales.put("numRunningGroups", numRunningGroups);
+			mapTotales.put("numRunningProcs", numRunningProcs);
+			mapTotales.put("lastGroups", lstGroups);
+			mapTotales.put("lastProcs", lstProcs);
+			
+			lstRows.add(mapTotales);
+			
+			return lstRows;
+		} catch (Exception e) {
+			throw new Exception(""+e.getMessage());
+		}
+	}
 	
 	public Object getDBrequest(JSONObject data) throws Exception {
 		try {
@@ -87,6 +155,9 @@ public class ServiceControl {
 			Object response = null;
 			
 			switch (method) {
+				case "getDashboard":
+					response = getDashboard();
+					break;
 				case "getDBGroup":
 					response = dc.getDBresources(method, params);
 					break;
@@ -157,12 +228,26 @@ public class ServiceControl {
 				case "getAgeGroupStat":
 					response = dc.getAgeGroupStat();
 					break;
+				case "getAgeGroupWeek":
+					response = dc.getAgeGroupWeek();
+					break;
 				case "getAgeGroupDayHourAlert":
 					int vDay = params.getInt("day");
 					int vHour = params.getInt("hour");
-					response = dc.getAgeGroupDayHourAlert(vDay, vHour);
+					response = dc.getAgeGroupDayHourAlert2(vDay, vHour);
+					break;
+				case "getActualGroupDayHour":
+					int vDay2 = params.getInt("day");
+					int vHour2 = params.getInt("hour");
+					response = dc.getActualGroupDayHour(vDay2, vHour2);
 					break;
 				case "addGroup":
+					response = dc.addDBresources(method, params);
+				case "addDiary":
+					response = dc.addDBresources(method, params);
+				case "addSchedule":
+					response = dc.addDBresources(method, params);
+				case "addSchedDiary":
 					response = dc.addDBresources(method, params);
 				case "addProcGroup":
 					response = dc.addDBresources(method, params);
@@ -182,6 +267,15 @@ public class ServiceControl {
 				case "addGroupActiveManual":
 					String param = params.getString("grpID");
 					response = addGroupActiveManual(param);
+					break;
+				case "addGroupActiveManualActual":
+					response = addGroupActiveManualActual(params);
+					break;
+				case "addProcActiveManualActual":
+					response = addProcActiveManualActual(params);
+					break;
+				case "addProcActiveManual":
+					response = addProcActiveManual(params);
 					break;
 				case "deleteGroupControl":
 					JSONObject joGroup = (JSONObject) params;
@@ -207,7 +301,6 @@ public class ServiceControl {
 		logger.debug("Detalle de Task: ");
 		for (Map.Entry<String, Task> entry : gParams.getMapTask().entrySet()) {
 			logger.debug("Task: "+ entry.getKey()  +" --->"+mylib.serializeObjectToJSon(entry.getValue(), false));
-			//logger.info("--> "+entry.getKey()+" "+entry.getValue().getStatus()+" "+entry.getValue().getuStatus()+" "+ entry.getValue().getSrvID()+ " "+ entry.getValue().getErrCode()+" "+entry.getValue().getErrMesg());
 		}
 	}
 	
@@ -307,7 +400,102 @@ public class ServiceControl {
 			return false;
 		}
 	}
-	
+
+	public boolean addGroupActiveManualActual(JSONObject params)  {
+		try {
+			String grpID = params.getString("grpID");
+			String numSecExec = params.getString("numSecExec");
+			
+			Map<String, PGPending> mapPg = new HashMap<>();
+			//Extrea los Procesos de Grupos que fueron inscritos recientemente 
+			//y que tienen status PENDIENTE
+			mapPg = dc.addGroupActiveManualActual(grpID,numSecExec);
+			
+			logger.info("Total de Procesos encontrados para activar manualmnente: "+mapPg.size());
+			
+			if (mapPg.size()>0) {
+				for(Map.Entry<String, PGPending> entry : mapPg.entrySet()) {
+					logger.debug("Proceso A ejecutar manualmente leido desde Metadata: "+entry.getKey());
+				}
+			}
+			
+			//Recupera parametros de los grupos encontrados
+			fc.updateMapGroup(mapPg);
+			
+			//Actualiza la Tabla de status de proceso global
+			logger.info("Actualizando Control de Procesos locales...");
+			fc.updateMapProcControl(mapPg);
+
+			return true;
+		} catch (Exception e) {
+			logger.error("addGroupActiveManualActual: "+e.getMessage());
+			return false;
+		}
+	}
+
+	public boolean addProcActiveManualActual(JSONObject params)  {
+		try {
+			String grpID = params.getString("grpID");
+			String numSecExec = params.getString("numSecExec");
+			String procID = params.getString("procID");
+			
+			Map<String, PGPending> mapPg = new HashMap<>();
+			//Extrea los Procesos de Grupos que fueron inscritos recientemente 
+			//y que tienen status PENDIENTE
+			mapPg = dc.addProcActiveManualActual(grpID,numSecExec,procID);
+			
+			logger.info("Total de Procesos encontrados para activar manualmnente: "+mapPg.size());
+			
+			if (mapPg.size()>0) {
+				for(Map.Entry<String, PGPending> entry : mapPg.entrySet()) {
+					logger.debug("Proceso A ejecutar manualmente leido desde Metadata: "+entry.getKey());
+				}
+			}
+			
+			//Recupera parametros de los grupos encontrados
+			fc.updateMapGroup(mapPg);
+			
+			//Actualiza la Tabla de status de proceso global
+			logger.info("Actualizando Control de Procesos locales...");
+			fc.updateMapProcControl(mapPg);
+
+			return true;
+		} catch (Exception e) {
+			logger.error("addProcActiveManualActual(): "+e.getMessage());
+			return false;
+		}
+	}
+
+	public boolean addProcActiveManual(JSONObject params)  {
+		try {
+			String grpID = params.getString("grpID");
+			String procID = params.getString("procID");
+			
+			Map<String, PGPending> mapPg = new HashMap<>();
+			//Extrea los Procesos de Grupos que fueron inscritos recientemente 
+			//y que tienen status PENDIENTE
+			mapPg = dc.addProcActiveManual(grpID,procID);
+			
+			if (mapPg.size()>0) {
+				for(Map.Entry<String, PGPending> entry : mapPg.entrySet()) {
+					logger.debug("Proceso A ejecutar manualmente leido desde Metadata: "+entry.getKey());
+				}
+			}
+			
+			//Recupera parametros de los grupos encontrados
+			fc.updateMapGroup(mapPg);
+			
+			//Actualiza la Tabla de status de proceso global
+			logger.info("Actualizando Control de Procesos locales...");
+			fc.updateMapProcControl(mapPg);
+
+			return true;
+		} catch (Exception e) {
+			logger.error("addProcActiveManual(): "+e.getMessage());
+			return false;
+		}
+	}
+
 	public void findNewGroupProcess()  {
 		try {
 			Map<String, PGPending> mapPg = new HashMap<>();
@@ -353,60 +541,105 @@ public class ServiceControl {
 			
 				for(Map.Entry<String, ProcControl> entry : mappc.entrySet()) {
 					
-					logger.info(logmsg+"Actualizando parametros a proceso: "+entry.getKey());
-					
 					//Busca params solo si aun lo lo ha hecho
 					if (entry.getValue().getParam()==null) {
 						
 						String key = entry.getKey();
 						Object params = new Object();
+					
+						logger.info(logmsg+"Actualizando parametros a proceso: "+entry.getKey());
 						
-						logger.info(logmsg+"Buscando parametros en MD proceso :"+entry.getValue().getProcID());
+						//Entra en un Try/Exception para que busque para cada proceso encontrado y reporte error individualmente
 						try {
 							params = dc.getProcessParam(entry.getValue().getProcID(), entry.getValue().getTypeProc());
 
-							if (params!=null) {
-								logger.info(logmsg+"Actualizando Clase local con parametros encontrados...");
-								fc.updateMapProcControl(key, params);
+							logger.info(logmsg+"Actualizando Clase local con parametros encontrados...");
+							fc.updateMapProcControl(key, params);
 
-								logger.info(logmsg+"Buscando dependencia del proceso: "+entry.getValue().getProcID());
-								try {
-									List<Dependence> lstDep = new ArrayList<>();
-									lstDep = dc.getProcDependences(entry.getValue().getGrpID(), entry.getValue().getProcID());
-									
-									if (lstDep.size()>0) {
-										logger.info(logmsg+"Actualizando Dependencias del Proceso: "+entry.getValue().getProcID());
-										fc.updateProcDependence(key, lstDep);
-									} else {
-										logger.info(logmsg+"El proceso "+entry.getValue().getProcID()+" no posee dependencias informadas");
-									}
-									
-								} catch (Exception e) {
-									logger.error(logmsg+"Error buscando dependencia del proceso: "+entry.getValue().getProcID()+" error: "+e.getMessage());
-								}
-							} else {
-								logger.warn(logmsg+"No se encontraron parametros en Metadata para el proceso: "+entry.getKey());
-								logger.info(logmsg+"Actualizando Proceso local con estado error...");
-								fc.updateMapProcControl(key, "ERROR", 99, "Proceso: "+key+" no se encuentra en Metadata");
+							//Buscando Dependencias del Proceso
+							logger.info(logmsg+"Buscando dependencia del proceso: "+entry.getValue().getProcID());
+							try {
+								List<Dependence> lstDep = new ArrayList<>();
+								lstDep = dc.getProcDependences(entry.getValue().getGrpID(), entry.getValue().getProcID());
 								
-								logger.info(logmsg+"Actualizando Metadata con estado error...");
-								dc.updateProcControl(key, "ERROR", 99, "Proceso: "+key+" no se encuentra en Metadata");
+								if (lstDep.size()>0) {
+									fc.updateProcDependence(key, lstDep);
+								} else {
+									logger.debug(logmsg+"El proceso "+entry.getValue().getProcID()+" no posee dependencias informadas");
+								}
+								
+							} catch (Exception e) {
+								logger.error(logmsg+"Error buscando dependencia del proceso: "+entry.getValue().getProcID()+" error: "+e.getMessage());
 							}
 							
 						} catch (Exception e) {
-							logger.error(logmsg+"Error buscando parametros en MD proceso: "+entry.getValue().getProcID()+" - "+e.getMessage());
+							logger.warn(logmsg+"No se encontraron parametros en Metadata para el proceso: "+entry.getKey());
+							logger.info(logmsg+"Actualizando Proceso local con estado error...");
+							fc.updateMapProcControl(key, "ERROR", 99, "Proceso: "+key+" no se encuentra en Metadata");
+							
+							logger.info(logmsg+"Actualizando Metadata con estado error...");
+							dc.updateProcControl(key, "ERROR", 99, "Proceso: "+key+" no se encuentra en Metadata");
 						}
 						
 					} else {
-						logger.info(logmsg+"Proceso: "+entry.getKey()+" ya posee sus parametros actualizados");
+						//logger.info(logmsg+"Proceso: "+entry.getKey()+" ya posee sus parametros actualizados");
 					}
 				}
 			} else {
-				logger.info(logmsg+"No se encontraron procesos en estado PENDING");
+				//logger.info(logmsg+"No se encontraron procesos en estado PENDING");
 			}
 			
 		} catch (Exception e) {
 			logger.error(logmsg+"updateProcessParams(): "+e.getMessage());
+		}
+	}
+	
+	public void forceCancelProcess() throws Exception {
+		try {
+			//Valida si Grupos o Procesos inscritos para ser cancelados
+			if (gParams.getLstForceCancelProcess().size()>0) {
+				while (!gParams.getLstForceCancelProcess().isEmpty()) {
+				
+					ProcControl pc = gParams.getLstForceCancelProcess().remove();
+					
+					//El grpID siempre debe venir pero el procID podría ser un * lo que significa
+					//que se deben cancelar todos los procesos del grupo que estén pendientes para que no se asignen
+					//nuevas Task
+					if (pc.getProcID().equals("*")) {
+						//Recupera todos los procesos del grupo que estén PENDING
+						Map<String, ProcControl> mapProcPending = gParams.getMapProcControl()
+																	.entrySet()
+																	.stream()
+																	.filter(p -> 
+																			p.getValue().getStatus().equals("PENDING") && 
+																			p.getValue().getGrpID().equals(pc.getGrpID()) && 
+																			p.getValue().getNumSecExec().equals(pc.getNumSecExec()))
+																	.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+						if (mapProcPending.size()>0) {
+							//Si el filtro retorna datos se procede a cancelar
+							for (Map.Entry<String, ProcControl> entry : mapProcPending.entrySet()) {
+								try {
+									fc.updateForceCancelProcess(entry.getKey());
+								} catch (Exception e) {
+									logger.error("No es posible Cancelar proceso: "+entry.getKey()+" - "+e.getMessage());
+								}
+							}
+						}
+
+					} else {
+						//Se cancelará solo un proceso del grupo
+						String procKey = pc.getGrpID()+":"+pc.getNumSecExec()+":"+pc.getProcID();
+						try {
+							fc.updateForceCancelProcess(procKey);
+						} catch (Exception e) {
+							logger.error("No es posible Cancelar proceso: "+procKey+" - "+e.getMessage());
+						}
+					}
+				}
+			}
+			
+		} catch (Exception e) {
+			throw new Exception("forceCancelProcess(): "+e.getMessage());
 		}
 	}
 	
@@ -426,7 +659,6 @@ public class ServiceControl {
 			for (Map.Entry<String, ProcControl> entry : mappc.entrySet()) {
 				String subKey = entry.getValue().getGrpID()+":"+entry.getValue().getNumSecExec();
 				mapKeys.put(subKey, entry.getKey());
-				logger.debug(logmsg+"subKey encontrado: "+subKey);
 			}
 			
 
@@ -437,6 +669,7 @@ public class ServiceControl {
 				boolean allFinished = true;
 				boolean endError = false;
 				boolean endWarn = false;
+				boolean endCancel = false;
 				String lastErrMesg = "";
 				int lastErrCode = 0;
 				
@@ -455,6 +688,10 @@ public class ServiceControl {
 								lastErrMesg = subEntry.getValue().getErrMesg();
 								lastErrCode = subEntry.getValue().getErrCode();
 								endWarn = true;
+							} else if (subEntry.getValue().getuStatus().equals("CANCEL")) {
+								lastErrMesg = subEntry.getValue().getErrMesg();
+								lastErrCode = subEntry.getValue().getErrCode();
+								endCancel = true;
 							} else {
 								lastErrMesg = subEntry.getValue().getErrMesg();
 								lastErrCode = subEntry.getValue().getErrCode();								
@@ -483,9 +720,11 @@ public class ServiceControl {
 						fc.updateMDGroupControl(subKey, "FINISHED", "ERROR", lastErrCode, lastErrMesg);
 					} else if (endWarn) {
 						fc.updateMDGroupControl(subKey, "FINISHED", "WARNING", lastErrCode, lastErrMesg);
+					} else if (endCancel) {
+						fc.updateMDGroupControl(subKey, "FINISHED", "CANCEL", lastErrCode, lastErrMesg);
 					} else {
 						//SUCCESS
-						fc.updateMDGroupControl(subKey, "FINISHED", "SUCESS", lastErrCode, lastErrMesg);
+						fc.updateMDGroupControl(subKey, "FINISHED", "SUCCESS", lastErrCode, lastErrMesg);
 					}
 					
 					logger.info(logmsg+"Eliminando Procesos Finalizados...");
@@ -527,7 +766,7 @@ public class ServiceControl {
 			logger.info(logmsg+"Buscando procesos PENDING para asignar TASK...");
 			Map<String, ProcControl> mappc = gParams.getMapProcControl().entrySet().stream().filter(p -> p.getValue().getStatus().equals("PENDING")).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 			
-			logger.info(logmsg+"Total procesos PENDING: "+mappc.size());
+			logger.info(logmsg+"Total procesos PENDING para asignar Task: "+mappc.size());
 			
 			//Busca para cada Proceso encontrado una lista de servicios disponibles para ejecutar el proceso
 			if (mappc.size()>0) {
@@ -537,11 +776,10 @@ public class ServiceControl {
 					
 					try {
 						//Valida si dependencias del proceso ya terminaron
-						logger.info(logmsg+"--> Validando Información para Key: "+entry.getKey());
-						logger.info(logmsg+"--> Valida si dependencias del proceso han finalizado...");
+						logger.info(logmsg+"--> Validando Dependencias del Proceso: "+entry.getKey());
 						if (fc.isProcDependFinished(entry.getValue())) {
 							
-							logger.info(logmsg+"--> Dependencias del proceso han finalizado!");
+							logger.info(logmsg+"--> Dependencias del proceso "+entry.getKey()+"han finalizado!");
 							
 							//Valida si hay servicios disponibles para ejecutar procesos del cliente y del TypeProc
 							logger.info(logmsg+"--> Buscando Servicios disponibles...");
@@ -553,28 +791,18 @@ public class ServiceControl {
 								
 							if (lstServices.size()>0) {
 								
-								logger.info(logmsg+"--> Existen "+lstServices.size()+" servicios para ejecutar proceso!");
+								logger.debug(logmsg+"--> Existen "+lstServices.size()+" servicios para ejecutar proceso!");
 								/**
 								 * Debe seleccionar el servicio disponible de la lista encontrada si es que hay mas de uno
 								 */
-								logger.info(logmsg+"--> Asignando un Servicio al proceso...");
+								logger.debug(logmsg+"--> Asignando un Servicio al proceso...");
 								
 								String srvID = fc.assignService(lstServices, entry.getValue().getGrpID(), entry.getValue().getTypeProc());
-								
-	//							if (lstServices.size()==0) {
-	//								srvID = lstServices.get(0);
-	//							} else {
-	//								//Hay mas servicios disponibles
-	//								//Seleccionar uno en base a algun criterio
-	//								srvID = lstServices.get(0);
-	//							}
 								
 								logger.info(logmsg+"--> Se ha asignado el servicio: "+srvID+ " al proceso: "+entry.getKey());
 								
 								//Se crea la Task asignandole un srvID y se cambia el status a READY
 		
-								logger.info(logmsg+"--> Actualizando el MapTask Global...");
-								
 								//Todos los procesos en estado PENDING que se encuentran en la mapProcControl
 								//es porque no se les ha asiganado un Task de Ejecución.
 								try {

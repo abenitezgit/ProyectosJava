@@ -6,7 +6,7 @@ import java.util.Map;
 public class Service {
 	
 	/**
-	 Esta clase Service conversa los valores de parametros de un servicio.
+	 Esta clase Service conserva los valores de parametros de un servicio.
 	 Se asocia a un Map Global llamadao mapService cuyo key es el srvID
 	 
 	 El Object srvTypeProc se usa solo para recibir información de Metadata para posteriormente actualizar

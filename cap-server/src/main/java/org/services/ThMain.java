@@ -1,5 +1,8 @@
 package org.services;
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Timer;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -144,6 +147,33 @@ public class ThMain implements Runnable{
 		    				mylog.warn("Thread DBAccess se encuentra DISABLE");
 		    				mylog.warn("No es posible levantar DBAccess hasta que habilite proceso");
 		    			} 
+	    			
+	    			//Inicia TimerExecAgeWeek
+	    			thName = "TimerExecWeek";
+	    			if (!gParams.getMapThreadRunnig().get(thName)) {
+		    			Date horaExec = new Date(System.currentTimeMillis());
+		    	        
+		    	        Calendar c = Calendar.getInstance();
+		    	        c.setTime(horaExec);
+		    	        System.out.println(c.get(Calendar.DAY_OF_WEEK));
+		    	        // Si la hora es posterior a las 8am se programa la alarma para el dia siguiente
+		    	        if (c.get(Calendar.HOUR_OF_DAY) >= 1) {
+		    	            c.set(Calendar.DAY_OF_YEAR, c.get(Calendar.DAY_OF_YEAR) + 1);
+		    	        }
+		    	        
+		    	        c.set(Calendar.HOUR_OF_DAY, 0);
+		    	        c.set(Calendar.MINUTE, 15);
+		    	        c.set(Calendar.SECOND, 0);
+		    	        
+		    	        horaExec = c.getTime();
+		    	        // El despertador suena cada 24h (una vez al dia)
+		    	        int tiempoRepeticion = 86400000; 
+		    	        
+		    	        // Programamos el despertador para que "suene" a las 8am todos los dias 
+		    	        Timer TempoExec = new Timer(thName);
+		    	        gParams.getMapThreadRunnig().put(thName, true);
+		    	        TempoExec.schedule(new TimerExecAgeWeek(gParams), horaExec, tiempoRepeticion);
+	    			}
         			
         		} else if (monRole.equals("SECONDARY")) {
         			mylog.info("Iniciando Servicios asociados al rol: "+monRole);

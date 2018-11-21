@@ -103,6 +103,7 @@ public class AppServerInit {
     	gParams.getMapThreadRunnig().put("thSync", false);
     	gParams.getMapThreadRunnig().put("thDBAccess", false);
     	gParams.getMapThreadRunnig().put("thProcess", false);
+    	gParams.getMapThreadRunnig().put("TimerExecWeek", false);
     }
     
     private static void getExternalParams() throws Exception {

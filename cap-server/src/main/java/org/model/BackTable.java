@@ -10,11 +10,81 @@ public class BackTable {
 	private int btbWhere_active;
 	private String btbWhere_body;
 	private String cliID;
+	private String cliDesc;
 	private String serverID;
+	private String serverIP;
 	private String dbID;
+	private String dbName;
+	private String dbInstance;
+	private String dbPort;
+	private String dbType;
 	private String loginID;
+	private String loginName;
+	private String loginPass;
 	private String ownerID;
+	private String ownerName;
+	private String ownerPass;
 	
+	public String getCliDesc() {
+		return cliDesc;
+	}
+	public void setCliDesc(String cliDesc) {
+		this.cliDesc = cliDesc;
+	}
+	public String getServerIP() {
+		return serverIP;
+	}
+	public void setServerIP(String serverIP) {
+		this.serverIP = serverIP;
+	}
+	public String getDbName() {
+		return dbName;
+	}
+	public void setDbName(String dbName) {
+		this.dbName = dbName;
+	}
+	public String getDbInstance() {
+		return dbInstance;
+	}
+	public void setDbInstance(String dbInstance) {
+		this.dbInstance = dbInstance;
+	}
+	public String getDbPort() {
+		return dbPort;
+	}
+	public void setDbPort(String dbPort) {
+		this.dbPort = dbPort;
+	}
+	public String getDbType() {
+		return dbType;
+	}
+	public void setDbType(String dbType) {
+		this.dbType = dbType;
+	}
+	public String getLoginName() {
+		return loginName;
+	}
+	public void setLoginName(String loginName) {
+		this.loginName = loginName;
+	}
+	public String getLoginPass() {
+		return loginPass;
+	}
+	public void setLoginPass(String loginPass) {
+		this.loginPass = loginPass;
+	}
+	public String getOwnerName() {
+		return ownerName;
+	}
+	public void setOwnerName(String ownerName) {
+		this.ownerName = ownerName;
+	}
+	public String getOwnerPass() {
+		return ownerPass;
+	}
+	public void setOwnerPass(String ownerPass) {
+		this.ownerPass = ownerPass;
+	}
 	public String getBtbID() {
 		return btbID;
 	}

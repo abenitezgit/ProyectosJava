@@ -61,8 +61,17 @@ public class ThProcess implements Runnable{
     		/**
     		 * Muestra Task y Procesos activos
     		 */
-    		sc.showMapProcControl();
+    		//sc.showMapProcControl();
     		sc.showMapTask();
+    		
+    		/**
+    		 * Cancela Procesos que se hayan requerido
+    		 */
+    		try {
+    			sc.forceCancelProcess();
+    		} catch (Exception e) {
+    			logger.error("No es posible Cancelar Procesos: "+e.getMessage());
+    		}
     		
     		/**
     		 * Actualización de Procesos Finalizados en Metadata
