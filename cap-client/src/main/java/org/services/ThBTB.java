@@ -1,6 +1,9 @@
 package org.services;
 
 import org.apache.log4j.Logger;
+import org.model.BackTable;
+import org.model.ExpTable;
+import org.model.Ftp;
 import org.model.Osp;
 import org.model.Task;
 import org.utilities.GlobalParams;
@@ -8,8 +11,8 @@ import org.utilities.MyLogger;
 
 import com.rutinas.Rutinas;
 
-public class ThOSP extends Thread {
-	final String className = "thOSP";
+public class ThBTB extends Thread {
+	final String className = "thBTB";
 	
 	Logger logger; 
 	MyLogger mylog;
@@ -25,7 +28,7 @@ public class ThOSP extends Thread {
 //	static Procedure myproc;
 //	static APIRest apiRest = new APIRest();
 	
-	public ThOSP(GlobalParams m, Task task) {
+	public ThBTB(GlobalParams m, Task task) {
 		gParams = m;
 		fc = new FlowControl(gParams);
 		this.task = task;
@@ -40,34 +43,28 @@ public class ThOSP extends Thread {
 			//Set LogLevel
 			mylib.setLevelLogger(logger, gParams.getAppConfig().getLog4jLevel());
 
-			mylog.info("Iniciando Ejecución de Store Procedure...");
+			mylog.info("Iniciando Ejecución de Backup de Datos...");
 			
-			mylog.info("Se ejecutara SP: "+task.getProcID());
+			mylog.info("Se ejecutara Backup: "+task.getProcID());
 			
-			mylog.info("Parseando parametros del OSP...");
-			Osp osp = (Osp) parsingTaskParams(task);
+			mylog.info("Parseando parametros del BTB...");
+			BackTable btb = (BackTable) parsingTaskParams(task);
 			
 			mylog.info("Task ID: "+task.getGrpKey());
-			mylog.info("Osp Name: "+osp.getOspName());
-			mylog.info("Osp Desc: "+osp.getOspDesc());
-			mylog.info("Osp Cliente: "+osp.getCliDesc());
-			mylog.info("Osp DbName: "+osp.getDbName());
-			mylog.info("Osp Server IP: "+osp.getServerIP());
-			mylog.info("Osp LoginID: "+osp.getDbLoginUser());
-			mylog.info("Osp ownerID: "+osp.getDbOwnerUser());
+			mylog.info("Back Desc: "+btb.getBtbDesc());
+			mylog.info("Back TableName: "+btb.getBtbTableName());
+			mylog.info("Back FileName: "+btb.getBtbFileName());
 
-			mylog.info("Instanciando Clase ServiceoOSP...");
-			ServiceOSP serviceOsp = new ServiceOSP(osp, mylog);
-
+			mylog.info("Instanciando Clase ServiceoBTB...");
+			ServiceBTB serviceBtb = new ServiceBTB(gParams, btb, mylog);
+			
 			mylog.info("Seteando fecha de Proceso...");
 			String numSecExec = taskID.split(":")[1];
-			serviceOsp.setFecTask(mylib.getDate(numSecExec, "yyyyMMddHHmm"));
+			serviceBtb.setFecTask(mylib.getDate(numSecExec, "yyyyMMddHHmm"));
 
-			mylog.info("Generando Parsea de Parametros de OSP...");
-			serviceOsp.genParsedOspParams();
+			mylog.info("Ejecutando Backup...");
 			
-			mylog.info("Ejecutando Store Procedure...");
-			if (serviceOsp.execute()) {
+			if (serviceBtb.execute()) {
 				fc.updateStatusSuccessTask(task.getTaskkey());
 				mylog.info("Termino SUCCESS Ejecucion TaskID: "+task.getTaskkey());
 			} else {
@@ -76,12 +73,12 @@ public class ThOSP extends Thread {
 			}
 		
 			fc.removeUsedThreadProc(task.getTypeProc());
-			mylog.info("Finalizando Ejecución de Store Procedure");
+			mylog.info("Finalizando Ejecución de Backup de Datos");
 		} catch (Exception e) {
 			try {
 				fc.updateStatusErrorTask(task.getTaskkey(), 90, e.getMessage().toString());
 				fc.removeUsedThreadProc(task.getTypeProc());
-				mylog.error("Exception error en Ejecución de Store Procedure: "+e.getMessage().toString());
+				mylog.error("Exception error en Ejecución de Backup de Datos: "+e.getMessage().toString());
 			} catch (Exception er) {}
 		} 
     }
@@ -92,10 +89,11 @@ public class ThOSP extends Thread {
 			Object response = null;
 			
 			switch (task.getTypeProc()) {
-			case "OSP":
-				String strOsp = mylib.serializeObjectToJSon(task.getParam(), false);
-				Osp osp = (Osp) mylib.serializeJSonStringToObject(strOsp, Osp.class);
-				response = osp;
+				case "BTB":
+					String strBtb = mylib.serializeObjectToJSon(task.getParam(), false);
+					BackTable btb = (BackTable) mylib.serializeJSonStringToObject(strBtb, BackTable.class);
+					response = btb;
+					break;
 			}
 			
 			return response;

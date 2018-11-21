@@ -78,6 +78,15 @@
 	    <version>20160810</version>
 	</dependency>
   
+	<!-- https://mvnrepository.com/artifact/oracle/ojdbc6 -->
+	<dependency>
+	    <groupId>com.oracle</groupId>
+	    <artifactId>ojdbc</artifactId>
+	    <version>11.2.0</version>
+	    <scope>system</scope>
+	    <systemPath>/Users/admin/Documents/Developer/javaLibraries/javaLibs_db/ojdbc6.jar</systemPath>
+	</dependency>
+  
   </dependencies>
 
   <build>

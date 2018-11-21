@@ -1,5 +1,9 @@
 package org.services;
 
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.model.Mov;
 
 import com.rutinas.Rutinas;
@@ -16,6 +20,57 @@ public class MetaQuery {
 		this.dbType = dbType;
 	}
 	
+	public String getBackColumns(MetaData md, String dbType, String tableName) throws Exception {
+		try {
+			String vCols="";
+			
+			if (dbType.substring(0, 3).equals("ORA")) {
+				dbType = "ORA";
+			}
+			
+			switch(dbType) {
+				case "ORA":
+					List<String> cols = new ArrayList<>();
+					
+					//Obtiene las columnas de la tabla respectiva
+					String vSql = "SELECT  \n" + 
+							"	column_name,\n" + 
+							"	data_type,\n" + 
+							"	column_id\n" + 
+							"FROM \n" + 
+							"	USER_TAB_COLUMNS\n" + 
+							"WHERE \n" + 
+							"	table_name = '"+tableName+"' \n" + 
+							"ORDER BY\n" + 
+							"	COLUMN_ID\n" + 
+							"";
+					if (md.executeQuery(vSql)) {
+						ResultSet rs = md.getQuery();
+						if (rs!=null) {
+							while (rs.next()) {
+								String colName = rs.getString("column_name");
+								String colDataType = rs.getString("data_type");
+								int column_id = rs.getInt("column_id");
+								
+								cols.add(colName);
+							}
+							vCols = String.join(",", cols);
+						} else {
+							throw new Exception("getBackQuery(): Error Obteniendo columnas de tabla: "+tableName);
+						}
+					} else {
+						throw new Exception("getBackQuery(): Error Obteniendo columnas de tabla: "+tableName);
+					}
+					break;
+				case "SQL":
+					break;
+			}
+			
+			return vCols;
+		} catch (Exception e) {
+			throw new Exception("getBackQuery(): "+e.getMessage());
+		}
+	}
 	
 	public String parseSqlTableName(String dbType, String dbName, String tbName, String ownerName) throws Exception {
 		try {

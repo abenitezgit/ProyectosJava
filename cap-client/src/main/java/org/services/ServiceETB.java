@@ -1,5 +1,6 @@
 package org.services;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.sql.ResultSet;
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ import org.model.ExpTable;
 import org.model.ExpTableParam;
 import org.utilities.GlobalParams;
 import org.utilities.MyLogger;
+import org.utilities.MyUtils;
 
 import com.api.FtpAPI2;
 import com.api.SFtpAPI;
@@ -26,6 +28,7 @@ public class ServiceETB {
 	Logger logger;
 	MyLogger mylog;
 	ExpTable etb;
+	MyUtils utils;
 	
 	List<String> lstExportFiles = new ArrayList<>();
 	
@@ -34,6 +37,7 @@ public class ServiceETB {
 		this.etb = etb;
 		this.mylog = mylog;
 		this.logger = mylog.getLogger();
+		this.utils = new MyUtils(gParams);
 	}
 	
 	private Date fecTask;
@@ -121,8 +125,9 @@ public class ServiceETB {
 				mylog.info("Enviando archivos a sitio ftp...");
 				
 				for (String file : lstExportFiles) {
-					String localPathFileName = gParams.getAppConfig().getWorkPath()+"/"+file;
-					String remotePathFileName = etb.getFtpRemotePath()+"/"+file;
+					
+					String localPathFileName = utils.getFormatedPath(utils.getLocalPath(etb.getEtbFilePath()))+"/"+file;
+					String remotePathFileName = utils.getFormatedPath(etb.getFtpRemotePath())+"/"+file;
 					
 					mylog.info("Uploading file: "+localPathFileName);
 					ftp.upload(remotePathFileName, localPathFileName);
@@ -168,8 +173,9 @@ public class ServiceETB {
 				mylog.info("Enviando archivos a sitio sftp...");
 				
 				for (String file : lstExportFiles) {
-					String localPathFileName = gParams.getAppConfig().getWorkPath()+"/"+file;
-					String remotePathFileName = etb.getFtpRemotePath()+"/"+file;
+
+					String localPathFileName = utils.getFormatedPath(utils.getLocalPath(etb.getEtbFilePath()))+"/"+file;
+					String remotePathFileName = utils.getFormatedPath(etb.getFtpRemotePath())+"/"+file;
 					
 					mylog.info("Uploading file: "+localPathFileName);
 					if (sftp.upload(remotePathFileName, localPathFileName)) {
@@ -227,12 +233,10 @@ public class ServiceETB {
 				
 				CSVUtils csv = new CSVUtils();
 				
-				String expFilePath = getFilePath();
-				
-				FileWriter fw = new FileWriter(expFilePath+"/"+genFileName(numFile), etb.getEtbAppend()==1);
+				FileWriter fw = new FileWriter(utils.getLocalPath(etb.getEtbFilePath())+"/"+genFileName(numFile), etb.getEtbAppend()==1);
 				lstExportFiles.add(genFileName(numFile));
 				
-				mylog.info("Exportando a archivo: "+expFilePath+"/"+genFileName(numFile));
+				mylog.info("Exportando a archivo: "+utils.getLocalPath(etb.getEtbFilePath())+"/"+genFileName(numFile));
 					
 				if (etb.getEtbHeader()==1) {
 					mylog.info("Generando cabecera de nombres de columnas...");
@@ -250,7 +254,7 @@ public class ServiceETB {
 						if (itNumRowMultiFiles > maxRowsMultiFiles) {
 							fw.close();
 							numFile++;
-							fw = new FileWriter(expFilePath+"/"+genFileName(numFile), etb.getEtbAppend()==1);
+							fw = new FileWriter(utils.getLocalPath(etb.getEtbFilePath())+"/"+genFileName(numFile), etb.getEtbAppend()==1);
 							lstExportFiles.add(genFileName(numFile));
 							
 							mylog.info("Exportando a archivo: "+genFileName(numFile));
@@ -276,7 +280,7 @@ public class ServiceETB {
 				exitStatus = true;
 			} else {
 				if (etb.getEtbGetEmptyFile()==1) {
-					mylog.info("Generando archivo vacío: "+genFileName(0));
+					mylog.info("Generando archivo vacío: "+ utils.getLocalPath(etb.getEtbFilePath())+"/"+genFileName(0));
 					genEmptyFile();
 				} else {
 					mylog.info("No hay datos a exportar, No se generara archivo vació");
@@ -312,23 +316,12 @@ public class ServiceETB {
 		}
 	}
 	
-	public String getFilePath() {
-		String filePath=gParams.getAppConfig().getWorkPath();
-		
-//		if (!mylib.isNullOrEmpty(etb.getEtbFilePath())) {
-//			filePath = etb.getEtbFilePath();
-//			filePath.replace("\\", "/");
-//		}
-		if (filePath.endsWith("/")) {
-			filePath = filePath.substring(0,filePath.length()-1);
-		}
-		return filePath;
-	}
-	
 	public void genEmptyFile() throws Exception {
 		try {
-			FileWriter fw = new FileWriter(genFileName(0), false);
-			fw.close();
+			File file = new File(utils.getLocalPath(etb.getEtbFilePath())+"/"+genFileName(0));
+			if (!file.createNewFile()) {
+				new Exception("No fue posible crear el archivo vació: "+ utils.getLocalPath(etb.getEtbFilePath())+"/"+genFileName(0));
+			}
 			
 		} catch (Exception e) {
 			throw new Exception(e.getMessage());

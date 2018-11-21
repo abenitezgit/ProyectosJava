@@ -129,6 +129,7 @@ public class FlowControl {
 		try {
 			if (gParams.getMapTask().containsKey(key)) {
 				gParams.getMapTask().get(key).setStatus(status);
+				gParams.getMapTask().get(key).setuStatus((status));
 				gParams.getMapTask().get(key).setFecUpdate(mylib.getDate());
 			}
 			

@@ -65,9 +65,9 @@ public class ServiceFTP {
 				String localFile = mylib.parseFnParam(ftpProc.getLocalFile(), fecTask);
 				String remoteFile = mylib.parseFnParam(ftpProc.getRemoteFile(), fecTask);
 
-				String localPath = utils.getFilePath(ftpProc.getLocalPath());
+				String localPath = utils.getLocalPath(ftpProc.getLocalPath());
 				String localPathFileName = localPath+"/"+localFile;
-				String remotePathFileName = ftpProc.getRemotePath()+"/"+remoteFile;
+				String remotePathFileName = utils.getFormatedPath(ftpProc.getRemotePath())+"/"+remoteFile;
 					
 				mylog.info("Uploading file: "+localPathFileName);
 				ftp.upload(remotePathFileName, localPathFileName);
@@ -125,9 +125,9 @@ public class ServiceFTP {
 				String localFile = mylib.parseFnParam(ftpProc.getLocalFile(), fecTask);
 				String remoteFile = mylib.parseFnParam(ftpProc.getRemoteFile(), fecTask);
 
-				String localPath = utils.getFilePath(ftpProc.getLocalPath());
+				String localPath = utils.getLocalPath(ftpProc.getLocalPath());
 				String localPathFileName = localPath+"/"+localFile;
-				String remotePathFileName = ftpProc.getRemotePath()+"/"+remoteFile;
+				String remotePathFileName = utils.getFormatedPath(ftpProc.getRemotePath())+"/"+remoteFile;
 					
 				mylog.info("Download file: "+localPathFileName);
 				ftp.download(remotePathFileName, localPathFileName);
@@ -179,11 +179,12 @@ public class ServiceFTP {
 				String localFile = mylib.parseFnParam(ftpProc.getLocalFile(), fecTask);
 				String remoteFile = mylib.parseFnParam(ftpProc.getRemoteFile(), fecTask);
 
-				String localPath = utils.getFilePath(ftpProc.getLocalPath());
+				String localPath = utils.getLocalPath(ftpProc.getLocalPath());
 				String localPathFileName = localPath+"/"+localFile;
-				String remotePathFileName = ftpProc.getRemotePath()+"/"+remoteFile;
+				String remotePathFileName = utils.getFormatedPath(ftpProc.getRemotePath())+"/"+remoteFile;
 				
-				mylog.info("Uploading file: "+localPathFileName);
+				mylog.info("Uploading Local pathFile: "+localPathFileName);
+				mylog.info("Uploading Remote pathFile: "+remotePathFileName);
 				if (sftp.upload(remotePathFileName, localPathFileName)) {
 					mylog.info("Upload Success");
 					exitStatus = true;
@@ -230,9 +231,9 @@ public class ServiceFTP {
 				String localFile = mylib.parseFnParam(ftpProc.getLocalFile(), fecTask);
 				String remoteFile = mylib.parseFnParam(ftpProc.getRemoteFile(), fecTask);
 
-				String localPath = utils.getFilePath(ftpProc.getLocalPath());
+				String localPath = utils.getLocalPath(ftpProc.getLocalPath());
 				String localPathFileName = localPath+"/"+localFile;
-				String remotePathFileName = ftpProc.getRemotePath()+"/"+remoteFile;
+				String remotePathFileName = utils.getFormatedPath(ftpProc.getRemotePath())+"/"+remoteFile;
 				
 				mylog.info("Download file: "+localPathFileName);
 				if (sftp.download(remotePathFileName, localPathFileName)) {

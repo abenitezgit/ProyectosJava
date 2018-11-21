@@ -63,7 +63,7 @@ public class ServiceControl {
 							Thread thOsp = new ThOSP(gParams, entry.getValue());
 							fc.addUsedThreadProc(typeProc);
 							fc.updateStatusTask(entry.getKey(),"RUNNING");
-							thOsp.run();
+							thOsp.start();
 							
 						} else {
 							logger.info("Esperando por Free Thread OSP...");
@@ -74,7 +74,18 @@ public class ServiceControl {
 							Thread thETB = new ThETB(gParams, entry.getValue());
 							fc.addUsedThreadProc(typeProc);
 							fc.updateStatusTask(entry.getKey(),"RUNNING");
-							thETB.run();
+							thETB.start();
+							
+						} else {
+							logger.info("Esperando por Free Thread ETB...");
+						}
+						break;
+					case "BTB":
+						if (fc.isExistFreeThread(typeProc)) {
+							Thread thBTB = new ThBTB(gParams, entry.getValue());
+							fc.addUsedThreadProc(typeProc);
+							fc.updateStatusTask(entry.getKey(),"RUNNING");
+							thBTB.start();
 							
 						} else {
 							logger.info("Esperando por Free Thread ETB...");
@@ -85,7 +96,7 @@ public class ServiceControl {
 							Thread thLTB = new ThLTB(gParams, entry.getValue());
 							fc.addUsedThreadProc(typeProc);
 							fc.updateStatusTask(entry.getKey(),"RUNNING");
-							thLTB.run();
+							thLTB.start();
 							
 						} else {
 							logger.info("Esperando por Free Thread LTB...");
@@ -96,7 +107,7 @@ public class ServiceControl {
 							Thread thFTP = new ThFTP(gParams, entry.getValue());
 							fc.addUsedThreadProc(typeProc);
 							fc.updateStatusTask(entry.getKey(),"RUNNING");
-							thFTP.run();
+							thFTP.start();
 							
 						} else {
 							logger.info("Esperando por Free Thread FTP...");
@@ -107,7 +118,7 @@ public class ServiceControl {
 							Thread thMOV = new ThMOV(gParams, entry.getValue());
 							fc.addUsedThreadProc(typeProc);
 							fc.updateStatusTask(entry.getKey(),"RUNNING");
-							thMOV.run();
+							thMOV.start();
 							
 						} else {
 							logger.info("Esperando por Free Thread MOV...");

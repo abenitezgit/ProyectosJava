@@ -20,6 +20,7 @@ import org.model.LoadTableParam;
 import org.model.LtbResult;
 import org.utilities.GlobalParams;
 import org.utilities.MyLogger;
+import org.utilities.MyUtils;
 
 import com.api.FtpAPI2;
 import com.api.SFtpAPI;
@@ -31,6 +32,7 @@ public class ServiceLTB {
 	Logger logger;
 	MyLogger mylog;
 	LoadTable ltb;
+	MyUtils utils;
 	
 	List<String> lstExportFiles = new ArrayList<>();
 	private Object txResult;
@@ -40,6 +42,7 @@ public class ServiceLTB {
 		this.mylog = mylog;
 		this.logger = mylog.getLogger();
 		this.gParams = m;
+		this.utils = new MyUtils(gParams);
 	}
 	
 	private Date fecTask;
@@ -78,7 +81,7 @@ public class ServiceLTB {
 			String fileName = mylib.parseFnParam(ltb.getLtbFileName(), fecTask);
 			String fileType = ltb.getLtbFileType();
 			
-			String pathFileName = getLocalFilePath()+"/"+fileName;
+			String pathFileName = utils.getLocalPath(ltb.getLtbFilePath())+"/"+fileName;
 			
 			if (ltb.getFtpEnable()==1) {
 				if (ltb.getFtpSecure()==1) {
@@ -356,7 +359,7 @@ public class ServiceLTB {
 				mylog.info("Bajando archivo de carga del sitio ftp...");
 				
 				String fileName = mylib.parseFnParam(ltb.getLtbFileName(), fecTask);
-				String localPathFileName = getLocalFilePath()+"/"+fileName;
+				String localPathFileName = utils.getLocalPath(ltb.getLtbFilePath())+"/"+fileName;
 				String remotePathFileName = getRemoteFilePath()+"/"+fileName;
 				
 				mylog.info("Bajando archivo de carga en : "+localPathFileName);
@@ -402,7 +405,7 @@ public class ServiceLTB {
 				mylog.info("Bajando archivo del sitio sftp...");
 				
 				String fileName = mylib.parseFnParam(ltb.getLtbFileName(), fecTask);
-				String localPathFileName = getLocalFilePath()+"/"+fileName;
+				String localPathFileName = utils.getLocalPath(ltb.getLtbFilePath())+"/"+fileName;
 				String remotePathFileName = getRemoteFilePath()+"/"+fileName;
 				
 				mylog.info("Bajando Archivo en: "+localPathFileName);
@@ -427,18 +430,6 @@ public class ServiceLTB {
 		}
 	}
 	
-	public String getLocalFilePath() {
-		String filePath=gParams.getAppConfig().getWorkPath();
-		
-		if (!mylib.isNullOrEmpty(ltb.getLtbFilePath())) {
-			filePath = ltb.getLtbFilePath();
-		}
-		if (filePath.endsWith("/")) {
-			filePath = filePath.substring(0,filePath.length()-1);
-		}
-		return filePath;
-	}
-
 	public String getRemoteFilePath() {
 		String filePath=gParams.getAppConfig().getWorkPath();
 		

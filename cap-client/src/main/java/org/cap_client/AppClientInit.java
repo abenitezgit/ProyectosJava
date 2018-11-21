@@ -1,6 +1,7 @@
 package org.cap_client;
 
 import java.io.FileInputStream;
+import java.lang.management.ManagementFactory;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import org.apache.log4j.Logger;
@@ -32,6 +33,8 @@ public class AppClientInit {
 	
     public static void main( String[] args ) {
     	try {
+    		System.out.println(ManagementFactory.getRuntimeMXBean().getName());
+    		
     		//Startup cap-server
     		mylib.console("Iniciando Dispatcher cap-client");
     		
