@@ -8,8 +8,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Map.Entry;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -24,8 +24,7 @@ import org.apache.hadoop.hbase.filter.CompareFilter;
 import org.apache.hadoop.hbase.filter.PageFilter;
 import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
 import org.apache.hadoop.hbase.util.Bytes;
-
-import com.rutinas.Rutinas;
+import org.apache.log4j.Logger;
 
 /**
  * 
@@ -34,7 +33,7 @@ import com.rutinas.Rutinas;
    	<dependency>
 	    <groupId>org.apache.hbase</groupId>
 	    <artifactId>hbase-client</artifactId>
-	    <version>1.3.0</version>
+	    <version>2.1.0</version>
 	      <exclusions>
 	        <exclusion>
 	          <groupId>com.sun.jersey</groupId> <!-- Exclude Project-E from Project-B -->
@@ -60,8 +59,8 @@ import com.rutinas.Rutinas;
 
  */
 
-public class HBaseAPI {
-	Rutinas mylib = new Rutinas();
+public class HBase2API {
+	Logger logger = Logger.getLogger("HBase2API");
 	Configuration hcfg  = HBaseConfiguration.create();
 	Connection conn;
 	String tbName;
@@ -86,15 +85,23 @@ public class HBaseAPI {
 		}
 	}
 	
-	public void setConfig(String filePropertiesPath, String HBProperty, String tbName ) throws Exception {
+	public boolean isConnected() {
+		if (conn!=null) {
+			return !conn.isClosed();
+		} else {
+			return false;
+		}
+	}
+	
+	public void connect(String filePropertiesPath, String clusterName, String tbName ) throws Exception {
 		try {
 			Properties fileProperties = new Properties();
 			String [] confFiles;
 			String pathFiles;
 			
 			fileProperties.load(new FileInputStream(filePropertiesPath));
-			confFiles = fileProperties.getProperty(HBProperty+".hadoopConfs").split(",");
-			pathFiles = fileProperties.getProperty(HBProperty+".hadoopPath");
+			confFiles = fileProperties.getProperty(clusterName+".hadoopConfs").split(",");
+			pathFiles = fileProperties.getProperty(clusterName+".hadoopPath");
             
             for (int i=0; i< confFiles.length; i++  ) {
                 hcfg.addResource(new Path(pathFiles+"/"+confFiles[i]));
@@ -102,9 +109,9 @@ public class HBaseAPI {
             this.tbName = tbName;
             
             conn = ConnectionFactory.createConnection(hcfg);
-			
+            
 		} catch (Exception e) {
-			throw new Exception(e.getMessage());
+			throw new Exception("connect(): "+e.getMessage());
 		}
 	}
 
@@ -181,40 +188,41 @@ public class HBaseAPI {
 	    	long recordCount = 0;
 	    	
 	    	//Set all scan related properties
-        Scan scan = new Scan();
-        //Most important part of code set it properly!
-        //here my purpose it to delete everthing Present Time - 6 hours
-        scan.setTimeRange(startTime, endTime);
-        scan.setCaching(10000);
-
-      //Scan the table and get the row keys
-        ResultScanner resultScanner = table.getScanner(scan);
-        for (Result scanResult : resultScanner) {
+	        Scan scan = new Scan();
+	        //Most important part of code set it properly!
+	        //here my purpose it to delete everthing Present Time - 6 hours
+	        scan.setTimeRange(startTime, endTime);
+	        scan.setCaching(10000);
+	
+	        //Scan the table and get the row keys
+	        ResultScanner resultScanner = table.getScanner(scan);
+	        for (Result scanResult : resultScanner) {
         		Delete delete = new Delete(scanResult.getRow());
 
         		//Create batches of Bult Delete
         		listOfBatchDeletes.add(delete);
         		recordCount++;
         		if (listOfBatchDeletes.size() == maxRowsRange) {
-        			mylib.console("Firing Batch Delete Now ("+maxRowsRange+")......");
+        			logger.info("Firing Batch Delete Now ("+maxRowsRange+")......");
         			table.delete(listOfBatchDeletes);
         			//don't forget to clear the array list
         			listOfBatchDeletes.clear();
         		}
-        	}
-        
-        mylib.console("Firing Final Batch of Deletes ("+listOfBatchDeletes.size()+").....");
-        table.delete(listOfBatchDeletes);
-        mylib.console("Total Records Deleted are.... " + recordCount);
-        
-        resultScanner.close();
-        table.close();
+	        }
+	        
+	        logger.info("Firing Final Batch of Deletes ("+listOfBatchDeletes.size()+").....");
+	        table.delete(listOfBatchDeletes);
+	        logger.info("Total Records Deleted are.... " + recordCount);
+	        
+	        resultScanner.close();
+	        table.close();
 			
 		} catch (Exception e) {
-			throw new Exception("Error deleteTimeRange: "+e.getMessage());
+			throw new Exception("deleteTimeRange(): "+e.getMessage());
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	public void deleteByDateRangeKey(String fecStart, String fecStop, int maxRowsRange) throws Exception {
 		try {
 	    	
@@ -223,39 +231,39 @@ public class HBaseAPI {
 	    	long recordCount = 0;
 	    	
 	    	//Set all scan related properties
-        Scan scan = new Scan();
-        //Most important part of code set it properly!
-        //here my purpose it to delete everthing Present Time - 6 hours
-        scan.setCaching(10000);
-        
-        scan.setStartRow(Bytes.toBytes(fecStart));
-        scan.setStopRow(Bytes.toBytes(fecStop));
-
-      //Scan the table and get the row keys
-        ResultScanner resultScanner = table.getScanner(scan);
-        for (Result scanResult : resultScanner) {
+	        Scan scan = new Scan();
+	        //Most important part of code set it properly!
+	        //here my purpose it to delete everthing Present Time - 6 hours
+	        scan.setCaching(10000);
+	        
+	        scan.setStartRow(Bytes.toBytes(fecStart));
+	        scan.setStopRow(Bytes.toBytes(fecStop));
+	
+	        //Scan the table and get the row keys
+	        ResultScanner resultScanner = table.getScanner(scan);
+	        for (Result scanResult : resultScanner) {
         		Delete delete = new Delete(scanResult.getRow());
 
         		//Create batches of Bult Delete
         		listOfBatchDeletes.add(delete);
         		recordCount++;
         		if (listOfBatchDeletes.size() == maxRowsRange) {
-        			mylib.console("Firing Batch Delete Now ("+maxRowsRange+")......");
+        			logger.info("Firing Batch Delete Now ("+maxRowsRange+")......");
         			table.delete(listOfBatchDeletes);
         			//don't forget to clear the array list
         			listOfBatchDeletes.clear();
         		}
-        	}
-        
-        mylib.console("Firing Final Batch of Deletes ("+listOfBatchDeletes.size()+").....");
-        table.delete(listOfBatchDeletes);
-        mylib.console("Total Records Deleted are.... " + recordCount);
-        
-        resultScanner.close();
-        table.close();
+	        }
+	        
+	        logger.info("Firing Final Batch of Deletes ("+listOfBatchDeletes.size()+").....");
+	        table.delete(listOfBatchDeletes);
+	        logger.info("Total Records Deleted are.... " + recordCount);
+	        
+	        resultScanner.close();
+	        table.close();
 			
 		} catch (Exception e) {
-			throw new Exception("Error deleteTimeRange: "+e.getMessage());
+			throw new Exception("deleteTimeRange(): "+e.getMessage());
 		}
 	}
 
@@ -318,32 +326,6 @@ public class HBaseAPI {
 		}
 	}
 	
-	public void putRow(Map<String, List<colModel>> rows) throws Exception {
-		try {
-			Table table = conn.getTable(TableName.valueOf(tbName));
-			List<Put> lstPut = new ArrayList<>();
-			
-			for (Entry<String, List<colModel>> entry : rows.entrySet()) {
-				Put p = new Put(Bytes.toBytes(entry.getKey()));
-				
-				for (int i=0; i<entry.getValue().size(); i++) {
-					String cf = entry.getValue().get(i).getFamily();
-					String cq = entry.getValue().get(i).getColumn();
-					String vu = entry.getValue().get(i).getValue();
-					p.addColumn(Bytes.toBytes(cf), Bytes.toBytes(cq),Bytes.toBytes(vu));
-				}
-				lstPut.add(p);
-			}
-			table.put(lstPut);
-			
-			table.close();
-			
-		} catch (Exception e) {
-			throw new Exception(e.getMessage());
-		}
-	}
-
-	
 	public void putRow(List<Map<String, Object>> rows, int rowsSet) throws Exception {
 		try {
 			Table table = conn.getTable(TableName.valueOf(tbName));
@@ -362,7 +344,7 @@ public class HBaseAPI {
 					if (!cols.getKey().equals("key")) {
 						Put p = new Put(Bytes.toBytes(key));
 						String cf = cols.getKey().split(":")[0];
-						String cq = cols.getKey().split(":")[0];
+						String cq = cols.getKey().split(":")[1];
 						String vu = (String) cols.getValue();
 						p.addColumn(Bytes.toBytes(cf), Bytes.toBytes(cq),Bytes.toBytes(vu));
 						lstPut.add(p);
@@ -388,7 +370,31 @@ public class HBaseAPI {
 			throw new Exception("putRow():"+e.getMessage());
 		} 
 	}
-
+	
+	public void putRow(Map<String, List<HBCol>> rows) throws Exception {
+		try {
+			Table table = conn.getTable(TableName.valueOf(tbName));
+			List<Put> lstPut = new ArrayList<>();
+			
+			for (Entry<String, List<HBCol>> entry : rows.entrySet()) {
+				Put p = new Put(Bytes.toBytes(entry.getKey()));
+				
+				for (int i=0; i<entry.getValue().size(); i++) {
+					String cf = entry.getValue().get(i).getFamily();
+					String cq = entry.getValue().get(i).getColumn();
+					String vu = entry.getValue().get(i).getValue();
+					p.addColumn(Bytes.toBytes(cf), Bytes.toBytes(cq),Bytes.toBytes(vu));
+				}
+				lstPut.add(p);
+			}
+			table.put(lstPut);
+			
+			table.close();
+			
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		}
+	}
 	
 	public Map<String, Map<String,String>> getRows(List<String> keys) throws Exception {
 		Map<String, Map<String, String>> mapKeyValue = new HashMap<>();
@@ -413,39 +419,6 @@ public class HBaseAPI {
 		
 		return mapKeyValue;
 	}
-
-	public Map<String, Map<String,String>> getRows(List<String> keys, String[] family) throws Exception {
-		Map<String, Map<String, String>> mapKeyValue = new HashMap<>();
-		
-		Table table = conn.getTable(TableName.valueOf(tbName));
-		
-		for (String key : keys) {
-			Get get = new Get(key.getBytes());
-			
-			//Add family filters
-			if (family.length>0) {
-				for (String cf : family) {
-					get.addFamily(cf.getBytes());
-				}
-			}
-			
-			Result r = table.get(get);
-			
-			Map<String, String> mapRowValue = new HashMap<>();
-			
-			for (Cell cell : r.listCells()) {
-				mapRowValue.put(new String(CellUtil.cloneQualifier(cell)), new String(CellUtil.cloneValue(cell)));
-			}
-			
-			mapKeyValue.put(key, mapRowValue);
-
-		}
-
-		table.close();
-		
-		return mapKeyValue;
-	}
-	
 	
 	public Map<String, Map<String,String>> getRows(Map<String,String> mapKey, String[] family) throws Exception {
 		try {
@@ -485,43 +458,87 @@ public class HBaseAPI {
 			throw new Exception(e.getMessage());
 		}
 	}
+
 	
-	public Map<String, Map<String,String>> getRow(String key) throws Exception {
+	public List<Map<String,Object>> getRowsList(List<String> keys, String[] family) throws Exception {
 		try {
-			mylib.console("HBase Creando conector...");
+			List<Map<String,Object>> rows = new ArrayList<>();
+			Map<String,Object> cols = new HashMap<>();
 			
 			Table table = conn.getTable(TableName.valueOf(tbName));
-			
-			Get get = new Get(key.getBytes());
-			
-			mylib.console("HBase Recuperando Key...");
-			Result r = table.get(get);
-			
-			Map<String, String> mapRowValue = new HashMap<>();
-			Map<String, Map<String, String>> mapKeyValue = new HashMap<>();
-			
-			if (r!=null) {
-				if (!r.isEmpty()) {
+
+			for (String key : keys) {
+				Get get = new Get(key.getBytes());
 				
-					mylib.console("HBase Parseando Key...");
-					for (Cell cell : r.listCells()) {
-						mapRowValue.put(new String(CellUtil.cloneQualifier(cell)), new String(CellUtil.cloneValue(cell)));
+				//Add family filters
+				if (family.length>0) {
+					for (String cf : family) {
+						get.addFamily(cf.getBytes());
 					}
 				}
+
+				cols = new HashMap<>();
+				
+				Result r = table.get(get);
+				
+				for (Cell cell : r.listCells()) {
+					String cf = new String(CellUtil.cloneFamily(cell));
+					String cq = new String(CellUtil.cloneQualifier(cell));
+					String cv = new String(CellUtil.cloneValue(cell));
+					cols.put(cf+":"+cq,cv);
+				}
+				
+				cols.put("key", key);
+
+				rows.add(cols);
 			}
 			
-			mylib.console("HBase Guardando key...");
-			mapKeyValue.put(key, mapRowValue);
+			return rows;
 			
-			table.close();
-			
-			mylib.console("HBase retornando Key...");
-			return mapKeyValue;
 		} catch (Exception e) {
-			mylib.console(1,"Error getRow: "+e.getMessage());
-			throw new Exception(e.getMessage());
+			throw new Exception("getRows(): "+e.getMessage());
 		}
 	}
+	
+	public Map<String,List<HBCol>> getRowsMap(List<String> keys, String[] family) throws Exception {
+		try {
+			Map<String,List<HBCol>> rows = new HashMap<>();
+			List<HBCol> cols = new ArrayList<>();
+			
+			Table table = conn.getTable(TableName.valueOf(tbName));
+
+			for (String key : keys) {
+				Get get = new Get(key.getBytes());
+				
+				//Add family filters
+				if (family.length>0) {
+					for (String cf : family) {
+						get.addFamily(cf.getBytes());
+					}
+				}
+
+				HBCol col = new HBCol();
+				
+				Result r = table.get(get);
+				
+				for (Cell cell : r.listCells()) {
+					col.setColumn(new String(CellUtil.cloneQualifier(cell)));
+					col.setFamily(new String(CellUtil.cloneFamily(cell)));
+					col.setValue(new String(CellUtil.cloneValue(cell)));
+					cols.add(col);
+					
+				}
+				
+				rows.put(key, cols);
+			}
+			
+			return rows;
+			
+		} catch (Exception e) {
+			throw new Exception("getRows(): "+e.getMessage());
+		}
+	}
+
 
 	public Map<String, Map<String,String>> getRow(String key, String[] family) throws Exception {
 		try {
@@ -555,6 +572,7 @@ public class HBaseAPI {
 		}
 	}
 	
+	@SuppressWarnings("deprecation")
 	public List<String> getKeys(long limit) throws Exception {
 		try {
 			Table table = conn.getTable(TableName.valueOf(tbName));
@@ -587,6 +605,7 @@ public class HBaseAPI {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	public Map<String, Map<String,String>> scan(String[] family, int limit) throws Exception {
 		try {
 			Table table = conn.getTable(TableName.valueOf(tbName));
@@ -656,6 +675,7 @@ public class HBaseAPI {
 		}
 	}
 	
+	@SuppressWarnings("deprecation")
 	public Map<String, Map<String,String>> scanConnid(String connid) throws Exception {
 		try {
 			

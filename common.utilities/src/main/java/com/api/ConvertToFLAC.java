@@ -8,26 +8,30 @@ import java.util.List;
 
 import com.rutinas.Rutinas;
 
-public class ConvertToMP3 {
+public class ConvertToFLAC {
 	Rutinas mylib = new Rutinas();
-	private final String className = "ConvertToMP3";
+	private final String className = "ConvertToFLAC";
 	
 	private final String UTILEXEC = "ffmpeg";
 	private String workFolder;
 	private String fileSource;
 	private String fileOutput;
+	private String initTime;
+	private String stopTime;
 	private List<String> commands = new ArrayList<>();
 	private StringBuilder sbInput;
 	private StringBuilder sbError;
 
-	public ConvertToMP3() {
+	public ConvertToFLAC() {
 		
 	}
 
-	public ConvertToMP3(String workFolder, String fileSource, String fileOutput) {
+	public ConvertToFLAC(String workFolder, String fileSource, String fileOutput, String initTime, String stopTime) {
 		this.workFolder = workFolder;
 		this.fileSource = fileSource;
 		this.fileOutput = fileOutput;
+		this.initTime = initTime;
+		this.stopTime = stopTime;
 	}
 	
 	//Getter and Setter
@@ -82,19 +86,6 @@ public class ConvertToMP3 {
 				throw new Exception("Utilitario: "+UTILEXEC+" no se encuentra");
 			}
 			
-//			//Genera los parametros de conversion
-//			commands.add("./"+UTILEXEC);
-//			commands.add("-loglevel");
-//			commands.add("fatal");
-//			commands.add("-y");
-//			commands.add("-i");
-//			commands.add(fileSource);
-//			commands.add("-ac");
-//			commands.add("1");
-//			commands.add("-ar");
-//			commands.add("22050");
-//			commands.add(fileOutput);
-
 			//Genera los parametros de conversion
 			commands.add("./"+UTILEXEC);
 			commands.add("-loglevel");
@@ -102,14 +93,16 @@ public class ConvertToMP3 {
 			commands.add("-y");
 			commands.add("-i");
 			commands.add(fileSource);
-			commands.add("-codec:a");
-			commands.add("libmp3lame");
-			commands.add("-ac");
-			commands.add("1");
+			commands.add("-ss");
+			commands.add(initTime);
+			commands.add("-t");
+			commands.add(stopTime);
+			commands.add("-c:a");
+			commands.add("flac");
 			commands.add(fileOutput);
-
+			
 		} catch (Exception e) {
-			throw new Exception("Error valiadParams: "+e.getMessage());
+			throw new Exception("Error validaParams: "+e.getMessage());
 		}
 	}
 
@@ -167,7 +160,7 @@ public class ConvertToMP3 {
 	
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new Exception("Error ConvertToMP3: "+e.getMessage());
+			throw new Exception("Error ConvertToFLAC: "+e.getMessage());
 		}
 	}
 

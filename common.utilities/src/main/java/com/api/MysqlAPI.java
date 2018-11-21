@@ -11,8 +11,11 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+
+import com.model.SPparam;
 
 /**
  *
@@ -176,8 +179,14 @@ public class MysqlAPI {
 					stm.close();
 				}
 			}
-			
-			if (Objects.isNull(connection)) {
+
+			if (!Objects.isNull(cs)) {
+				if (!cs.isClosed()) {
+					cs.close();
+				}
+			}
+
+			if (!Objects.isNull(connection)) {
 				if (!connection.isClosed()) {
 					connection.close();
 				}
@@ -218,6 +227,14 @@ public class MysqlAPI {
 	    	}
     }
     
+    public ResultSet getSpResult() throws Exception {
+    	try {
+			return cs.getResultSet();
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		}
+    }
+    
     public boolean isExistRows() throws Exception {
 	    	try {
 	    		boolean result;
@@ -237,7 +254,7 @@ public class MysqlAPI {
 	    	}
     }
     
-	public boolean executeProcedure(String spName, List<String> spParams) throws Exception {
+	public boolean executeProcedure(String spName, List<SPparam> spParams) throws Exception {
 		try {
 			boolean isExistParams = false;
 			int numParams =0;
@@ -266,26 +283,67 @@ public class MysqlAPI {
 			}
 			
 			int numParam=1;
-			for (String param : spParams) {
-				String[] items = param.split("&");
-				String paramInOut = items[0];
-				String paramType = items[1];
-				String paramValue = "";
+			for (SPparam param : spParams) {
+				@SuppressWarnings("unused")
+				String paramInOut = param.getInOutType();
 				
-				try {
-					paramValue = items[2];
+				String dataType;
+				Object dataValue;
+				try { 
+					dataType = param.getValue().getClass().getSimpleName();
+					dataValue = param.getValue();
 				} catch (Exception e) {
-					paramValue = "";
+					dataType = "String";
+					dataValue = null;
+					
 				}
-
-				switch(paramType) {
-					case "VARCHAR":
+				
+				switch(dataType) {
+					case "String":
+						String paramValue;
+						try {
+							paramValue = (String) dataValue;
+						} catch (Exception e) {
+							paramValue = "";
+						}
 						cs.setString(numParam, paramValue);
 						break;
-					case "INTEGER":
-						cs.setInt(numParam, Integer.valueOf(paramValue));
+					case "Integer":
+						int paramValueInt;
+						try {
+							paramValueInt = (Integer) dataValue;
+						} catch (Exception e) {
+							paramValueInt = 0;
+						}
+						cs.setInt(numParam, paramValueInt);
+						break;
+					case "Long":
+						long paramValueLong=0;
+						try {
+							paramValueLong =  (long) dataValue;
+						} catch (Exception e) {
+							paramValueLong = 0;
+						}
+						cs.setLong(numParam, paramValueLong);
+						break;
+					case "Date":
+						java.util.Date paramValueUtilDate = (Date) dataValue;
+						java.sql.Timestamp paramValueSqlTimestamp;
+						try {
+							paramValueSqlTimestamp = new java.sql.Timestamp(paramValueUtilDate.getTime());
+						} catch (Exception e) {
+							paramValueSqlTimestamp = null;
+						}
+						cs.setTimestamp(numParam, paramValueSqlTimestamp);
 						break;
 					default:
+						try {
+							paramValue = (String) dataValue;
+						} catch (Exception e) {
+							paramValue = "";
+						}
+						cs.setString(numParam, paramValue);
+						
 						break;
 				}
 				numParam++;
@@ -306,21 +364,12 @@ public class MysqlAPI {
 			
 			 */
 			
+			@SuppressWarnings("unused")
 			boolean response = cs.execute();
 
-			if (!response) {
-				ResultSet rs = cs.getResultSet();
-			}
-			
-			if (cs!=null) {
-				cs.close();
-			}
-			
 			return true;
 		} catch (Exception e) {
 			throw new Exception(e.getMessage());
 		}
 	}
-
-
 }

@@ -9,9 +9,12 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
 
 public class FtpAPI2 {
@@ -159,6 +162,35 @@ public class FtpAPI2 {
 			return ftp.retrieveFileStream(remotePathFile);
 		} catch (Exception e) {
 			throw new Exception("getInputStream: "+e.getMessage());
+		}
+	}
+	
+	public void rename(String remotePath, String source, String dest) throws Exception {
+		try {
+			
+			ftp.changeWorkingDirectory(remotePath);
+			if (!ftp.rename(source, dest)) {
+				throw new Exception("unable to rename file: "+dest);
+			}
+			
+		} catch (Exception ex) {
+			throw new Exception(ex.getMessage());
+		}
+	}
+	
+	public List<String> getFiles(String remotePath, String pattern) throws Exception {
+		try {
+			List<String> files = new ArrayList<>();
+			
+			FTPFile[] myfiles = ftp.listFiles(remotePath+"/"+pattern);
+			
+			for (int i=0; i<myfiles.length; i++) {
+				files.add(myfiles[0].getName());
+			}
+			
+			return files;
+		} catch (Exception ex) {
+			throw new Exception(ex.getMessage());
 		}
 	}
 	

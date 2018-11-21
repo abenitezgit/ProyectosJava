@@ -20,7 +20,7 @@ import com.model.SPparam;
  *
  * @author NEO
  */
-public class OracleAPI {
+public class SqlAPI {
 
 	private Connection connection;
 	private Statement stm;
@@ -32,11 +32,12 @@ public class OracleAPI {
     private String dbUser;
     private String dbPass;
     private String dbOwner;
+    private String dbInstance;
     private int timeOut;
     
-    public OracleAPI() { }
+    public SqlAPI() { }
 
-    public OracleAPI(String dbHost, String dbName, String dbPort, String dbUser, String dbPass, int timeOut) {
+    public SqlAPI(String dbHost, String dbName, String dbPort, String dbUser, String dbPass, int timeOut) {
 		this.dbHost = dbHost;
 		this.dbPort = dbPort;
 		this.dbName = dbName;
@@ -44,8 +45,71 @@ public class OracleAPI {
 		this.dbPass = dbPass;
 		this.timeOut = timeOut;
     }
+
+    public SqlAPI(String dbHost, String dbInstance, String dbName, String dbPort, String dbUser, String dbPass, int timeOut) {
+		this.dbHost = dbHost;
+		this.dbPort = dbPort;
+		this.dbName = dbName;
+		this.dbUser = dbUser;
+		this.dbPass = dbPass;
+		this.dbInstance = dbInstance;
+		this.timeOut = timeOut;
+    }
     
-    public void setDBOwner(String dbOwner) {
+    
+    public String getDbHost() {
+		return dbHost;
+	}
+
+	public void setDbHost(String dbHost) {
+		this.dbHost = dbHost;
+	}
+
+	public String getDbName() {
+		return dbName;
+	}
+
+	public void setDbName(String dbName) {
+		this.dbName = dbName;
+	}
+
+	public String getDbPort() {
+		return dbPort;
+	}
+
+	public void setDbPort(String dbPort) {
+		this.dbPort = dbPort;
+	}
+
+	public String getDbUser() {
+		return dbUser;
+	}
+
+	public void setDbUser(String dbUser) {
+		this.dbUser = dbUser;
+	}
+
+	public String getDbPass() {
+		return dbPass;
+	}
+
+	public void setDbPass(String dbPass) {
+		this.dbPass = dbPass;
+	}
+
+	public String getDbInstance() {
+		return dbInstance;
+	}
+
+	public void setDbInstance(String dbInstance) {
+		this.dbInstance = dbInstance;
+	}
+
+	public void setDbOwner(String dbOwner) {
+		this.dbOwner = dbOwner;
+	}
+
+	public void setDBOwner(String dbOwner) {
     	this.dbOwner = dbOwner;
     }
     
@@ -69,18 +133,24 @@ public class OracleAPI {
 		}
 	}
 
-    public OracleAPI open() throws Exception  {
+    public SqlAPI open() throws Exception  {
         
     	//Define la clase de la conexión
         try {
-        	Class.forName("oracle.jdbc.OracleDriver");
+        	Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
         } catch (Exception e) {
         	throw new Exception(e.getMessage());
         }
         
         //Crea string de conexión
         
-        String StringConnection = "jdbc:oracle:thin:@"+dbHost+":"+dbPort+":"+dbName;
+        String StringConnection = "jdbc:sqlserver://"+dbHost+":"+dbPort+":"+dbName;
+        
+        if (Objects.isNull(dbInstance) || dbInstance.isEmpty()) {
+        	StringConnection = "jdbc:sqlserver://"+dbHost+":"+dbPort+";databaseName="+dbName+";integratedSecurity=false";
+        } else {
+        	StringConnection = "jdbc:sqlserver://"+dbHost+":"+dbPort+";databaseName="+dbName+";integratedSecurity=false"+";instanceName="+dbInstance;
+        }
         
         //Setea TimeOut en Driver de Conexion
         DriverManager.setLoginTimeout(timeOut);
@@ -97,10 +167,8 @@ public class OracleAPI {
     
 	public void close() throws Exception {
 		try {
-			if (!Objects.isNull(stm)) {
-				if(!stm.isClosed()) {
-					stm.close();
-				}
+			if(!stm.isClosed()) {
+				stm.close();
 			}
 			
 			if (!Objects.isNull(cs)) {
@@ -108,7 +176,7 @@ public class OracleAPI {
 					cs.close();
 				}
 			}
-
+			
 			if (!connection.isClosed()) {
 				connection.close();
 			}

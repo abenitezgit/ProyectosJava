@@ -1,3 +1,9 @@
+/**
+ * Author: ABT
+ * Version: 6-0.0
+ * Modified Date: 2018-11-07
+ * Maven Release: 6.6.0
+ */
 package com.api;
 
 import java.util.ArrayList;
@@ -8,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrRequest.METHOD;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
@@ -22,7 +29,8 @@ import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.json.JSONObject;
 
-public class SolrAPI  {
+public class Solr6API  {
+	Logger logger = Logger.getLogger("Solr6API");
 	private CloudSolrClient solrClient;
 	private SolrPingResponse solrStatus;
 	private ModifiableSolrParams modifiableSolrParams;
@@ -75,7 +83,7 @@ public class SolrAPI  {
 			
 			return idKeys;
 		} catch (Exception e) {
-			throw new Exception(e.getMessage());
+			throw new Exception("getQueryDocumentList(): "+e.getMessage());
 		}
 	}
 	
@@ -114,7 +122,7 @@ public class SolrAPI  {
 				}
 			}
 		} catch (Exception e) {
-			throw new Exception(e.getMessage());
+			throw new Exception("setSolrParams(): "+e.getMessage());
 		}
 	}
 
@@ -134,7 +142,12 @@ public class SolrAPI  {
 			for (String zkServer : arrayZk) {
 				zkHost.add(zkServer);
 			}
-			solrClient = new CloudSolrClient(zkHost,"/solr");
+			
+			//Deprecated
+			//solrClient = new CloudSolrClient(zkHost,"/solr");
+			
+			//Use new Connection from solr 6
+			solrClient  = new CloudSolrClient.Builder().withZkHost(zkHost).build();
 			
 			if (getCollectionBase()==null || getCollectionBase().equals("")) {
 				throw new Exception("Collection debe definirse antes del Connect");
@@ -143,7 +156,7 @@ public class SolrAPI  {
 			solrStatus = solrClient.ping();
 			
 		} catch (Exception e) {
-			throw new Exception(e.getMessage());
+			throw new Exception("connect"+e.getMessage());
 		}
 
 	}
@@ -165,26 +178,34 @@ public class SolrAPI  {
 			for (String zkServer : arrayZk) {
 				zkHost.add(zkServer);
 			}
-			solrClient = new CloudSolrClient(zkHost,"/solr");
+			
+			//Add /solr
+			zkHost.add("/solr");
+			
+			//Deprecated
+			//solrClient = new CloudSolrClient(zkHost,"/solr");
+			
+			//Use new Connection from solr 6 
+			solrClient  = new CloudSolrClient.Builder().withZkHost(zkHost).build();
 			solrClient.setDefaultCollection(getCollectionBase());
 			solrStatus = solrClient.ping();
 			
 		} catch (Exception e) {
-			throw new Exception(e.getMessage());
+			throw new Exception("connect"+e.getMessage());
 		}
 
 	}
 
-	public boolean connected() throws Exception {
+	public boolean connected()  {
 		try {
 			if (solrStatus.getStatus()==0) {
 				return true;
 			} else {
 				return false;
 			}
-			
 		} catch (Exception e) {
-			throw new Exception(e.getMessage());
+			logger.error(e.getMessage());
+			return false;
 		}
 	}
 
@@ -192,7 +213,7 @@ public class SolrAPI  {
 		try {
 			solrClient.close();
 		} catch (Exception e) {
-			System.out.println(e.getMessage());
+			logger.error(e.getMessage());
 		}
 	}
 
@@ -200,7 +221,7 @@ public class SolrAPI  {
 		try {
 			solrClient.commit();
 		} catch (Exception e) {
-			throw new Exception(e.getMessage());
+			throw new Exception("commit(): "+e.getMessage());
 		}
 	}
 
@@ -209,7 +230,7 @@ public class SolrAPI  {
 			UpdateResponse response = solrClient.add(doc);
 			return response;
 		} catch (Exception e) {
-			throw new Exception(e.getMessage());
+			throw new Exception("add(): "+e.getMessage());
 		}
 	}
 
@@ -218,7 +239,7 @@ public class SolrAPI  {
 			UpdateResponse response = solrClient.add(docs);
 			return response;
 		} catch (Exception e) {
-			throw new Exception(e.getMessage());
+			throw new Exception("add(): "+e.getMessage());
 		}
 	}
 	
@@ -227,7 +248,7 @@ public class SolrAPI  {
 			UpdateResponse response = solrClient.deleteById(lstIds);
 			return response;
 		} catch (Exception e) {
-			throw new Exception(e.getMessage());
+			throw new Exception("deleteById(): "+e.getMessage());
 		}
 	}
 	
@@ -236,7 +257,7 @@ public class SolrAPI  {
 			UpdateResponse response = solrClient.deleteById(id);
 			return response;
 		} catch (Exception e) {
-			throw new Exception(e.getMessage());
+			throw new Exception("deleteById(): "+e.getMessage());
 		}
 	}
 
@@ -264,7 +285,7 @@ public class SolrAPI  {
 			docs.clear();
 			return response;
 		} catch (Exception e) {
-			throw new Exception(e.getMessage());
+			throw new Exception("getRows(): "+e.getMessage());
 		}
 	}
 
@@ -285,7 +306,7 @@ public class SolrAPI  {
 			docs.clear();
 			return response;
 		} catch (Exception e) {
-			throw new Exception(e.getMessage());
+			throw new Exception("getRows(): "+e.getMessage());
 		}
 	}
 
@@ -304,12 +325,45 @@ public class SolrAPI  {
 			docs.clear();
 			return ids;
 		} catch (Exception e) {
-			System.out.println(e.getMessage());
-			System.out.println(e.getStackTrace());
-			throw new Exception(e.getMessage());
+			throw new Exception("getIds(): "+e.getMessage());
 		}
 	}
 
+	public List<String> getIds(List<String> fqs, int limit) throws Exception {
+		try {
+			SolrQuery query = new SolrQuery();
+			List<String> ids = new ArrayList<>();
+			
+			query.setQuery("*:*");
+			
+			if (fqs.size()>0) {
+				for (String fq : fqs) {
+					query.addFilterQuery(fq);
+				}
+			}
+			
+			if (limit>0) {
+				query.setRows(limit);
+			} else {
+				query.setRows(10000);
+			}
+			
+			query.setFields("id");
+			
+			QueryResponse qr = solrClient.query(query, METHOD.POST);
+			SolrDocumentList docs = qr.getResults();
+			
+			for (SolrDocument doc: docs) {
+				ids.add((String) doc.getFieldValue("id"));
+			}
+			
+			docs.clear();
+			return ids;
+		} catch (Exception e) {
+			throw new Exception("getIds(): "+e.getMessage());
+		}
+	}
+	
 	public List<String> getIds(ModifiableSolrParams params) throws Exception {
 		try {
 			List<String> ids = new ArrayList<>();
@@ -325,7 +379,7 @@ public class SolrAPI  {
 			docs.clear();
 			return ids;
 		} catch (Exception e) {
-			throw new Exception(e.getMessage());
+			throw new Exception("getIds(): "+e.getMessage());
 		}
 	}
 

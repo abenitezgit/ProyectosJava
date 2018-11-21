@@ -4,10 +4,12 @@
  * and open the template in the editor.
  */
 package com.api;
+
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Date;
 import java.util.List;
@@ -15,44 +17,42 @@ import java.util.Objects;
 
 import com.model.SPparam;
 
-
 /**
  *
- * @author NEO
+ * @author ABT
  */
-public class OracleAPI {
+public class Mysql8API {
 
 	private Connection connection;
 	private Statement stm;
 	private CallableStatement cs; 
-        
-    private String dbHost;
-    private String dbName;
-    private String dbPort;
-    private String dbUser;
-    private String dbPass;
-    private String dbOwner;
-    private int timeOut;
     
-    public OracleAPI() { }
+	private String dbHost;
+	private String dbName;
+	private String dbPort;
+	private String dbUser;
+	private String dbPass;
+	private int timeOut; 
+    
+    public Mysql8API(String dbHost, String dbName, String dbPort, String dbUser, String dbPass, int timeOut) {
+        this.dbHost = dbHost;
+        this.dbPort = dbPort;
+        this.dbName = dbName;
+        this.dbUser = dbUser;
+        this.dbPass = dbPass;
+        this.timeOut = timeOut;
+    }
+    
+    /**
+     * Getter and Setter
+     * @return
+     */
+    
+    
+    public String getDbHost() {
+		return dbHost;
+	}
 
-    public OracleAPI(String dbHost, String dbName, String dbPort, String dbUser, String dbPass, int timeOut) {
-		this.dbHost = dbHost;
-		this.dbPort = dbPort;
-		this.dbName = dbName;
-		this.dbUser = dbUser;
-		this.dbPass = dbPass;
-		this.timeOut = timeOut;
-    }
-    
-    public void setDBOwner(String dbOwner) {
-    	this.dbOwner = dbOwner;
-    }
-    
-    public String getDbOwner() {
-    	return this.dbOwner;
-    }
-    
 	public Connection getConnection() {
 		return connection;
 	}
@@ -61,91 +61,154 @@ public class OracleAPI {
 		this.connection = connection;
 	}
 
+	public void setDbHost(String dbHost) {
+		this.dbHost = dbHost;
+	}
+
+	public String getDbName() {
+		return dbName;
+	}
+
+	public void setDbName(String dbName) {
+		this.dbName = dbName;
+	}
+
+	public String getDbPort() {
+		return dbPort;
+	}
+
+	public void setDbPort(String dbPort) {
+		this.dbPort = dbPort;
+	}
+
+	public String getDbUser() {
+		return dbUser;
+	}
+
+	public void setDbUser(String dbUser) {
+		this.dbUser = dbUser;
+	}
+
+	public String getDbPass() {
+		return dbPass;
+	}
+
+	public void setDbPass(String dbPass) {
+		this.dbPass = dbPass;
+	}
+
+	public int getTimeOut() {
+		return timeOut;
+	}
+
+	public void setTimeOut(int timeOut) {
+		this.timeOut = timeOut;
+	}
+
 	public boolean isConnected() throws Exception {
 		try {
-			return !connection.isClosed();
+			boolean result = !connection.isClosed(); 
+			return result;
 		} catch (Exception e) {
 			throw new Exception(e.getMessage());
 		}
 	}
 
-    public OracleAPI open() throws Exception  {
+	/**
+	 * Procedimientos Internos
+	 * @throws SQLException
+	 */
+	
+    public void setConfig(String dbHost, String dbName, String dbPort, String dbUser, String dbPass, int timeOut) {
+        this.dbHost = dbHost;
+        this.dbPort = dbPort;
+        this.dbName = dbName;
+        this.dbUser = dbUser;
+        this.dbPass = dbPass;
+        this.timeOut = timeOut;
+    }
+
+    public Mysql8API open() throws Exception {
         
-    	//Define la clase de la conexión
-        try {
-        	Class.forName("oracle.jdbc.OracleDriver");
-        } catch (Exception e) {
-        	throw new Exception(e.getMessage());
-        }
+	    	//Define la clase de conexion
+	    	try {
+			//Class.forName("com.mysql.jdbc.Driver");
+			Class.forName("com.mysql.cj.jdbc.Driver");
+		} catch (ClassNotFoundException e) {
+			throw new Exception("Register class: "+e.getMessage());
+		}
         
-        //Crea string de conexión
-        
-        String StringConnection = "jdbc:oracle:thin:@"+dbHost+":"+dbPort+":"+dbName;
-        
+        //Crea String de Conexion
+    		String StringConnection = "jdbc:mysql://"+dbHost+":"+dbPort+"/"+dbName+"?autoReconnect=true&useSSL=false";
+
         //Setea TimeOut en Driver de Conexion
         DriverManager.setLoginTimeout(timeOut);
         
-        //Establece conexión a la BD
+        //Establece la conexion a la BD
         try {
-            connection = DriverManager.getConnection(StringConnection, dbUser, dbPass);
-        } catch (Exception e) {
-            throw new Exception(e.getMessage());
-        }
-    
+			connection = DriverManager.getConnection(StringConnection,dbUser,dbPass);
+		} catch (SQLException e) {
+			throw new Exception("DriverManager ("+StringConnection+"): "+e.getMessage());
+		}
+			
         return this;
-    } 
-    
+    }
+
 	public void close() throws Exception {
 		try {
 			if (!Objects.isNull(stm)) {
-				if(!stm.isClosed()) {
+				if (!stm.isClosed()) {
 					stm.close();
 				}
 			}
-			
+
 			if (!Objects.isNull(cs)) {
 				if (!cs.isClosed()) {
 					cs.close();
 				}
 			}
 
-			if (!connection.isClosed()) {
-				connection.close();
+			if (!Objects.isNull(connection)) {
+				if (!connection.isClosed()) {
+					connection.close();
+				}
 			}
 		} catch (Exception e) {
 			throw new Exception(e.getMessage());
 		}
 	}
-	
-	public int executeUpdate(String upd) throws Exception {
-		try {
-			stm = connection.createStatement();
-	    		stm.executeUpdate(upd);
-	    		int result = stm.getUpdateCount();
-	    		stm.close();
-	    		return result;
-		} catch (Exception e) {
-			throw new Exception(e.getMessage());
-		}
-	}
     
-	public boolean executeQuery(String sql) throws Exception {
+    public int executeUpdate(String upd) throws Exception {
+    		//Operaciones update, delete, insert
 	    	try {
-	    		stm = connection.createStatement(); //.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+		    	stm = connection.createStatement();
+		    	stm.executeUpdate(upd);
+		    	int result = stm.getUpdateCount();
+		    	stm.close();
+		    	return result;
+	    	} catch (Exception e) {
+	    		throw new Exception(e.getMessage());
+	    	}
+    }
+    
+    public boolean executeQuery(String sql) throws Exception {
+    		//Operaciones select
+	    	try {
+	    		stm = connection.createStatement();
 	    		return stm.execute(sql);
 	    	} catch (Exception e) {
 	    		throw new Exception(e.getMessage());
 	    	}
-	}
-	 
-	public ResultSet getQuery() throws Exception {
-		try {
+    }
+    
+    public ResultSet getQuery() throws Exception {
+	    	try {
 	    		return stm.getResultSet();
 	    	} catch (Exception e) {
 	    		throw new Exception(e.getMessage());
 	    	}
-	 }
-	
+    }
+    
     public ResultSet getSpResult() throws Exception {
     	try {
 			return cs.getResultSet();
@@ -153,8 +216,8 @@ public class OracleAPI {
 			throw new Exception(e.getMessage());
 		}
     }
-
-	 public boolean isExistRows() throws Exception {
+    
+    public boolean isExistRows() throws Exception {
 	    	try {
 	    		boolean result;
 	    		if (stm.getResultSet()!=null) {
@@ -172,7 +235,7 @@ public class OracleAPI {
 	    		throw new Exception(e.getMessage());
 	    	}
     }
-	 
+    
 	public boolean executeProcedure(String spName, List<SPparam> spParams) throws Exception {
 		try {
 			boolean isExistParams = false;
