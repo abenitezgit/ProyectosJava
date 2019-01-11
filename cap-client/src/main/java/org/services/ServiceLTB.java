@@ -1,6 +1,7 @@
 package org.services;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -131,8 +132,11 @@ public class ServiceLTB {
 
 			//Leyendo el archivo de carga
 		    List<String> lines = Collections.emptyList();
+		    
+		    Charset charset = Charset.forName("ISO-8859-1");
+		    
 		    lines = Files.readAllLines(
-		    			Paths.get(pathFileName), StandardCharsets.UTF_8);
+		    			Paths.get(pathFileName), charset);
 		    
 		    if (!lines.isEmpty()) {
 		    	List<Map<String,Object>> lstRows = new ArrayList<>();
@@ -168,12 +172,13 @@ public class ServiceLTB {
 			    
 	    		//Inicia Carga de Datos en BD Destino
 			    int rowsInserted=0;
+			    
 	    		for(int i=0; i<lstRows.size(); i++) {
 	    			try {
-	    				addInsertBatch(lstRows.get(i), psInsertar);
+	    				addInsertBatch(cols, lstRows.get(i), psInsertar);
 	    				rowsInserted++;
 	    			} catch (Exception e) {
-						mylog.error("Error insertarndo fila: "+mylib.serializeObjectToJSon(lstRows.get(i), false));
+						mylog.error("Error insertarndo fila: "+mylib.serializeObjectToJSon(lstRows.get(i), false)+" : "+e.getMessage());
 					}
 	    		}
 	    		
@@ -201,52 +206,63 @@ public class ServiceLTB {
 		}
 	}
 	
-    private void addInsertBatch(Map<String,Object> cols, PreparedStatement psInsertar) throws Exception {
+    private void addInsertBatch(StringBuilder cols,  Map<String,Object> row, PreparedStatement psInsertar) throws Exception {
 		try {
+			
+			String[] columns = cols.toString().split(",");
 			
 			int nOrder = 1;
 			
-			for(Map.Entry<String, Object> col : cols.entrySet()) {
-
-				String typeName = col.getValue().getClass().getSimpleName().toUpperCase();
-				
-				switch (typeName) {
-					case "STRING":
-						String varcharField = (String) col.getValue();
-						psInsertar.setString(nOrder, varcharField);
-						break;
-					case "NVARCHAR":
-						String nVarcharField = (String) col.getValue();
-						psInsertar.setNString(nOrder, nVarcharField);
-						break;
-					case "NCHAR":
-						String nCharField = (String) col.getValue();
-						psInsertar.setNString(nOrder, nCharField);
-						break;
-					case "CHAR":
-						String charField = (String) col.getValue();
-						psInsertar.setString(nOrder, charField);
-						break;
-					case "INTEGER":
-						int intField = (int) col.getValue();
-						psInsertar.setInt(nOrder, intField);
-						break;
-					case "NUMERIC":
-						int numericField = (int) col.getValue();
-						psInsertar.setInt(nOrder, numericField);
-						break;
-					default:
-						throw new Exception("Error executeUpdate: Tipo de datos de columna no definido: "+ typeName);
+			/*
+			 * 
+			 */
+			for (int i=0; i<columns.length; i++) {
+				if (row.containsKey(columns[i])) {
+					String columnName = columns[i];
+					Object value = row.get(columns[i]);
+					
+					String typeName = value.getClass().getSimpleName().toUpperCase();
+					
+					switch (typeName) {
+						case "STRING":
+							String varcharField = (String) value;
+							psInsertar.setString(nOrder, varcharField);
+							break;
+						case "NVARCHAR":
+							String nVarcharField = (String) value;
+							psInsertar.setNString(nOrder, nVarcharField);
+							break;
+						case "NCHAR":
+							String nCharField = (String) value;
+							psInsertar.setNString(nOrder, nCharField);
+							break;
+						case "CHAR":
+							String charField = (String) value;
+							psInsertar.setString(nOrder, charField);
+							break;
+						case "INTEGER":
+							int intField = (int) value;
+							psInsertar.setInt(nOrder, intField);
+							break;
+						case "NUMERIC":
+							int numericField = (int) value;
+							psInsertar.setInt(nOrder, numericField);
+							break;
+						default:
+							throw new Exception("addInsertBatch(): Tipo de datos de columna no definido: "+ typeName);
+					}
+					
+					nOrder++;
 				}
-				
-				nOrder++;
 			}
-				
+			
+			psInsertar.execute();
+			
 			//psInsertar.addBatch();
 			psInsertar.execute();
 			
 		} catch (Exception e) {
-			throw new Exception("Error addInsertBatch: "+e.getMessage());
+			throw new Exception("addInsertBatch(): "+e.getMessage());
 		}
 }
 
@@ -254,20 +270,21 @@ public class ServiceLTB {
 	private void parseDynamicRow(String rowLine, List<Map<String,Object>> mapRows) throws Exception {
 		try {
 			Map<String,Object> row = new HashMap<>();
+			
+		    StringTokenizer st = new StringTokenizer(rowLine,ltb.getLtbFileSep());
+		    int numTokens = st.countTokens();
+		   
+		    Object[] fields = new Object[numTokens];
+		    
+		    for (int i=0; i<numTokens; i++) {
+		    	fields[i] = st.nextToken();
+		    }
+			
 			for (Map.Entry<Integer, LoadTableParam> param : ltb.getMapLtbParam().entrySet()) {
 				if (param.getValue().getEnable()==1) {
 					String fieldDataType = param.getValue().getTbFieldDataType();
 					String fieldName = param.getValue().getTbFieldName();
 					int loadOrder = param.getValue().getFileLoadOrder()-1;
-					
-				    StringTokenizer st = new StringTokenizer(rowLine,ltb.getLtbFileSep());
-				    int numTokens = st.countTokens();
-				   
-				    Object[] fields = new Object[numTokens];
-				    
-				    for (int i=0; i<numTokens; i++) {
-				    	fields[i] = st.nextToken();
-				    }
 
 					Object fieldValue;
 					if (param.getValue().getTbLoadFromFile()==1) {
@@ -448,11 +465,15 @@ public class ServiceLTB {
 			List<String> lstVals = new ArrayList<>();
 			for (Map.Entry<Integer, LoadTableParam> params : ltb.getMapLtbParam().entrySet()) {
 				//Genera Columnas y Variables Bound
-				lstCols.add(params.getValue().getTbFieldName());
-				lstVals.add("?");
+				if (params.getValue().getEnable()==1) {
+					lstCols.add(params.getValue().getTbFieldName());
+					lstVals.add("?");
+				}
 			}
+			
 			cols.append(String.join(",", lstCols));
 			vals.append(String.join(",", lstVals));
+			
 		} catch (Exception e) {
 			throw new Exception("Error genColsVals: "+e.getMessage());
 		}

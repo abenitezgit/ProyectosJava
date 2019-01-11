@@ -68,6 +68,14 @@ public class ServiceFTP {
 				String localPath = utils.getLocalPath(ftpProc.getLocalPath());
 				String localPathFileName = localPath+"/"+localFile;
 				String remotePathFileName = utils.getFormatedPath(ftpProc.getRemotePath())+"/"+remoteFile;
+				
+				mylog.info("Seteando Directorio Remoto...");
+				try {
+					ftp.cwd(utils.getFormatedPath(ftpProc.getRemotePath()));
+				} catch (Exception e) {
+					mylog.error("Error seteando directorio remoto: "+ utils.getFormatedPath(ftpProc.getRemotePath()));
+					throw new Exception(("Error seteando directorio remoto: "+ utils.getFormatedPath(ftpProc.getRemotePath())) + " : "+e.getLocalizedMessage());
+				}
 					
 				mylog.info("Uploading file: "+localPathFileName);
 				ftp.upload(remotePathFileName, localPathFileName);
@@ -128,9 +136,25 @@ public class ServiceFTP {
 				String localPath = utils.getLocalPath(ftpProc.getLocalPath());
 				String localPathFileName = localPath+"/"+localFile;
 				String remotePathFileName = utils.getFormatedPath(ftpProc.getRemotePath())+"/"+remoteFile;
-					
-				mylog.info("Download file: "+localPathFileName);
-				ftp.download(remotePathFileName, localPathFileName);
+				
+				mylog.info("Archivo Remoto: "+remotePathFileName);
+				mylog.info("Archivo Local: "+localPathFileName);
+				
+				mylog.info("Seteando Directorio Remoto...");
+				try {
+					ftp.cwd(utils.getFormatedPath(ftpProc.getRemotePath()));
+				} catch (Exception e) {
+					mylog.error("Error seteando directorio remoto: "+ utils.getFormatedPath(ftpProc.getRemotePath()));
+					throw new Exception(("Error seteando directorio remoto: "+ utils.getFormatedPath(ftpProc.getRemotePath())) + " : "+e.getLocalizedMessage());
+				}
+				
+				mylog.info("Bajando Archivo Remoto...");
+				try {
+					ftp.download(remotePathFileName, localPathFileName);
+				} catch (Exception e) {
+					mylog.error("No es posible bajar el archivo: "+ remotePathFileName);
+					throw new Exception("No es posible bajar el archivo: "+ remotePathFileName);
+				}
 					
 				if (ftp.getReplyCode()==FTP_TRANSFER_COMPLETE) {
 					mylog.info("Download Success: "+ftp.getReplyCode()+" "+ftp.getReplyString());

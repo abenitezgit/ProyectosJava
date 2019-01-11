@@ -15,6 +15,7 @@ import org.apache.log4j.Logger;
 import org.model.BackTable;
 import org.utilities.GlobalParams;
 import org.utilities.MyLogger;
+import org.utilities.MyUtils;
 
 import com.rutinas.CSVUtils;
 import com.rutinas.Rutinas;
@@ -25,15 +26,18 @@ public class ServiceBTB {
 	Logger logger;
 	MyLogger mylog;
 	BackTable btb;
+	MyUtils utils;
 	
 	List<String> lstExportFiles = new ArrayList<>();
 	String vCols;
+	List<String> readCols = new ArrayList();
 	
 	public ServiceBTB(GlobalParams m, BackTable btb, MyLogger mylog) {
 		this.gParams = m;
 		this.btb = btb;
 		this.mylog = mylog;
 		this.logger = mylog.getLogger();
+		this.utils = new MyUtils(gParams);
 	}
 	
 	private Date fecTask;
@@ -60,6 +64,7 @@ public class ServiceBTB {
 
 			if (exportCSV(mapRows)) {
 				mylog.info("Archivo exportado exitosamente");
+				exitStatus = true;
 			} else {
 				mylog.error("Archivo no pudo ser exportado");
 			}
@@ -85,12 +90,16 @@ public class ServiceBTB {
 												
 				CSVUtils csv = new CSVUtils();
 				
-				String expFilePath = getFilePath();
+				String localPath = utils.getLocalPath(btb.getBtbFilePath());
+				String fileName = genFileName();
+				String controlName = genControlName(fileName);
+				String localPathFile = localPath + "/" + fileName;
+				String localPathControl = localPath + "/" + controlName;
 				
-				FileWriter fw = new FileWriter(expFilePath+"/"+genFileName(), false);
+				FileWriter fw = new FileWriter(localPathFile, false);
 				lstExportFiles.add(genFileName());
 				
-				mylog.info("Exportando a archivo: "+expFilePath+"/"+genFileName());
+				mylog.info("Exportando a archivo: "+localPathFile);
 					
 				mylog.info("Recorriendo registros y exportando...");
 				for (Map.Entry<Integer, List<String>> entry : mapRows.entrySet()) {
@@ -99,22 +108,27 @@ public class ServiceBTB {
 					
 				}
 				
-				mylog.info("Registros exportados!");
+				mylog.info("Registros exportados Exitosamente!");
 				
 				//Close Writer
 				fw.close();
 				
 				//Generando el archivo de control de carga si es Oracle
 				if (btb.getDbType().substring(0, 3).equals("ORA")) {
-					FileWriter fwC = new FileWriter(expFilePath+"/"+genControlName(), false);
 					
-					csv.writeLine(fw, new ArrayList<String>(Arrays.asList("load data")), separator);
-					csv.writeLine(fw, new ArrayList<String>(Arrays.asList("infile "+expFilePath+"/"+genFileName())), separator);
-					csv.writeLine(fw, new ArrayList<String>(Arrays.asList("into table "+btb.getBtbTableName())), separator);
-					csv.writeLine(fw, new ArrayList<String>(Arrays.asList("fields terminated by ',' optionally enclosed by '\"'\n")), separator);
-					csv.writeLine(fw, new ArrayList<String>(Arrays.asList("(  "+vCols+")")), separator);
+					mylog.info("Generando archivo de control...");
+					
+					FileWriter fwC = new FileWriter(localPathControl, false);
+					
+					csv.writeLine(fwC, new ArrayList<String>(Arrays.asList("load data")), separator);
+					csv.writeLine(fwC, new ArrayList<String>(Arrays.asList("infile "+localPath+"/"+genFileName())), separator);
+					csv.writeLine(fwC, new ArrayList<String>(Arrays.asList("into table "+btb.getBtbTableName())), separator);
+					csv.writeLine(fwC, new ArrayList<String>(Arrays.asList("fields terminated by '|' ")), separator);
+					csv.writeLine(fwC, new ArrayList<String>(Arrays.asList("(  "+String.join(",", readCols)+")")), separator);
 					
 					fwC.close();
+					
+					mylog.info("Archivo de control generado exitosamenre!");
 				}
 				
 				exitStatus = true;
@@ -148,7 +162,7 @@ public class ServiceBTB {
 	public String genFileName() throws Exception {
 		try {
 			
-			String pathFileName = mylib.parseFnParam(btb.getBtbFileName(), fecTask);
+			String pathFileName = mylib.parseFnParam(btb.getBtbFileName(), fecTask)+".back";
 			
 			return pathFileName;
 		} catch (Exception e) {
@@ -157,10 +171,8 @@ public class ServiceBTB {
 	}
 
 	
-	public String genControlName() throws Exception {
+	public String genControlName(String fileName) throws Exception {
 		try {
-			String fileName = mylib.parseFnParam(btb.getBtbFileName(), fecTask);
-			
 			String simpleName = fileName.substring(0, fileName.lastIndexOf("."));
 			
 			String pathFileName = simpleName+".ctl";
@@ -205,7 +217,8 @@ public class ServiceBTB {
 			
 			if (md.isConnected()) {
 				
-				vCols = new MetaQuery().getBackColumns(md, btb.getDbType(), btb.getBtbTableName());
+				//vCols = new MetaQuery().getBackColumns(md, btb.getDbType(), btb.getBtbTableName());
+				vCols = " * ";
 				
 				String vSql = getVsqlQuery(vCols);
 				mylog.info("Ejecutando query: "+vSql);
@@ -215,6 +228,8 @@ public class ServiceBTB {
 					ResultSetMetaData rsm = rs.getMetaData();
 					
 					int row = 0;
+					int numCols = rsm.getColumnCount();
+					boolean isFirstRow = true;
 					
 					mylog.info("Recuperando registros...");
 					while(rs.next()) {
@@ -223,21 +238,94 @@ public class ServiceBTB {
 						
 						List<String> cols = new ArrayList<>();
 						
-						for (int i=0; i<rsm.getColumnCount(); i++) {
+						for (int i=1; i<rsm.getColumnCount(); i++) {
+							
+							String colName = rsm.getColumnLabel(i);
+							if (isFirstRow) {
+								readCols.add(colName);
+							}
+							String columnType = rsm.getColumnTypeName(i);
 							switch(rsm.getColumnType(i)) {
 								case java.sql.Types.VARCHAR:
-									cols.add(rs.getString(rsm.getColumnLabel(i)));
+									if (!mylib.isNullOrEmpty(rsm.getColumnLabel(i))) {
+										cols.add(rs.getString(rsm.getColumnLabel(i)));
+									} else {
+										cols.add("");
+									}
 									break;
 								case java.sql.Types.INTEGER:
-									cols.add(String.valueOf(rs.getInt(rsm.getColumnLabel(i))));
+									if (!mylib.isNullOrEmpty(rsm.getColumnLabel(i))) {
+										try {
+											cols.add(String.valueOf(rs.getInt(rsm.getColumnLabel(i))));
+										} catch (Exception e) {
+											try {
+												cols.add(String.valueOf(rs.getLong(rsm.getColumnLabel(i))));
+											} catch (Exception e2) {
+												try {
+													cols.add(String.valueOf(rs.getFloat(rsm.getColumnLabel(i))));
+												} catch (Exception e3) {
+													cols.add("");
+													mylog.error("Error row: "+ row+ " col: " + rsm.getColumnLabel(i) + " - " + e3.getMessage() );
+												}
+											}
+										}
+									} else {
+										cols.add("");
+									}
+									break;
+								case java.sql.Types.NUMERIC:
+									if (!mylib.isNullOrEmpty(rsm.getColumnLabel(i))) {
+										try {
+											cols.add(String.valueOf(rs.getInt(rsm.getColumnLabel(i))));
+										} catch (Exception e) {
+											try {
+												cols.add(String.valueOf(rs.getLong(rsm.getColumnLabel(i))));
+											} catch (Exception e2) {
+												try {
+													cols.add(String.valueOf(rs.getFloat(rsm.getColumnLabel(i))));
+												} catch (Exception e3) {
+													cols.add("");
+													mylog.error("Error row: "+ row+ " col: " + rsm.getColumnLabel(i) + " - " + e3.getMessage() );
+												}
+											}
+										}
+									} else {
+										cols.add("");
+									}
+									break;
+								case java.sql.Types.FLOAT:
+									if (!mylib.isNullOrEmpty(rsm.getColumnLabel(i))) {
+										try {
+											cols.add(String.valueOf(rs.getFloat(rsm.getColumnLabel(i))));
+										} catch (Exception e) {
+											try {
+												cols.add(String.valueOf(rs.getInt(rsm.getColumnLabel(i))));
+											} catch (Exception e2) {
+												try {
+													cols.add(String.valueOf(rs.getLong(rsm.getColumnLabel(i))));
+												} catch (Exception e3) {
+													cols.add("");
+													mylog.error("Error row: "+ row+ " col: " + rsm.getColumnLabel(i) + " - " + e3.getMessage() );
+												}
+											}
+										}
+									} else {
+										cols.add("");
+									}
 									break;
 								default:
-									cols.add(rs.getString(rsm.getColumnLabel(i)));
+									if (!mylib.isNullOrEmpty(rsm.getColumnLabel(i))) {
+										cols.add(rs.getString(rsm.getColumnLabel(i)));
+									} else {
+										cols.add("");
+									}
 									break;
 							}
 						}
+						//mylog.info("row: "+ row + " " + mylib.serializeObjectToJSon(cols, false));
 						
 						mapRows.put(row, cols);
+						isFirstRow = false;
 					} //End while
 				}
 				

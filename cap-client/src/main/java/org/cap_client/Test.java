@@ -1,37 +1,49 @@
 package org.cap_client;
 
-import com.api.SFtpAPI;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.log4j.Logger;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.json.JSONArray;
+
+import com.api.HBase2API;
+import com.api.Solr6API;
+import com.rutinas.Rutinas;
 
 public class Test {
+	Logger logger = Logger.getLogger("test");
+	static Rutinas mylib = new Rutinas();
 
 	public static void main(String[] args) {
+		
 		try {
 			
-			SFtpAPI sftp = new SFtpAPI();
-			
-			sftp.setServerIP("wsecc");
-			sftp.setUserName("root");
-			sftp.setUserPass("entel123");
-			
-			System.out.println("Conectando a Sitio SFTP...");
-			sftp.connect();
-			
-			if (sftp.isConnect()) {
-				
-				String localPathFile = "/usr/local/capProject/work/ABASTIBLE_CAMP_BDIA_13112018.csva";
-				String remotePathFile = "/usr/local/capProject/work/ABASTIBLE_CAMP_BDIA_13112018.csv";
-				
-				if (sftp.upload(remotePathFile, localPathFile)) {
-					System.out.println("OK");
-				} else {
-					System.out.println("Error");
-				}
-				
-			}
+			String pathFileName = "/usr/local/capProject/work/RP2812201801.TXT";
 
+		    List<String> lines = Collections.emptyList();
+		    
+		    Charset charset = Charset.forName("ISO-8859-1");
+		    
+		    lines = Files.readAllLines(
+		    			Paths.get(pathFileName), charset);
+		    
+		    System.out.println(lines.size());
 			
 		} catch (Exception e) {
 			System.out.println("Exception: "+ e.getMessage());
+			
 		}
 
 	}

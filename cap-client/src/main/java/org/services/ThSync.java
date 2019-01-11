@@ -6,7 +6,8 @@ import org.utilities.GlobalParams;
 import com.rutinas.Rutinas;
 
 public class ThSync implements Runnable {
-	Logger logger = Logger.getLogger("thSync");
+	final String thName = "thSync";
+	Logger logger = Logger.getLogger(thName);
 	Rutinas mylib = new Rutinas();
 	GlobalParams gParams;
 	ServiceControl sc;
@@ -22,6 +23,8 @@ public class ThSync implements Runnable {
     @Override
 	public void run() {
 		try {
+			Thread.currentThread().setName(thName);
+			
 			//Set LogLevel
 			mylib.setLevelLogger(logger, gParams.getAppConfig().getLog4jLevel());
 

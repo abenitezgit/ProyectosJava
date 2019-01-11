@@ -7,7 +7,8 @@ import org.utilities.GlobalParams;
 import com.rutinas.Rutinas;
 
 public class ThProcess implements Runnable {
-	Logger logger = Logger.getLogger("thProcess");
+	final String thName = "thProcess";
+	Logger logger = Logger.getLogger(thName);
 	Rutinas mylib = new Rutinas();
 	GlobalParams gParams;
 	ServiceControl sc;
@@ -23,6 +24,9 @@ public class ThProcess implements Runnable {
     @Override
 	public void run() {
 		try {
+			//Set thread Name
+			Thread.currentThread().setName(thName);
+			
 			//Set LogLevel
 			mylib.setLevelLogger(logger, gParams.getAppConfig().getLog4jLevel());
 			

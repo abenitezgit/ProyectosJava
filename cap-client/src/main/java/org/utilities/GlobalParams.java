@@ -16,10 +16,9 @@ public class GlobalParams {
 	private Service service = new Service();
 	private AppConfig appConfig = new AppConfig();
 	
-	//Map para validar si los threads están levantados o no
-	Map<String, Boolean> mapThreadRunnig = new HashMap<>();
-	
 	private Map<String, Task> mapTask = new HashMap<>();
+	
+	private Map<String,String> mapThread = new HashMap<>();
 	
 	private ScheduledExecutorService executorThMain = Executors.newSingleThreadScheduledExecutor();
 	private ScheduledExecutorService executorThProcess = Executors.newSingleThreadScheduledExecutor();
@@ -27,14 +26,14 @@ public class GlobalParams {
 
 	//Getter and Setter
 	
-	public Map<String, Boolean> getMapThreadRunnig() {
-		return mapThreadRunnig;
-	}
-	public void setMapThreadRunnig(Map<String, Boolean> mapThreadRunnig) {
-		this.mapThreadRunnig = mapThreadRunnig;
-	}
 	public Service getService() {
 		return service;
+	}
+	public Map<String, String> getMapThread() {
+		return mapThread;
+	}
+	public void setMapThread(Map<String, String> mapThread) {
+		this.mapThread = mapThread;
 	}
 	public void setService(Service service) {
 		this.service = service;

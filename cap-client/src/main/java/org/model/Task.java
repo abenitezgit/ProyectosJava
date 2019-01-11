@@ -17,6 +17,7 @@ public class Task {
 	String typeExec;
 	int errCode;
 	String errMesg;
+	String grpDesc;
 	Object param;
 	Object txResult;
 	Object txSubTask;
@@ -25,6 +26,12 @@ public class Task {
 	
 	public String getProcID() {
 		return procID;
+	}
+	public String getGrpDesc() {
+		return grpDesc;
+	}
+	public void setGrpDesc(String grpDesc) {
+		this.grpDesc = grpDesc;
 	}
 	public String getGrpKey() {
 		return grpKey;

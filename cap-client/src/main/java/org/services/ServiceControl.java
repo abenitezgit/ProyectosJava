@@ -36,7 +36,6 @@ public class ServiceControl {
 		logger.info("Srv Last Update: "+srv.getFecStatus());
 		logger.info("Srv order balance: "+srv.getOrderBalance());
 		logger.info("Srv pct balance: "+srv.getPctBalance());
-		logger.info("Srv strTypeProc: "+srv.getSrvTypeProc());
 		
 		for (Map.Entry<String, TypeProc> entry : gParams.getService().getMapTypeProc().entrySet()) {
 			logger.info("Srv TypeProc: "+entry.getKey()+" Priority: "+entry.getValue().getPriority()+ " MaxThread: "+entry.getValue().getMaxThread()+" UsedTread: "+entry.getValue().getUsedThread());
@@ -171,11 +170,11 @@ public class ServiceControl {
 						String strService = ss.getSocketResponse();
 						fc.updateService(strService);
 					} else {
-						throw new Exception("syncServiceParams(): unable to syncService");
+						throw new Exception("syncServiceParams(): No es posible recuperar parámetros del servicio "+srvID);
 					}
 				break;
 			case "URL":
-				break;
+				throw new Exception("syncServiceParams(): No se encuentra habilitado el acceso por URL");
 			}
 			
 		} catch (Exception e) {

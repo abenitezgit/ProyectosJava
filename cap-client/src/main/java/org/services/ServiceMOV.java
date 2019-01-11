@@ -222,7 +222,7 @@ public class ServiceMOV {
 				} 
 
     			//Analiza PCT Error
-				if (maxPctError>0) {
+				if (maxPctError>=0) {
 					pctError = (rowsError/rowsRead)*100;
 					if (pctError>=maxPctError) {
 						statusCode = 99;
@@ -230,9 +230,11 @@ public class ServiceMOV {
 					}
 				} else {
 					//Analiza Maximo de Filas de errores cargadas
-					if (rowsError>=maxRowsError) {
-						statusCode = 99;
-						statusMesg = "Ha excesido el maximo("+maxRowsError+") de registros con error permitido, encontrando "+rowsError+" registros de error de carga";
+					if (maxRowsError>=0) {
+						if (rowsError>=maxRowsError) {
+							statusCode = 99;
+							statusMesg = "Ha excesido el maximo("+maxRowsError+") de registros con error permitido, encontrando "+rowsError+" registros de error de carga";
+						}
 					}
 				}
     			

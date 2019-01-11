@@ -12,6 +12,7 @@ import org.utilities.MyLogger;
 import com.rutinas.Rutinas;
 
 public class ThBTB extends Thread {
+	final String thName = "thBTB";
 	final String className = "thBTB";
 	
 	Logger logger; 
@@ -40,6 +41,9 @@ public class ThBTB extends Thread {
     @Override
 	public void run() {
 		try {
+			//Set Thread Name
+			Thread.currentThread().setName(thName);
+			
 			//Set LogLevel
 			mylib.setLevelLogger(logger, gParams.getAppConfig().getLog4jLevel());
 
@@ -55,7 +59,7 @@ public class ThBTB extends Thread {
 			mylog.info("Back TableName: "+btb.getBtbTableName());
 			mylog.info("Back FileName: "+btb.getBtbFileName());
 
-			mylog.info("Instanciando Clase ServiceoBTB...");
+			mylog.info("Instanciando Clase Serviceo BTB...");
 			ServiceBTB serviceBtb = new ServiceBTB(gParams, btb, mylog);
 			
 			mylog.info("Seteando fecha de Proceso...");

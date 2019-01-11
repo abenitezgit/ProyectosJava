@@ -58,15 +58,11 @@ public class AppClientInit {
     		String pathFileName = gParams.getAppConfig().getPathConfig()+"/"+gParams.getAppConfig().getLog4jName();
     		mylib.setupLog4j(pathFileName);
     		
-    		//Inicializa status de thread en false (no se están ejecutando)
-    		initStatusThread();
-    		
     		//Levanta Main Services
     		mylib.console("Scheduling thMain - Proceso de Control Principal");
     		//ScheduledExecutorService executorThMain = Executors.newSingleThreadScheduledExecutor();
 			
     		Runnable thMain = new ThMain(gParams);
-			gParams.getMapThreadRunnig().put("thMain", true);
 			gParams.getExecutorThMain().scheduleWithFixedDelay(thMain, 1000, gParams.getAppConfig().getTxpMain(), TimeUnit.MILLISECONDS);
 			
 			//executorThMain.execute(thMain);
@@ -79,12 +75,6 @@ public class AppClientInit {
     		mylib.console(1, "Finalizando cap-client");
     	}
 
-    }
-    
-    private static void initStatusThread() throws Exception {
-    	gParams.getMapThreadRunnig().put("thMain", false);
-    	gParams.getMapThreadRunnig().put("thSync", false);
-    	gParams.getMapThreadRunnig().put("thProcess", false);
     }
     
     private static void getExternalParams() throws Exception {

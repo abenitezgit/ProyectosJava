@@ -86,8 +86,36 @@
 	    <scope>system</scope>
 	    <systemPath>/Users/admin/Documents/Developer/javaLibraries/javaLibs_db/ojdbc6.jar</systemPath>
 	</dependency>
-  
+
+	<dependency>
+		<groupId>org.apache.solr</groupId>
+		<artifactId>solr-solrj</artifactId>
+		<version>6.6.0</version>
+	</dependency>
+	
+		<!--  HBase Dependencies -->
+	 	<dependency>
+		    <groupId>org.apache.hbase</groupId>
+		    <artifactId>hbase-client</artifactId>
+		    <version>2.1.0</version>
+		      <exclusions>
+		        <exclusion>
+		          <groupId>com.sun.jersey</groupId> <!-- Exclude Project-E from Project-B -->
+		          <artifactId>jersey-core</artifactId>
+		        </exclusion>
+		        <exclusion>
+		          <groupId>com.sun.jersey</groupId> <!-- Exclude Project-E from Project-B -->
+		          <artifactId>jersey-json</artifactId>
+		        </exclusion>
+		        <exclusion>
+		          <groupId>com.sun.jersey</groupId> <!-- Exclude Project-E from Project-B -->
+		          <artifactId>jersey-server</artifactId>
+		        </exclusion>
+		      </exclusions>
+		</dependency>
+
   </dependencies>
+
 
   <build>
     <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
