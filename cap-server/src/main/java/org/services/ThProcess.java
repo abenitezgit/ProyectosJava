@@ -6,12 +6,10 @@ import org.utilities.GlobalParams;
 import com.rutinas.Rutinas;
 
 public class ThProcess implements Runnable{
-	Logger logger = Logger.getLogger("ThProcess");
+	final static String thName = "thProcess";
+	Logger logger = Logger.getLogger(thName);
 	Rutinas mylib = new Rutinas();
 	GlobalParams gParams;
-	
-	//Control de Ejecucion del servicio
-	final static String thName = "thProcess";
 	
 	public ThProcess(GlobalParams m) {
 		logger.info("Iniciando constructor del servicio");
@@ -19,9 +17,13 @@ public class ThProcess implements Runnable{
 	}
 	
     @Override
-        public void run() {
+    public void run() {
+		//Set Thread Name
+		Thread.currentThread().setName(thName);
+		
 		ServiceControl sc = new ServiceControl(gParams);
     	try {
+    		
     		/**
     		 * Inicia ciclo del Modulo
     		 */

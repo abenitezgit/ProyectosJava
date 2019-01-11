@@ -33,6 +33,8 @@ import org.model.OspParam;
 import org.model.PGPending;
 import org.model.ProcControl;
 import org.model.ProcGroup;
+import org.model.Server;
+import org.model.User;
 import org.utilities.GlobalParams;
 
 import com.api.MysqlAPI;
@@ -113,36 +115,913 @@ public class DataAccess {
 		}
 	}
 	
-	public boolean addDBresources(String method, Object param) throws Exception {
+	public boolean updateDBresources(String method, Object param) throws Exception {
 		try {
 			List<SPparam> spParams = new ArrayList<>();
 			String spName = "";
 			boolean resultStat = false;
+			JSONObject joParam = new JSONObject();
 			
 			switch(method) {
+				case "updateBack":
+					joParam = (JSONObject) param;
+					
+					spParams.add(new SPparam(joParam.getString("procID")));
+					spName = "sp_upd_back";
+					break;
+				case "updateEtb":
+					joParam = (JSONObject) param;
+					
+					spParams.add(new SPparam(joParam.getString("etbID")));
+					spParams.add(new SPparam(joParam.getString("etbDesc")));
+					spParams.add(new SPparam(joParam.getString("etbTableName")));
+					spParams.add(new SPparam(joParam.getString("etbFileName")));
+					spParams.add(new SPparam("CSV"));
+					spParams.add(new SPparam(joParam.getString("etbFileSep")));
+					spParams.add(new SPparam("LOCAL"));
+					spParams.add(new SPparam(joParam.getInt("etbAppend")));
+					spParams.add(new SPparam(joParam.getInt("etbHeader")));
+					spParams.add(new SPparam(joParam.getInt("etbWhere_active")));
+					spParams.add(new SPparam(joParam.getString("etbWhere_body")));
+					spParams.add(new SPparam(joParam.getInt("etbOrder_active")));
+					spParams.add(new SPparam(joParam.getString("etbOrder_body")));
+					spParams.add(new SPparam(-1));
+					spParams.add(new SPparam(joParam.getInt("etbMultiFiles")));
+					spParams.add(new SPparam(joParam.getInt("etbMaxRows_multiFiles")));
+					spParams.add(new SPparam(joParam.getInt("etbGetEmptyFile")));
+					spParams.add(new SPparam(joParam.getString("cliID")));
+					spParams.add(new SPparam(joParam.getString("serverID")));
+					spParams.add(new SPparam(joParam.getString("dbID")));
+					spParams.add(new SPparam(joParam.getString("loginID")));
+					spParams.add(new SPparam(joParam.getString("ownerID")));
+					spParams.add(new SPparam(0));
+					spParams.add(new SPparam(0));
+					spParams.add(new SPparam(""));
+					spParams.add(new SPparam(""));
+					spParams.add(new SPparam(""));
+					spName = "sp_upd_etb";
+					break;
+				case "updateEtbParam":
+					joParam = (JSONObject) param;
+					
+					spParams.add(new SPparam(joParam.getString("etbID")));
+					spParams.add(new SPparam(joParam.getString("etbFieldName")));  //CAMPO ORIGEN
+					spParams.add(new SPparam(joParam.getString("etbFieldLabel"))); //NOMBRE DEL CAMPO A SER EXPORTADO
+					spParams.add(new SPparam(joParam.getString("etbFieldType")));  //FIELD - VARCHAR - INTEGER
+					spParams.add(new SPparam(joParam.getInt("enable")));
+					spParams.add(new SPparam(joParam.getInt("etbOrder")));
+					spParams.add(new SPparam(joParam.getString("etbDataType")));  // VARCHAR - INTEGER
+					spName = "sp_upd_etbParam";
+					break;
+				case "updateFtp":
+					joParam = (JSONObject) param;
+					
+					spParams.add(new SPparam(joParam.getString("ftpID")));
+					spParams.add(new SPparam(joParam.getString("ftpDesc")));
+					spParams.add(new SPparam(joParam.getInt("enable")));
+					spParams.add(new SPparam(0));
+					spParams.add(new SPparam(joParam.getString("ftpAction")));
+					spParams.add(new SPparam(joParam.getString("remoteFile")));
+					spParams.add(new SPparam(joParam.getString("localFile")));
+					spParams.add(new SPparam(joParam.getString("remotePath")));
+					spParams.add(new SPparam("LOCAL"));
+					spParams.add(new SPparam(joParam.getString("serverID")));
+					spParams.add(new SPparam(joParam.getString("userID")));
+					spName = "sp_upd_ftp";
+					break;
+				case "updateLtb":
+					joParam = (JSONObject) param;
+					
+					spParams.add(new SPparam(joParam.getString("ltbID")));
+					spParams.add(new SPparam(joParam.getString("ltbDesc")));
+					spParams.add(new SPparam(joParam.getInt("enable")));
+					spParams.add(new SPparam(joParam.getString("ltbFileName")));
+					spParams.add(new SPparam(joParam.getString("ltbTableName")));
+					spParams.add(new SPparam("CSV"));
+					spParams.add(new SPparam("LOCAL"));
+					spParams.add(new SPparam(joParam.getString("ltbLoadFixed")));
+					spParams.add(new SPparam(joParam.getString("ltbFileSep")));
+					spParams.add(new SPparam(joParam.getInt("ltbAppend")));
+					spParams.add(new SPparam(joParam.getInt("ltbHeader")));
+					spParams.add(new SPparam(-1));
+					spParams.add(new SPparam(joParam.getString("cliID")));
+					spParams.add(new SPparam(joParam.getString("serverID")));
+					spParams.add(new SPparam(joParam.getString("dbID")));
+					spParams.add(new SPparam(joParam.getString("loginID")));
+					spParams.add(new SPparam(joParam.getString("ownerID")));
+					spParams.add(new SPparam(0));
+					spParams.add(new SPparam(0));
+					spParams.add(new SPparam(""));
+					spParams.add(new SPparam(""));
+					spParams.add(new SPparam(""));
+					spName = "sp_upd_ltb";
+					break;
+				case "updateLtbParam":
+					joParam = (JSONObject) param;
+					
+					spParams.add(new SPparam(joParam.getString("ltbID")));
+					spParams.add(new SPparam(joParam.getInt("enable")));
+					spParams.add(new SPparam(joParam.getInt("filePosIni")));
+					spParams.add(new SPparam(joParam.getInt("filePosFin")));
+					spParams.add(new SPparam(joParam.getInt("fileLoadOrder")));
+					spParams.add(new SPparam(joParam.getString("tbFieldName")));
+					spParams.add(new SPparam(joParam.getString("tbFieldValue")));
+					spParams.add(new SPparam(joParam.getString("tbFieldDataType"))); //VARCHAR - INTEGER - DATE
+					spParams.add(new SPparam(0));
+					spParams.add(new SPparam(joParam.getInt("tbLoadFromFile")));
+					spName = "sp_upd_ltbParam";
+					break;
+				case "updateOsp":
+					joParam = (JSONObject) param;
+					
+					spParams.add(new SPparam(joParam.getString("ospID")));
+					spParams.add(new SPparam(joParam.getString("ospDesc")));
+					spParams.add(new SPparam(joParam.getInt("enable")));
+					spParams.add(new SPparam(joParam.getString("ospName")));
+					spParams.add(new SPparam(joParam.getString("cliID")));
+					spParams.add(new SPparam(joParam.getString("serverID")));
+					spParams.add(new SPparam(joParam.getString("dbID")));
+					spParams.add(new SPparam(joParam.getString("loginID")));
+					spParams.add(new SPparam(joParam.getString("ownerID")));
+					spName = "sp_upd_osp";
+					break;
+				case "updateOspParam":
+					joParam = (JSONObject) param;
+					
+					spParams.add(new SPparam(joParam.getString("ospID")));
+					spParams.add(new SPparam(joParam.getInt("order")));
+					spParams.add(new SPparam(joParam.getString("desc")));
+					spParams.add(new SPparam(joParam.getString("type"))); //FN (formula) o IN (no es formula)
+					spParams.add(new SPparam(joParam.getString("value")));
+					spParams.add(new SPparam("VARCHAR"));
+					spParams.add(new SPparam(joParam.getInt("enable")));
+					spName = "sp_upd_ospParam";
+					break;
+				case "updateMov":
+					joParam = (JSONObject) param;
+					
+					spParams.add(new SPparam(joParam.getString("movID")));
+					spParams.add(new SPparam(joParam.getString("movDesc")));
+					spParams.add(new SPparam(1));
+					spParams.add(new SPparam(joParam.getString("cliID")));
+					spParams.add(new SPparam(joParam.getString("sServerID")));
+					spParams.add(new SPparam(joParam.getString("sDbID")));
+					spParams.add(new SPparam(joParam.getString("sLoginID")));
+					spParams.add(new SPparam(joParam.getString("sOwnerID")));
+					spParams.add(new SPparam(joParam.getString("sTbName")));
+					spParams.add(new SPparam(joParam.getString("dServerID")));
+					spParams.add(new SPparam(joParam.getString("dDbID")));
+					spParams.add(new SPparam(joParam.getString("dLoginID")));
+					spParams.add(new SPparam(joParam.getString("dOwnerID")));
+					spParams.add(new SPparam(joParam.getString("dTbName")));
+					spParams.add(new SPparam(0));	//vSFieldUpdateActive
+					spParams.add(new SPparam(""));	//vSFieldUpdateName
+					spParams.add(new SPparam(""));	//vSFieldValueType
+					spParams.add(new SPparam(""));	//vSFieldValueRead
+					spParams.add(new SPparam(""));	//vSFieldValueUpdate
+					spParams.add(new SPparam(joParam.getInt("whereActive")));
+					spParams.add(new SPparam(joParam.getString("whereBody")));
+					spParams.add(new SPparam(joParam.getInt("appendable")));
+					spParams.add(new SPparam(0));  	//createDest
+					spParams.add(new SPparam(-1)); 	//maxRows
+					spParams.add(new SPparam(5000)); //maxRowsRange
+					spParams.add(new SPparam(-1)); 	//maxRowsError
+					spParams.add(new SPparam(0)); 	//maxPctError
+					spParams.add(new SPparam(0));	//rollBackError
+					spParams.add(new SPparam(0));	//FecExtActive
+					spParams.add(new SPparam(0));	//fecExtEpoch
+					spParams.add(new SPparam(""));	//fecExtField
+					spParams.add(new SPparam("")); 	//fecExtIni
+					spParams.add(new SPparam(""));	//fecExtFin
+					spParams.add(new SPparam(""));	//fecExtFinIn
+					spParams.add(new SPparam(""));	//fecExtIniIn
+					spParams.add(new SPparam(""));	//sFieldUpdateKey
+					
+					spName = "sp_upd_mov";
+					break;
+				case "updateMovParam":
+					joParam = (JSONObject) param;
+					
+					spParams.add(new SPparam(joParam.getString("movID")));
+					spParams.add(new SPparam(joParam.getInt("movOrder")));
+					spParams.add(new SPparam(joParam.getInt("enable")));
+					spParams.add(new SPparam(joParam.getString("sourceField")));
+					spParams.add(new SPparam(0));
+					spParams.add(new SPparam("VARCHAR"));	//VARCHAR - INTEGER - DATE
+					spParams.add(new SPparam(joParam.getString("destField")));
+					spParams.add(new SPparam(0));
+					spParams.add(new SPparam(joParam.getString("fieldType"))); // FIELD - VARCHAR - INTEGER - NULL
+					spName = "sp_upd_movParam";
+					break;
+				case "updateProcGroup":
+					joParam = (JSONObject) param;
+					ProcGroup procGroup = (ProcGroup) mylib.serializeJSonStringToObject(joParam.toString(), ProcGroup.class);
+					
+					spParams.add(new SPparam(procGroup.getGrpID()));
+					spParams.add(new SPparam(procGroup.getProcID()));
+					spParams.add(new SPparam(procGroup.getnOrder()));
+					spParams.add(new SPparam(procGroup.getEnable()));
+					spParams.add(new SPparam(procGroup.getType()));
+					spName = "sp_upd_procGroup";
+					break;
+				case "updateDependence":
+					JSONObject jodep = (JSONObject) param;
+					String strDep = jodep.toString();
+					Dependence dep = (Dependence) mylib.serializeJSonStringToObject(strDep, Dependence.class);
+					
+					spParams.add(new SPparam(dep.getGrpID()));
+					spParams.add(new SPparam(dep.getCritical()));
+					spParams.add(new SPparam(dep.getProcHijo()));
+					spParams.add(new SPparam(dep.getProcPadre()));
+					
+					spName = "sp_upd_depProc";
+					
+					break;
+				default:
+					logger.error("method: "+method+" no es reconocido");
+					throw new Exception("updateDBresources(): method: "+method+" no es reconocido");
+			}
+			dbConn.open();
+			
+			if (dbConn.isConnected()) {
+				if (dbConn.executeProcedure(spName, spParams)) {
+					ResultSet rs = dbConn.getSpResult();
+					int result = 1;
+					if (rs.next()) {
+						try {
+							result = rs.getInt(1);
+						} catch (Exception e) {
+							throw new Exception("updateDBresources(): No es posible leer resultado de SP. " + e.getMessage());
+						}
+					}
+					resultStat = (result==0);
+				}
+				
+				dbConn.close();
+			}
+			
+			return resultStat;
+		} catch (Exception e) {
+			throw new Exception("updateDBresources(): "+e.getMessage());
+		}
+	}
+	
+	public boolean delDBresources(String method, Object param) throws Exception {
+		try {
+			List<SPparam> spParams = new ArrayList<>();
+			String strParam = "";
+			String spName = "";
+			boolean resultStat = false;
+			JSONObject joParam = new JSONObject();
+			
+			logger.info("Petición de Eliminación de Data...");
+			logger.info("Metodo recibido: "+method);
+			
+			switch(method) {
+				case "deleteGroup":
+					JSONObject joGroup = (JSONObject) param;
+					
+					spParams.add(new SPparam(joGroup.getString("grpID")));
+					spName = "sp_del_group";
+					break;
+				case "deleteProcGroup":
+					JSONObject joProcGroup = (JSONObject) param;
+					
+					spParams.add(new SPparam(joProcGroup.getString("grpID")));
+					spParams.add(new SPparam(joProcGroup.getString("procID")));
+					spName = "sp_del_procGroup";
+					break;
+				case "deleteOsp":
+					joParam = (JSONObject) param;
+					
+					spParams.add(new SPparam(joParam.getString("procID")));
+					spName = "sp_del_osp";
+					break;
+				case "deleteOspParam":
+					joParam = (JSONObject) param;
+					
+					spParams.add(new SPparam(joParam.getString("procID")));
+					spParams.add(new SPparam(joParam.getInt("order")));
+					spName = "sp_del_ospParam";
+					break;
+				case "deleteMov":
+					joParam = (JSONObject) param;
+					
+					spParams.add(new SPparam(joParam.getString("procID")));
+					spName = "sp_del_mov";
+					break;
+				case "deleteMovParam":
+					joParam = (JSONObject) param;
+					
+					spParams.add(new SPparam(joParam.getString("procID")));
+					spParams.add(new SPparam(joParam.getInt("order")));
+					spName = "sp_del_movParam";
+					break;
+				case "deleteEtb":
+					joParam = (JSONObject) param;
+					
+					spParams.add(new SPparam(joParam.getString("procID")));
+					spName = "sp_del_etb";
+					break;
+				case "deleteEtbParam":
+					joParam = (JSONObject) param;
+					
+					spParams.add(new SPparam(joParam.getString("procID")));
+					spParams.add(new SPparam(joParam.getInt("order")));
+					spName = "sp_del_etbParam";
+					break;
+				case "deleteLtb":
+					joParam = (JSONObject) param;
+					
+					spParams.add(new SPparam(joParam.getString("procID")));
+					spName = "sp_del_ltb";
+					break;
+				case "deleteLtbParam":
+					joParam = (JSONObject) param;
+					
+					spParams.add(new SPparam(joParam.getString("procID")));
+					spParams.add(new SPparam(joParam.getInt("order")));
+					spName = "sp_del_ltbParam";
+					break;
+				case "deleteFtp":
+					joParam = (JSONObject) param;
+					
+					spParams.add(new SPparam(joParam.getString("procID")));
+					spName = "sp_del_ftp";
+					break;
+				case "deleteBack":
+					joParam = (JSONObject) param;
+					
+					spParams.add(new SPparam(joParam.getString("procID")));
+					spName = "sp_del_back";
+					break;
+				case "deleteClient":
+					joParam = (JSONObject) param;
+					strParam = joParam.toString();
+					Client client = (Client) mylib.serializeJSonStringToObject(strParam, Client.class);
+
+					spParams.add(new SPparam(client.getCliID()));
+					spName = "sp_del_client";
+					break;
+				case "deleteCategory":
+					joParam = (JSONObject) param;
+					strParam = joParam.toString();
+					Category cat = (Category) mylib.serializeJSonStringToObject(strParam, Category.class);
+
+					spParams.add(new SPparam(cat.getCatID()));
+					spName = "sp_del_category";
+					break;
+				case "deleteUser":
+					joParam = (JSONObject) param;
+					strParam = joParam.toString();
+					User user = (User) mylib.serializeJSonStringToObject(strParam, User.class);
+
+					spParams.add(new SPparam(user.getUserID()));
+					spName = "sp_del_user";
+					break;
+				case "deleteServer":
+					joParam = (JSONObject) param;
+					strParam = joParam.toString();
+					Server srv = (Server) mylib.serializeJSonStringToObject(strParam, Server.class);
+
+					spParams.add(new SPparam(srv.getServerID()));
+					spName = "sp_del_server";
+					break;
+				case "deleteDBase":
+					joParam = (JSONObject) param;
+					strParam = joParam.toString();
+					DBase db = (DBase) mylib.serializeJSonStringToObject(strParam, DBase.class);
+
+					spParams.add(new SPparam(db.getDbID()));
+					spName = "sp_del_dbase";
+					break;
+				case "deleteDependence":
+					JSONObject jodep = (JSONObject) param;
+					String strDep = jodep.toString();
+					Dependence dep = (Dependence) mylib.serializeJSonStringToObject(strDep, Dependence.class);
+					
+					spParams.add(new SPparam(dep.getGrpID()));
+					spParams.add(new SPparam(dep.getProcHijo()));
+					spName = "sp_del_depProc";
+					break;
+				default:
+					logger.error("method: "+method+" no es reconocido");
+					throw new Exception("delDBresources(): method: "+method+" no es reconocido");
+			}
+			
+			logger.info("Abriendo BD...");
+			dbConn.open();
+			
+			if (dbConn.isConnected()) {
+				logger.info("BD Connectada. Ejecutando SP: "+spName);
+				if (dbConn.executeProcedure(spName, spParams)) {
+					ResultSet rs = dbConn.getSpResult();
+					int result = 1;
+					if (rs.next()) {
+						try {
+							result = rs.getInt(1);
+						} catch (Exception e) {
+							throw new Exception("delDBresources(): No es posible leer resultado de SP. " + e.getMessage());
+						}
+					}
+					resultStat = (result==0);
+				}
+				
+				logger.info("Respuesta de ejecución del SP: "+resultStat);
+				dbConn.close();
+			}
+			
+			return resultStat;
+		} catch (Exception e) {
+			throw new Exception("delDBresources(): "+e.getMessage());
+		}
+	}
+	
+	public boolean addDBresources(String method, Object param) throws Exception {
+		try {
+			List<SPparam> spParams = new ArrayList<>();
+			JSONObject joParam = new JSONObject();
+			String strParam = "";
+			String spName = "";
+			boolean resultStat = false;
+			
+			switch(method) {
+				case "addUser":
+					joParam = (JSONObject) param;
+					strParam = joParam.toString();
+					User user = (User) mylib.serializeJSonStringToObject(strParam, User.class);
+					
+					if (mylib.isNullOrEmpty(user.getUserID())) {
+						String userID = getNewUserID();
+						spParams.add(new SPparam(userID));
+						spParams.add(new SPparam(user.getUserName()));
+						spParams.add(new SPparam(userID+"-"+user.getUserName())); //Mas adelante devolver a userDesc
+						spParams.add(new SPparam(user.getUserType()));  // DB - SERVER
+						spParams.add(new SPparam(user.getUserPass()));
+						spParams.add(new SPparam(user.getUserDomain()));
+						spParams.add(new SPparam("CLI00000"));
+						spParams.add(new SPparam(1));
+						spName = "sp_add_user";
+					} else {
+						spParams.add(new SPparam(user.getUserID()));
+						spParams.add(new SPparam(user.getUserName()));
+						spParams.add(new SPparam(user.getUserID()+"-"+user.getUserName())); //Mas adelante devolver a userDesc
+						spParams.add(new SPparam(user.getUserType()));  // DB - SERVER
+						spParams.add(new SPparam(user.getUserPass()));
+						spParams.add(new SPparam(user.getUserDomain()));
+						spParams.add(new SPparam("CLI00000"));
+						spParams.add(new SPparam(user.getUserEnable()));
+						spName = "sp_upd_user";
+					}
+					
+					break;
+				case "addBack":
+					JSONObject joBack = (JSONObject) param;
+					String strBack = joBack.toString();
+					BackTable btb = (BackTable) mylib.serializeJSonStringToObject(strBack, BackTable.class);
+					
+					if (mylib.isNullOrEmpty(btb.getBtbID())) {
+						spParams.add(new SPparam(getNewBackID()));
+						spParams.add(new SPparam(btb.getBtbDesc()));
+						spParams.add(new SPparam(1));
+						spParams.add(new SPparam(btb.getBtbTableName()));
+						spParams.add(new SPparam(btb.getBtbFileName()));
+						spParams.add(new SPparam("LOCAL"));
+						spParams.add(new SPparam(btb.getBtbWhere_active()));
+						spParams.add(new SPparam(btb.getBtbWhere_body()));
+						spParams.add(new SPparam(btb.getCliID()));
+						spParams.add(new SPparam(btb.getServerID()));
+						spParams.add(new SPparam(btb.getDbID()));
+						spParams.add(new SPparam(btb.getLoginID()));
+						spParams.add(new SPparam(btb.getOwnerID()));
+						spName = "sp_add_back";
+					} else {
+						spParams.add(new SPparam(btb.getBtbID()));
+						spParams.add(new SPparam(btb.getBtbDesc()));
+						spParams.add(new SPparam(btb.getEnable()));
+						spParams.add(new SPparam(btb.getBtbTableName()));
+						spParams.add(new SPparam(btb.getBtbFileName()));
+						spParams.add(new SPparam("LOCAL"));
+						spParams.add(new SPparam(btb.getBtbWhere_active()));
+						spParams.add(new SPparam(btb.getBtbWhere_body()));
+						spParams.add(new SPparam(btb.getCliID()));
+						spParams.add(new SPparam(btb.getServerID()));
+						spParams.add(new SPparam(btb.getDbID()));
+						spParams.add(new SPparam(btb.getLoginID()));
+						spParams.add(new SPparam(btb.getOwnerID()));
+						spName = "sp_upd_back";
+					}
+					
+					break;
+				case "addFtp":
+					JSONObject joFtp = (JSONObject) param;
+					String strFtp = joFtp.toString();
+					Ftp ftp = (Ftp) mylib.serializeJSonStringToObject(strFtp, Ftp.class);
+					
+					if (mylib.isNullOrEmpty(ftp.getFtpID())) {
+						spParams.add(new SPparam(getNewFtpID()));
+						spParams.add(new SPparam(ftp.getFtpDesc()));
+						spParams.add(new SPparam(1));
+						spParams.add(new SPparam(0));
+						spParams.add(new SPparam(ftp.getFtpAction()));
+						spParams.add(new SPparam(ftp.getRemoteFile()));
+						spParams.add(new SPparam(ftp.getLocalFile()));
+						spParams.add(new SPparam(ftp.getRemotePath()));
+						spParams.add(new SPparam("LOCAL"));
+						spParams.add(new SPparam(ftp.getServerID()));
+						spParams.add(new SPparam(ftp.getUserID()));
+						spName = "sp_add_ftp";
+					} else {
+						spParams.add(new SPparam(ftp.getFtpID()));
+						spParams.add(new SPparam(ftp.getFtpDesc()));
+						spParams.add(new SPparam(ftp.getEnable()));
+						spParams.add(new SPparam(0));	//ftpSecure
+						spParams.add(new SPparam(ftp.getFtpAction()));
+						spParams.add(new SPparam(ftp.getRemoteFile()));
+						spParams.add(new SPparam(ftp.getLocalFile()));
+						spParams.add(new SPparam(ftp.getRemotePath()));
+						spParams.add(new SPparam("LOCAL"));
+						spParams.add(new SPparam(ftp.getServerID()));
+						spParams.add(new SPparam(ftp.getUserID()));
+						spName = "sp_upd_ftp";
+					}
+					
+					break;
+				case "addOsp":
+					JSONObject joOsp = (JSONObject) param;
+					String strOsp = joOsp.toString();
+					Osp osp = (Osp) mylib.serializeJSonStringToObject(strOsp, Osp.class);
+					
+					if (mylib.isNullOrEmpty(osp.getOspID())) {
+						spParams.add(new SPparam(getNewOspID()));
+						spParams.add(new SPparam(osp.getOspDesc()));
+						spParams.add(new SPparam(1));
+						spParams.add(new SPparam(osp.getOspName()));
+						spParams.add(new SPparam(osp.getCliID()));
+						spParams.add(new SPparam(osp.getServerID()));
+						spParams.add(new SPparam(osp.getDbID()));
+						spParams.add(new SPparam(osp.getLoginID()));
+						spParams.add(new SPparam(osp.getOwnerID()));
+						spName = "sp_add_osp";
+					} else {
+						spParams.add(new SPparam(osp.getOspID()));
+						spParams.add(new SPparam(osp.getOspDesc()));
+						spParams.add(new SPparam(osp.getEnable()));
+						spParams.add(new SPparam(osp.getOspName()));
+						spParams.add(new SPparam(osp.getCliID()));
+						spParams.add(new SPparam(osp.getServerID()));
+						spParams.add(new SPparam(osp.getDbID()));
+						spParams.add(new SPparam(osp.getLoginID()));
+						spParams.add(new SPparam(osp.getOwnerID()));
+						spName = "sp_upd_osp";
+					}
+					
+					break;
+				case "addOspParam":
+					JSONObject joOspParam = (JSONObject) param;
+					String strOspParam = joOspParam.toString();
+					OspParam op = (OspParam) mylib.serializeJSonStringToObject(strOspParam, OspParam.class);
+					
+					spParams.add(new SPparam(op.getOspID()));
+					spParams.add(new SPparam(op.getOrder()));
+					spParams.add(new SPparam(op.getDesc()));
+					spParams.add(new SPparam(op.getType())); //FN (formula) o IN (no es formula)
+					spParams.add(new SPparam(op.getValue()));
+					spParams.add(new SPparam("VARCHAR")); //Por el momento siempre VARCHAR
+					spParams.add(new SPparam(1));
+					
+					spName = "sp_add_ospParam";
+					
+					break;
+				case "addLtb":
+					JSONObject joLtb = (JSONObject) param;
+					String strLtb = joLtb.toString();
+					LoadTable ltb = (LoadTable) mylib.serializeJSonStringToObject(strLtb, LoadTable.class);
+					
+					if (mylib.isNullOrEmpty(ltb.getLtbID())) {
+						spParams.add(new SPparam(getNewLtbID()));
+						spParams.add(new SPparam(ltb.getLtbDesc()));
+						spParams.add(new SPparam(1)); //enable
+						spParams.add(new SPparam(ltb.getLtbFileName()));
+						spParams.add(new SPparam("CSV"));  //fileType
+						spParams.add(new SPparam("LOCAL"));	//filePath
+						spParams.add(new SPparam(ltb.getLtbTableName()));
+						spParams.add(new SPparam(ltb.getLtbLoadFixed()));
+						spParams.add(new SPparam(ltb.getLtbFileSep()));
+						spParams.add(new SPparam(ltb.getLtbAppend()));
+						spParams.add(new SPparam(ltb.getLtbHeader()));
+						spParams.add(new SPparam(-1)); //maxRows
+						spParams.add(new SPparam(ltb.getCliID()));
+						spParams.add(new SPparam(ltb.getServerID()));
+						spParams.add(new SPparam(ltb.getDbID()));
+						spParams.add(new SPparam(ltb.getLoginID()));
+						spParams.add(new SPparam(ltb.getOwnerID()));
+						spParams.add(new SPparam(0));
+						spParams.add(new SPparam(0));
+						spParams.add(new SPparam(""));
+						spParams.add(new SPparam(""));
+						spParams.add(new SPparam(""));
+						spName = "sp_add_ltb";
+					} else {
+						spParams.add(new SPparam(ltb.getLtbID()));
+						spParams.add(new SPparam(ltb.getLtbDesc()));
+						spParams.add(new SPparam(ltb.getEnable()));
+						spParams.add(new SPparam(ltb.getLtbFileName()));
+						spParams.add(new SPparam("CSV"));
+						spParams.add(new SPparam("LOCAL"));
+						spParams.add(new SPparam(ltb.getLtbTableName()));
+						spParams.add(new SPparam(ltb.getLtbLoadFixed()));
+						spParams.add(new SPparam(ltb.getLtbFileSep()));
+						spParams.add(new SPparam(ltb.getLtbAppend()));
+						spParams.add(new SPparam(ltb.getLtbHeader()));
+						spParams.add(new SPparam(-1));
+						spParams.add(new SPparam(ltb.getCliID()));
+						spParams.add(new SPparam(ltb.getServerID()));
+						spParams.add(new SPparam(ltb.getDbID()));
+						spParams.add(new SPparam(ltb.getLoginID()));
+						spParams.add(new SPparam(ltb.getOwnerID()));
+						spParams.add(new SPparam(0));
+						spParams.add(new SPparam(0));
+						spParams.add(new SPparam(""));
+						spParams.add(new SPparam(""));
+						spParams.add(new SPparam(""));
+						spName = "sp_upd_ltb";
+					}
+					
+					break;
+				case "addLtbParam":
+					JSONObject joLtbParam = (JSONObject) param;
+					String strLtbParam = joLtbParam.toString();
+					LoadTableParam lp = (LoadTableParam) mylib.serializeJSonStringToObject(strLtbParam, LoadTableParam.class);
+					
+					spParams.add(new SPparam(lp.getLtbID()));
+					spParams.add(new SPparam(1));
+					spParams.add(new SPparam(lp.getFilePosIni()));
+					spParams.add(new SPparam(lp.getFilePosFin()));
+					spParams.add(new SPparam(lp.getFileLoadOrder()));
+					spParams.add(new SPparam(lp.getTbFieldName()));
+					spParams.add(new SPparam(lp.getTbFieldValue()));
+					spParams.add(new SPparam(lp.getTbFieldDataType()));  //VARCHAR - INTEGER - DATE
+					spParams.add(new SPparam(0));
+					spParams.add(new SPparam(lp.getTbLoadFromFile()));
+					
+					spName = "sp_add_ltbParam";
+					
+					break;
+				case "addEtb":
+					JSONObject joEtb = (JSONObject) param;
+					String strEtb = joEtb.toString();
+					ExpTable etb = (ExpTable) mylib.serializeJSonStringToObject(strEtb, ExpTable.class);
+					
+					if (mylib.isNullOrEmpty(etb.getEtbID())) {
+						spParams.add(new SPparam(getNewEtbID()));
+						spParams.add(new SPparam(etb.getEtbDesc()));
+						spParams.add(new SPparam(1));
+						spParams.add(new SPparam(etb.getEtbTableName()));
+						spParams.add(new SPparam(etb.getEtbFileName()));
+						spParams.add(new SPparam("CSV"));
+						spParams.add(new SPparam(etb.getEtbFileSep()));
+						spParams.add(new SPparam("LOCAL"));
+						spParams.add(new SPparam(etb.getEtbAppend()));
+						spParams.add(new SPparam(etb.getEtbHeader()));
+						spParams.add(new SPparam(etb.getEtbWhere_active()));
+						spParams.add(new SPparam(etb.getEtbWhere_body()));
+						spParams.add(new SPparam(etb.getEtbOrder_active()));
+						spParams.add(new SPparam(etb.getEtbOrder_body()));
+						spParams.add(new SPparam(-1));
+						spParams.add(new SPparam(etb.getEtbMultiFiles()));
+						spParams.add(new SPparam(etb.getEtbMaxRows_multiFiles()));
+						spParams.add(new SPparam(etb.getEtbGetEmptyFile()));
+						spParams.add(new SPparam(etb.getCliID()));
+						spParams.add(new SPparam(etb.getServerID()));
+						spParams.add(new SPparam(etb.getDbID()));
+						spParams.add(new SPparam(etb.getLoginID()));
+						spParams.add(new SPparam(etb.getOwnerID()));
+						spParams.add(new SPparam(0));
+						spParams.add(new SPparam(0));
+						spParams.add(new SPparam(""));
+						spParams.add(new SPparam(""));
+						spParams.add(new SPparam(""));
+						spName = "sp_add_etb";
+					} else {
+						spParams.add(new SPparam(etb.getEtbID()));
+						spParams.add(new SPparam(etb.getEtbDesc()));
+						spParams.add(new SPparam(etb.getEtbEnable()));
+						spParams.add(new SPparam(etb.getEtbTableName()));
+						spParams.add(new SPparam(etb.getEtbFileName()));
+						spParams.add(new SPparam("CSV"));
+						spParams.add(new SPparam(etb.getEtbFileSep()));
+						spParams.add(new SPparam("LOCAL"));
+						spParams.add(new SPparam(etb.getEtbAppend()));
+						spParams.add(new SPparam(etb.getEtbHeader()));
+						spParams.add(new SPparam(etb.getEtbWhere_active()));
+						spParams.add(new SPparam(etb.getEtbWhere_body()));
+						spParams.add(new SPparam(etb.getEtbOrder_active()));
+						spParams.add(new SPparam(etb.getEtbOrder_body()));
+						spParams.add(new SPparam(-1));
+						spParams.add(new SPparam(etb.getEtbMultiFiles()));
+						spParams.add(new SPparam(etb.getEtbMaxRows_multiFiles()));
+						spParams.add(new SPparam(etb.getEtbGetEmptyFile()));
+						spParams.add(new SPparam(etb.getCliID()));
+						spParams.add(new SPparam(etb.getServerID()));
+						spParams.add(new SPparam(etb.getDbID()));
+						spParams.add(new SPparam(etb.getLoginID()));
+						spParams.add(new SPparam(etb.getOwnerID()));
+						spParams.add(new SPparam(0));
+						spParams.add(new SPparam(0));
+						spParams.add(new SPparam(""));
+						spParams.add(new SPparam(""));
+						spParams.add(new SPparam(""));
+						spName = "sp_upd_etb";
+					}
+					
+					break;
+				case "addEtbParam":
+					JSONObject joEtbParam = (JSONObject) param;
+					String strEtbParam = joEtbParam.toString();
+					ExpTableParam etbp = (ExpTableParam) mylib.serializeJSonStringToObject(strEtbParam, ExpTableParam.class);
+					
+					spParams.add(new SPparam(etbp.getEtbID()));
+					spParams.add(new SPparam(etbp.getEtbFieldName()));  //CAMPO ORIGEN
+					spParams.add(new SPparam(etbp.getEtbFieldLabel())); //NOMBRE DEL CAMPO A SER EXPORTADO
+					spParams.add(new SPparam(etbp.getEtbFieldType()));  //FIELD - VARCHAR - INTEGER
+					spParams.add(new SPparam(1));
+					spParams.add(new SPparam(etbp.getEtbOrder()));
+					spParams.add(new SPparam(etbp.getEtbDataType()));  // VARCHAR - INTEGER
+					
+					spName = "sp_add_etbParam";
+					
+					break;
+				case "addMovParam":
+					joParam = (JSONObject) param;
+					strParam = joParam.toString();
+					MovMatch mm = (MovMatch) mylib.serializeJSonStringToObject(strParam, MovMatch.class);
+					
+					spParams.add(new SPparam(mm.getMovID()));
+					spParams.add(new SPparam(mm.getMovOrder()));
+					spParams.add(new SPparam(1));
+					spParams.add(new SPparam(mm.getSourceField()));
+					spParams.add(new SPparam(0));
+					spParams.add(new SPparam("VARCHAR"));	 //sourceType : VARCHAR - INTEGER - DATE
+					spParams.add(new SPparam(mm.getDestField()));
+					spParams.add(new SPparam(0));
+					spParams.add(new SPparam(mm.getFieldType())); //FIELD - VARCHAR- INTEGER - NULL
+					spName = "sp_add_movParam";
+					
+					break;
+				case "addMov":
+					JSONObject joMov = (JSONObject) param;
+					String strMov = joMov.toString();
+					Mov mov = (Mov) mylib.serializeJSonStringToObject(strMov, Mov.class);
+
+					if (mylib.isNullOrEmpty(mov.getMovID())) {
+						spParams.add(new SPparam(getNewMovID()));
+						spParams.add(new SPparam(mov.getMovDesc()));
+						spParams.add(new SPparam(1));
+						spParams.add(new SPparam(mov.getCliID()));
+						spParams.add(new SPparam(mov.getsServerID()));
+						spParams.add(new SPparam(mov.getsDbID()));
+						spParams.add(new SPparam(mov.getsLoginID()));
+						spParams.add(new SPparam(mov.getsOwnerID()));
+						spParams.add(new SPparam(mov.getsTbName()));
+						spParams.add(new SPparam(mov.getdServerID()));
+						spParams.add(new SPparam(mov.getdDbID()));
+						spParams.add(new SPparam(mov.getdLoginID()));
+						spParams.add(new SPparam(mov.getdOwnerID()));
+						spParams.add(new SPparam(mov.getdTbName()));
+						spParams.add(new SPparam(0));	//sFieldUpdateActive
+						spParams.add(new SPparam(""));	//vSFieldUpdateName
+						spParams.add(new SPparam(""));	//vSFieldValueType
+						spParams.add(new SPparam(""));	//vSFieldValueRead
+						spParams.add(new SPparam(""));	//vSFieldValueUpdate
+						spParams.add(new SPparam(mov.getWhereActive()));
+						spParams.add(new SPparam(mov.getWhereBody()));
+						spParams.add(new SPparam(mov.getAppendable()));
+						spParams.add(new SPparam(0));  	//createDest
+						spParams.add(new SPparam(0));  	//deleteWhereActive
+						spParams.add(new SPparam(""));  	//deleteWhereBody
+						spParams.add(new SPparam(-1)); 	//maxRows
+						spParams.add(new SPparam(5000)); //maxRowsRange
+						spParams.add(new SPparam(-1)); 	//maxRowsError
+						spParams.add(new SPparam(-1)); 	//maxPctError
+						spParams.add(new SPparam(0));	//rollBackError
+						spParams.add(new SPparam(0));	//FecExtActive
+						spParams.add(new SPparam(0));	//fecExtEpoch
+						spParams.add(new SPparam(""));	//fecExtField
+						spParams.add(new SPparam("")); 	//fecExtIni
+						spParams.add(new SPparam(""));	//fecExtFin
+						spParams.add(new SPparam(0));	//fecExtFinIn
+						spParams.add(new SPparam(0));	//fecExtIniIn
+						spParams.add(new SPparam(""));	//sFieldUpdateKey
+						spName = "sp_add_mov";
+					} else {
+						spParams.add(new SPparam(mov.getMovID()));
+						spParams.add(new SPparam(mov.getMovDesc()));
+						spParams.add(new SPparam(mov.getEnable()));
+						spParams.add(new SPparam(mov.getCliID()));
+						spParams.add(new SPparam(mov.getsServerID()));
+						spParams.add(new SPparam(mov.getsDbID()));
+						spParams.add(new SPparam(mov.getsLoginID()));
+						spParams.add(new SPparam(mov.getsOwnerID()));
+						spParams.add(new SPparam(mov.getsTbName()));
+						spParams.add(new SPparam(mov.getdServerID()));
+						spParams.add(new SPparam(mov.getdDbID()));
+						spParams.add(new SPparam(mov.getdLoginID()));
+						spParams.add(new SPparam(mov.getdOwnerID()));
+						spParams.add(new SPparam(mov.getdTbName()));
+						spParams.add(new SPparam(0));	//sFieldUpdateActive
+						spParams.add(new SPparam(""));	//vSFieldUpdateName
+						spParams.add(new SPparam(""));	//vSFieldValueType
+						spParams.add(new SPparam(""));	//vSFieldValueRead
+						spParams.add(new SPparam(""));	//vSFieldValueUpdate
+						spParams.add(new SPparam(mov.getWhereActive()));
+						spParams.add(new SPparam(mov.getWhereBody()));
+						spParams.add(new SPparam(mov.getAppendable()));
+						spParams.add(new SPparam(0));  	//createDest
+						spParams.add(new SPparam(0));  	//deleteWhereActive
+						spParams.add(new SPparam(""));  	//deleteWhereBody
+						spParams.add(new SPparam(-1)); 	//maxRows
+						spParams.add(new SPparam(5000)); //maxRowsRange
+						spParams.add(new SPparam(-1)); 	//maxRowsError
+						spParams.add(new SPparam(-1)); 	//maxPctError
+						spParams.add(new SPparam(0));	//rollBackError
+						spParams.add(new SPparam(0));	//FecExtActive
+						spParams.add(new SPparam(0));	//fecExtEpoch
+						spParams.add(new SPparam(""));	//fecExtField
+						spParams.add(new SPparam("")); 	//fecExtIni
+						spParams.add(new SPparam(""));	//fecExtFin
+						spParams.add(new SPparam(0));	//fecExtFinIn
+						spParams.add(new SPparam(0));	//fecExtIniIn
+						spParams.add(new SPparam(""));	//sFieldUpdateKey
+						spName = "sp_upd_mov";
+					}
+					
+					break;
+				case "addServer":
+					JSONObject joServer = (JSONObject) param;
+					
+					String serverID = "";
+					try {
+						serverID = joServer.getString("serverID");
+					} catch (Exception e) {}			
+					
+					if (mylib.isNullOrEmpty(serverID)) {
+						spParams.add(new SPparam(getNewServerID()));
+						spParams.add(new SPparam(joServer.getString("serverDesc")));
+						spParams.add(new SPparam(1));
+						spParams.add(new SPparam(joServer.getString("serverHostName")));
+						spParams.add(new SPparam(joServer.getString("serverDomain")));
+						spParams.add(new SPparam("CLI00000"));
+						spParams.add(new SPparam(joServer.getString("serverRoleMain")));
+						spParams.add(new SPparam(joServer.getString("serverIP")));
+						spName = "sp_add_server";
+					} else {
+						spParams.add(new SPparam(serverID));
+						spParams.add(new SPparam(joServer.getString("serverDesc")));
+						spParams.add(new SPparam(joServer.getString("serverEnable")));
+						spParams.add(new SPparam(joServer.getString("serverHostName")));
+						spParams.add(new SPparam(joServer.getString("serverDomain")));
+						spParams.add(new SPparam("CLI00000"));
+						spParams.add(new SPparam(joServer.getString("serverRoleMain")));
+						spParams.add(new SPparam(joServer.getString("serverIP")));
+						spName = "sp_upd_server";
+					}
+					
+					break;
 				case "addGroup":
 					JSONObject joGroup = (JSONObject) param;
 					String strGroup = joGroup.toString();
 					Group group = (Group) mylib.serializeJSonStringToObject(strGroup, Group.class);
 					
-					spParams.add(new SPparam(group.getGrpID()));
-					spParams.add(new SPparam(group.getGrpDesc()));
-					spParams.add(new SPparam(group.getEnable()));
-					spParams.add(new SPparam(group.getHorID()));
-					spParams.add(new SPparam(group.getGrpID()));
-					spParams.add(new SPparam(group.getCliID()));
-					spParams.add(new SPparam(group.getMaxTimeExec()));
-					spParams.add(new SPparam(group.getTypeBalance()));
-					spParams.add(new SPparam(group.getTypeRequest()));
-					spParams.add(new SPparam(group.getCatID()));
-					
-					spName = "sp_add_group";
+					if (mylib.isNullOrEmpty(group.getGrpID())) {
+						spParams.add(new SPparam(getNewGrpID()));
+						spParams.add(new SPparam(group.getGrpDesc()));
+						spParams.add(new SPparam(group.getEnable()));
+						spParams.add(new SPparam(group.getHorID()));
+						spParams.add(new SPparam(group.getCliID()));
+						spParams.add(new SPparam(group.getMaxTimeExec()));
+						spParams.add(new SPparam("MULTI"));
+						spParams.add(new SPparam("SERVER"));
+						spParams.add(new SPparam(group.getCatID()));
+						spName = "sp_add_group";
+					} else {
+						spParams.add(new SPparam(group.getGrpID()));
+						spParams.add(new SPparam(group.getGrpDesc()));
+						spParams.add(new SPparam(group.getEnable()));
+						spParams.add(new SPparam(group.getHorID()));
+						spParams.add(new SPparam(group.getCliID()));
+						spParams.add(new SPparam(group.getMaxTimeExec()));
+						spParams.add(new SPparam("MULTI"));
+						spParams.add(new SPparam("SERVER"));
+						spParams.add(new SPparam(group.getCatID()));
+						spName = "sp_upd_group";
+					}
 					
 					break;
 				case "addDiary":
 					JSONObject joDiary = (JSONObject) param;
 					
-					spParams.add(new SPparam(joDiary.getString("ageID")));
+					spParams.add(new SPparam(getNewAgeID()));
 					spParams.add(new SPparam(joDiary.getString("ageDesc")));
 					spParams.add(new SPparam(joDiary.getString("month")));
 					spParams.add(new SPparam(joDiary.getString("dayOfMonth")));
@@ -156,7 +1035,7 @@ public class DataAccess {
 				case "addSchedule":
 					JSONObject joSchedule = (JSONObject) param;
 					
-					spParams.add(new SPparam(joSchedule.getString("horID")));
+					spParams.add(new SPparam(getNewHorID()));
 					spParams.add(new SPparam(joSchedule.getString("horDesc")));
 					spParams.add(new SPparam(1));
 					
@@ -182,7 +1061,7 @@ public class DataAccess {
 					spParams.add(new SPparam(procGroup.getGrpID()));
 					spParams.add(new SPparam(procGroup.getProcID()));
 					spParams.add(new SPparam(procGroup.getnOrder()));
-					spParams.add(new SPparam(procGroup.getEnable()));
+					spParams.add(new SPparam(1));
 					spParams.add(new SPparam(procGroup.getType()));
 					
 					spName = "sp_add_procGroup";
@@ -193,10 +1072,17 @@ public class DataAccess {
 					String strClient = joClient.toString();
 					Client client = (Client) mylib.serializeJSonStringToObject(strClient, Client.class);
 					
-					spParams.add(new SPparam(client.getCliID()));
-					spParams.add(new SPparam(client.getCliDesc()));
-					
-					spName = "sp_add_client";
+					if (mylib.isNullOrEmpty(client.getCliID())) {
+						spParams.add(new SPparam(getNewClientID()));
+						spParams.add(new SPparam(client.getCliDesc()));
+						spParams.add(new SPparam(1));
+						spName = "sp_add_client";
+					} else {
+						spParams.add(new SPparam(client.getCliID()));
+						spParams.add(new SPparam(client.getCliDesc()));
+						spParams.add(new SPparam(client.getEnable()));
+						spName = "sp_upd_client";
+					}
 					
 					break;
 				case "addCategory":
@@ -204,11 +1090,18 @@ public class DataAccess {
 					String strCat = joCat.toString();
 					Category cat = (Category) mylib.serializeJSonStringToObject(strCat, Category.class);
 					
-					spParams.add(new SPparam(cat.getCatID()));
-					spParams.add(new SPparam(cat.getCatDesc()));
-					spParams.add(new SPparam(cat.getEnable()));
+					if (mylib.isNullOrEmpty(cat.getCatID())) {
+						spParams.add(new SPparam(getNewCategoryID()));
+						spParams.add(new SPparam(cat.getCatDesc()));
+						spParams.add(new SPparam(1));
+						spName = "sp_add_category";
+					} else {
+						spParams.add(new SPparam(cat.getCatID()));
+						spParams.add(new SPparam(cat.getCatDesc()));
+						spParams.add(new SPparam(cat.getEnable()));
+						spName = "sp_upd_category";
+					}
 					
-					spName = "sp_add_category";
 					
 					break;
 				case "addDBase":
@@ -243,6 +1136,9 @@ public class DataAccess {
 					spName = "sp_add_depProc";
 					
 					break;
+				default:
+					logger.error("method: "+method+" no es reconocido");
+					throw new Exception("addDBresources(): method: "+method+" no es reconocido");
 			}
 			
 			dbConn.open();
@@ -287,7 +1183,371 @@ public class DataAccess {
 			throw new Exception("getCountGroups(): "+e.getMessage());
 		}
 	}
+
+	public String getNewClientID() throws Exception {
+		try {
+			String cliID = "";
+			
+			dbConn.open();
+			
+			if (dbConn.isConnected()) {
+				String vSql = "call sp_get_newCliID()";
+				if (dbConn.executeQuery(vSql)) {
+					ResultSet rs = dbConn.getQuery();
+					if (rs.next()) {
+						cliID = rs.getString("cliID");
+					}
+				}
+				
+				dbConn.close();
+			}
+
+			if (mylib.isNullOrEmpty(cliID)) {
+				throw new Exception("getNewClientID(): no es posible recuperar un nuevo ID de Cliente");
+			}
+			
+			return cliID;
+		} catch (Exception e) {
+			throw new Exception("getNewClientID(): "+e.getMessage());
+		}
+	}
 	
+	public String getNewEtbID() throws Exception {
+		try {
+			String objID = "";
+			
+			dbConn.open();
+			
+			if (dbConn.isConnected()) {
+				String vSql = "call sp_get_newProcID('ETB')";
+				if (dbConn.executeQuery(vSql)) {
+					ResultSet rs = dbConn.getQuery();
+					if (rs.next()) {
+						objID = rs.getString("itProcID");
+					}
+				}
+				
+				dbConn.close();
+			}
+
+			if (mylib.isNullOrEmpty(objID)) {
+				throw new Exception("getNewEtbID(): no es posible recuperar un nuevo ID de Etb");
+			}
+			
+			return objID;
+		} catch (Exception e) {
+			throw new Exception("getNewEtbID(): "+e.getMessage());
+		}
+	}
+	
+	public String getNewLtbID() throws Exception {
+		try {
+			String objID = "";
+			
+			dbConn.open();
+			
+			if (dbConn.isConnected()) {
+				String vSql = "call sp_get_newProcID('LTB')";
+				if (dbConn.executeQuery(vSql)) {
+					ResultSet rs = dbConn.getQuery();
+					if (rs.next()) {
+						objID = rs.getString("itProcID");
+					}
+				}
+				
+				dbConn.close();
+			}
+
+			if (mylib.isNullOrEmpty(objID)) {
+				throw new Exception("getNewLtbID(): no es posible recuperar un nuevo ID de Ltb");
+			}
+			
+			return objID;
+		} catch (Exception e) {
+			throw new Exception("getNewLtbID(): "+e.getMessage());
+		}
+	}
+
+	public String getNewOspID() throws Exception {
+		try {
+			String objID = "";
+			
+			dbConn.open();
+			
+			if (dbConn.isConnected()) {
+				String vSql = "call sp_get_newProcID('OSP')";
+				if (dbConn.executeQuery(vSql)) {
+					ResultSet rs = dbConn.getQuery();
+					if (rs.next()) {
+						objID = rs.getString("itProcID");
+					}
+				}
+				
+				dbConn.close();
+			}
+
+			if (mylib.isNullOrEmpty(objID)) {
+				throw new Exception("getNewOspID(): no es posible recuperar un nuevo ID de OSP");
+			}
+			
+			return objID;
+		} catch (Exception e) {
+			throw new Exception("getNewOspID(): "+e.getMessage());
+		}
+	}
+
+	public String getNewFtpID() throws Exception {
+		try {
+			String objID = "";
+			
+			dbConn.open();
+			
+			if (dbConn.isConnected()) {
+				String vSql = "call sp_get_newProcID('FTP')";
+				if (dbConn.executeQuery(vSql)) {
+					ResultSet rs = dbConn.getQuery();
+					if (rs.next()) {
+						objID = rs.getString("itProcID");
+					}
+				}
+				
+				dbConn.close();
+			}
+
+			if (mylib.isNullOrEmpty(objID)) {
+				throw new Exception("getNewFtpID(): no es posible recuperar un nuevo ID de FTP");
+			}
+			
+			return objID;
+		} catch (Exception e) {
+			throw new Exception("getNewFtpID(): "+e.getMessage());
+		}
+	}
+
+	public String getNewBackID() throws Exception {
+		try {
+			String objID = "";
+			
+			dbConn.open();
+			
+			if (dbConn.isConnected()) {
+				String vSql = "call sp_get_newProcID('BTB')";
+				if (dbConn.executeQuery(vSql)) {
+					ResultSet rs = dbConn.getQuery();
+					if (rs.next()) {
+						objID = rs.getString("itProcID");
+					}
+				}
+				
+				dbConn.close();
+			}
+
+			if (mylib.isNullOrEmpty(objID)) {
+				throw new Exception("getNewBackID(): no es posible recuperar un nuevo ID de BTB");
+			}
+			
+			return objID;
+		} catch (Exception e) {
+			throw new Exception("getNewBackID(): "+e.getMessage());
+		}
+	}
+
+	public String getNewMovID() throws Exception {
+		try {
+			String objID = "";
+			
+			dbConn.open();
+			
+			if (dbConn.isConnected()) {
+				String vSql = "call sp_get_newProcID('MOV')";
+				if (dbConn.executeQuery(vSql)) {
+					ResultSet rs = dbConn.getQuery();
+					if (rs.next()) {
+						objID = rs.getString("itProcID");
+					}
+				}
+				
+				dbConn.close();
+			}
+
+			if (mylib.isNullOrEmpty(objID)) {
+				throw new Exception("getNewMovID(): no es posible recuperar un nuevo ID de Mov");
+			}
+			
+			return objID;
+		} catch (Exception e) {
+			throw new Exception("getNewMovID(): "+e.getMessage());
+		}
+	}
+	
+	public String getNewServerID() throws Exception {
+		try {
+			String objID = "";
+			
+			dbConn.open();
+			
+			if (dbConn.isConnected()) {
+				String vSql = "call sp_get_newServerID()";
+				if (dbConn.executeQuery(vSql)) {
+					ResultSet rs = dbConn.getQuery();
+					if (rs.next()) {
+						objID = rs.getString("objID");
+					}
+				}
+				
+				dbConn.close();
+			}
+
+			if (mylib.isNullOrEmpty(objID)) {
+				throw new Exception("getNewServerID(): no es posible recuperar un nuevo ID de Servidor");
+			}
+			
+			return objID;
+		} catch (Exception e) {
+			throw new Exception("getNewServerID(): "+e.getMessage());
+		}
+	}
+
+	public String getNewUserID() throws Exception {
+		try {
+			String userID = "";
+			
+			dbConn.open();
+			
+			if (dbConn.isConnected()) {
+				String vSql = "call sp_get_newUserID()";
+				if (dbConn.executeQuery(vSql)) {
+					ResultSet rs = dbConn.getQuery();
+					if (rs.next()) {
+						userID = rs.getString("userID");
+					}
+				}
+				
+				dbConn.close();
+			}
+
+			if (mylib.isNullOrEmpty(userID)) {
+				throw new Exception("getNewUserID(): no es posible recuperar un nuevo ID de Usuario");
+			}
+			
+			return userID;
+		} catch (Exception e) {
+			throw new Exception("getNewUserID(): "+e.getMessage());
+		}
+	}
+
+	public String getNewGrpID() throws Exception {
+		try {
+			String grpID = "";
+			
+			dbConn.open();
+			
+			if (dbConn.isConnected()) {
+				String vSql = "call sp_get_newGrpID()";
+				if (dbConn.executeQuery(vSql)) {
+					ResultSet rs = dbConn.getQuery();
+					if (rs.next()) {
+						grpID = rs.getString("grpID");
+					}
+				}
+				
+				dbConn.close();
+			}
+
+			if (mylib.isNullOrEmpty(grpID)) {
+				throw new Exception("getNewGrpID(): no es posible recuperar un nuevo ID de Grupo");
+			}
+			
+			return grpID;
+		} catch (Exception e) {
+			throw new Exception("getNewGrpID(): "+e.getMessage());
+		}
+	}
+
+	public String getNewHorID() throws Exception {
+		try {
+			String horID = "";
+			
+			dbConn.open();
+			
+			if (dbConn.isConnected()) {
+				String vSql = "call sp_get_newHorID()";
+				if (dbConn.executeQuery(vSql)) {
+					ResultSet rs = dbConn.getQuery();
+					if (rs.next()) {
+						horID = rs.getString("horID");
+					}
+				}
+				
+				dbConn.close();
+			}
+
+			if (mylib.isNullOrEmpty(horID)) {
+				throw new Exception("getNewHorID(): no es posible recuperar un nuevo ID de Horarios");
+			}
+			
+			return horID;
+		} catch (Exception e) {
+			throw new Exception("getNewHorID(): "+e.getMessage());
+		}
+	}
+
+	public String getNewAgeID() throws Exception {
+		try {
+			String ageID = "";
+			
+			dbConn.open();
+			
+			if (dbConn.isConnected()) {
+				String vSql = "call sp_get_newAgeID()";
+				if (dbConn.executeQuery(vSql)) {
+					ResultSet rs = dbConn.getQuery();
+					if (rs.next()) {
+						ageID = rs.getString("ageID");
+					}
+				}
+				
+				dbConn.close();
+			}
+
+			if (mylib.isNullOrEmpty(ageID)) {
+				throw new Exception("getNewAgeID(): no es posible recuperar un nuevo ID de Agenda");
+			}
+			
+			return ageID;
+		} catch (Exception e) {
+			throw new Exception("getNewAgeID(): "+e.getMessage());
+		}
+	}
+
+	public String getNewCategoryID() throws Exception {
+		try {
+			String catID = "";
+			
+			dbConn.open();
+			
+			if (dbConn.isConnected()) {
+				String vSql = "call sp_get_newCatID()";
+				if (dbConn.executeQuery(vSql)) {
+					ResultSet rs = dbConn.getQuery();
+					if (rs.next()) {
+						catID = rs.getString("catID");
+					}
+				}
+				
+				dbConn.close();
+			}
+
+			if (mylib.isNullOrEmpty(catID)) {
+				throw new Exception("getNewCategoryID(): no es posible recuperar un nuevo ID de Categoria");
+			}
+			
+			return catID;
+		} catch (Exception e) {
+			throw new Exception("getNewCategoryID(): "+e.getMessage());
+		}
+	}
+
 	public boolean deleteDBresources(String method, Object params) throws Exception {
 		try {
 			List<SPparam> spParams = new ArrayList<>();
@@ -324,8 +1584,6 @@ public class DataAccess {
 		}
 	}
 
-
-	
 	public List<Map<String,Object>> getDBresources(String method, Object params) throws Exception {
 		List<Map<String,Object>> rows = new ArrayList<>();
 		try {
@@ -338,12 +1596,89 @@ public class DataAccess {
 			String spName="";
 			
 			switch (method) {
+				case "getAdmGroup":
+					joParams = (JSONObject) params;
+					logger.info("Parametros recibidos: "+joParams.toString());
+					param = joParams.getString("grpID");
+					spParams.add(new SPparam(param));
+					spName = "sp_get_AdmGroup";
+					break;
 				case "getDBGroup":
 					joParams = (JSONObject) params;
 					logger.info("Parametros recibidos: "+joParams.toString());
 					param = joParams.getString("grpID");
 					spParams.add(new SPparam(param));
 					spName = "sp_get_dbGroup";
+					break;
+				case "getBack":
+					joParams = (JSONObject) params;
+					logger.info("Parametros recibidos: "+joParams.toString());
+					param = joParams.getString("procID");
+					spParams.add(new SPparam(param));
+					spName = "sp_get_btb";
+					break;
+				case "getFtp":
+					joParams = (JSONObject) params;
+					logger.info("Parametros recibidos: "+joParams.toString());
+					param = joParams.getString("procID");
+					spParams.add(new SPparam(param));
+					spName = "sp_get_ftp";
+					break;
+				case "getOsp":
+					joParams = (JSONObject) params;
+					logger.info("Parametros recibidos: "+joParams.toString());
+					param = joParams.getString("procID");
+					spParams.add(new SPparam(param));
+					spName = "sp_get_osp";
+					break;
+				case "getMov":
+					joParams = (JSONObject) params;
+					logger.info("Parametros recibidos: "+joParams.toString());
+					param = joParams.getString("procID");
+					spParams.add(new SPparam(param));
+					spName = "sp_get_mov";
+					break;
+				case "getEtb":
+					joParams = (JSONObject) params;
+					logger.info("Parametros recibidos: "+joParams.toString());
+					param = joParams.getString("procID");
+					spParams.add(new SPparam(param));
+					spName = "sp_get_exp";
+					break;
+				case "getLtb":
+					joParams = (JSONObject) params;
+					logger.info("Parametros recibidos: "+joParams.toString());
+					param = joParams.getString("procID");
+					spParams.add(new SPparam(param));
+					spName = "sp_get_ltb";
+					break;
+				case "getOspParam":
+					joParams = (JSONObject) params;
+					logger.info("Parametros recibidos: "+joParams.toString());
+					param = joParams.getString("procID");
+					spParams.add(new SPparam(param));
+					spName = "sp_get_ospParams";
+					break;
+				case "getMovParam":
+					joParams = (JSONObject) params;
+					logger.info("Parametros recibidos: "+joParams.toString());
+					param = joParams.getString("procID");
+					spParams.add(new SPparam(param));
+					spName = "sp_get_movMatch";
+					break;
+				case "getEtbParam":
+					joParams = (JSONObject) params;
+					logger.info("Parametros recibidos: "+joParams.toString());
+					param = joParams.getString("procID");
+					spParams.add(new SPparam(param));
+					spName = "sp_get_expMatch";
+					break;
+				case "getLtbParam":
+					joParams = (JSONObject) params;
+					logger.info("Parametros recibidos: "+joParams.toString());
+					param = joParams.getString("procID");
+					spParams.add(new SPparam(param));
+					spName = "sp_get_ltbMatch";
 					break;
 				case "getDBprocGroup":
 					joParams = (JSONObject) params;
@@ -409,6 +1744,81 @@ public class DataAccess {
 					spParams.add(new SPparam(param));
 					spName = "sp_get_dependences";
 					break;
+				case "getCmbClient":
+					joParams = (JSONObject) params;
+					spParams.add(new SPparam(joParams.getString("cliID")));
+					spName = "sp_get_cmbCli";
+					break;
+				case "getCmbCategory":
+					joParams = (JSONObject) params;
+					spParams.add(new SPparam(joParams.getString("catID")));
+					spName = "sp_get_cmbCategory";
+					break;
+				case "getCmbUser":
+					joParams = (JSONObject) params;
+					spParams.add(new SPparam(joParams.getString("usrID")));
+					spName = "sp_get_cmbUser";
+					break;
+				case "getCmbDbase":
+					joParams = (JSONObject) params;
+					spParams.add(new SPparam(joParams.getString("dbID")));
+					spName = "sp_get_cmbDbase";
+					break;
+				case "getCmbServer":
+					joParams = (JSONObject) params;
+					spParams.add(new SPparam(joParams.getString("srvID")));
+					spName = "sp_get_cmbServer";
+					break;
+				case "getCmbFtp":
+					joParams = (JSONObject) params;
+					spParams.add(new SPparam(joParams.getString("procID")));
+					spName = "sp_get_cmbFtp";
+					break;
+				case "getCmbMov":
+					joParams = (JSONObject) params;
+					spParams.add(new SPparam(joParams.getString("procID")));
+					spName = "sp_get_cmbMov";
+					break;
+				case "getCmbMovParams":
+					joParams = (JSONObject) params;
+					spParams.add(new SPparam(joParams.getString("procID")));
+					spName = "sp_get_cmbMovParams";
+					break;
+				case "getCmbOsp":
+					joParams = (JSONObject) params;
+					spParams.add(new SPparam(joParams.getString("procID")));
+					spName = "sp_get_cmbOsp";
+					break;
+				case "getCmbOspParams":
+					joParams = (JSONObject) params;
+					spParams.add(new SPparam(joParams.getString("procID")));
+					spName = "sp_get_cmbOspParams";
+					break;
+				case "getCmbEtb":
+					joParams = (JSONObject) params;
+					spParams.add(new SPparam(joParams.getString("procID")));
+					spName = "sp_get_cmbEtb";
+					break;
+				case "getCmbEtbParams":
+					joParams = (JSONObject) params;
+					spParams.add(new SPparam(joParams.getString("procID")));
+					spName = "sp_get_cmbEtbParams";
+					break;
+				case "getCmbLtb":
+					joParams = (JSONObject) params;
+					spParams.add(new SPparam(joParams.getString("procID")));
+					spName = "sp_get_cmbLtb";
+					break;
+				case "getCmbLtbParams":
+					joParams = (JSONObject) params;
+					spParams.add(new SPparam(joParams.getString("procID")));
+					spName = "sp_get_cmbLtbParams";
+					break;
+				case "getCmbBack":
+					joParams = (JSONObject) params;
+					spParams.add(new SPparam(joParams.getString("procID")));
+					spName = "sp_get_cmbBack";
+					break;
 			}
 			
 			dbConn.open();
@@ -445,7 +1855,6 @@ public class DataAccess {
 				}
 				dbConn.close();
 			} 			
-			
 			
 			//return ja.toString();
 			//return mylib.serializeObjectToJSon(rows, false);
@@ -490,6 +1899,59 @@ public class DataAccess {
 			}
 		}
 
+	}
+	
+	public List<Map<String,Object>> getAgeStatDetails(Object params) throws Exception {
+		try {
+			Map<String,Object> cols = new HashMap<>();
+			List<Map<String,Object>> lstRows = new ArrayList<>();
+			List<SPparam> spParams = new ArrayList<>();
+			
+			//Parse params
+			JSONObject joParams = (JSONObject) params;
+			
+			//Add SP Params
+			spParams.add(new SPparam(joParams.getInt("day")));
+			spParams.add(new SPparam(0));
+			spParams.add(new SPparam(0));
+			
+			String spName = "sp_get_ageStatDetails";
+			
+			dbConn.open();
+			if (dbConn.isConnected()) {
+				if (dbConn.executeProcedure(spName, spParams)) {
+					ResultSet rs = dbConn.getSpResult();
+					ResultSetMetaData rsm = rs.getMetaData();
+					
+					while (rs.next()) {
+						cols = new HashMap<>();
+
+						for (int i=1; i<=rsm.getColumnCount(); i++) {
+							switch(rsm.getColumnType(i)) {
+							case java.sql.Types.VARCHAR:
+								cols.put(rsm.getColumnLabel(i), rs.getString(rsm.getColumnLabel(i)));
+								break;
+							case java.sql.Types.INTEGER:
+								cols.put(rsm.getColumnLabel(i), rs.getInt(rsm.getColumnLabel(i)));
+								break;
+							default:
+								cols.put(rsm.getColumnLabel(i), rs.getString(rsm.getColumnLabel(i)));
+								break;
+							}
+						}
+						
+						lstRows.add(cols);
+					}
+					rs.close();
+				}
+				dbConn.close();
+			} 			
+
+			return lstRows;
+			
+		} catch (Exception e) {
+			throw new Exception(""+e.getMessage());
+		}
 	}
 	
 	public List<Map<String,Object>> getAgeGroupDayHourAlert(int vDay, int vHour) throws Exception {
@@ -608,7 +2070,6 @@ public class DataAccess {
 						cols.put("errMesg", errMesg);
 						cols.put("fecUpdate", fecUpdate);
 						
-						
 						lstRows.add(cols);
 					}
 				}
@@ -657,7 +2118,6 @@ public class DataAccess {
 						cols.put("maxTimeExec", maxTimeExec);
 						cols.put("typeBalance", typeBalance);
 						cols.put("typeRequest", typeRequest);
-						
 						
 						lstRows.add(cols);
 					}
@@ -749,7 +2209,6 @@ public class DataAccess {
 				dbConn.close();
 			}
 			
-
 			int itDay = 0;
 			Map<String, AgeGroupStat> mapAgeGrStatFinal00 = new TreeMap<>();
 			Map<String, AgeGroupStat> mapAgeGrStatFinal01 = new TreeMap<>();
@@ -1505,6 +2964,7 @@ public class DataAccess {
 						pg.setCliID(rs.getString("CLIID"));
 						pg.setCliDesc(rs.getString("CLIDESC"));
 						pg.setTypeExec(rs.getString("TYPEEXEC"));
+						pg.setGrpDesc(rs.getString("GRPDESC"));
 						
 						String key = pg.getGrpID()+":"+pg.getNumSecExec()+":"+pg.getProcID();
 						mp.put(key, pg);

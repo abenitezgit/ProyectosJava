@@ -7,6 +7,7 @@ public class ExpTable {
 	
 	private String etbID;
 	private String etbDesc;
+	private int etbEnable;
 	private String etbTableName;
 	private String etbFileName;
 	private String etbFileType;
@@ -42,6 +43,8 @@ public class ExpTable {
 	private String ftpServerIP;
 	private String ftpUserName;
 	private String ftpUserPass;
+	private String serverID;
+	private String cliID;
 	
 	private Map<String, ExpTableParam> mapEtbParam = new TreeMap<>();
 
@@ -50,6 +53,30 @@ public class ExpTable {
 	
 	public String getEtbID() {
 		return etbID;
+	}
+
+	public int getEtbEnable() {
+		return etbEnable;
+	}
+
+	public void setEtbEnable(int etbEnable) {
+		this.etbEnable = etbEnable;
+	}
+
+	public String getServerID() {
+		return serverID;
+	}
+
+	public void setServerID(String serverID) {
+		this.serverID = serverID;
+	}
+
+	public String getCliID() {
+		return cliID;
+	}
+
+	public void setCliID(String cliID) {
+		this.cliID = cliID;
 	}
 
 	public void setEtbID(String etbID) {

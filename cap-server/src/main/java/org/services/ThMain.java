@@ -2,6 +2,7 @@ package org.services;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Set;
 import java.util.Timer;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -14,7 +15,7 @@ import org.utilities.MyLogger;
 import com.rutinas.Rutinas;
 
 public class ThMain implements Runnable{
-	final String className = "thMain";
+	final String thName = "thMain";
 	
 	Logger logger; 
 	MyLogger mylog;
@@ -39,12 +40,15 @@ public class ThMain implements Runnable{
 	}
         
 	public void run() {
-		mylog = new MyLogger(gParams, className, "run()");
+		//Set Thread Name
+		Thread.currentThread().setName(thName);
+		
+		mylog = new MyLogger(gParams, thName, "run()");
 		logger = mylog.getLogger();
 		mylib.setLevelLogger(logger, gParams.getAppConfig().getLog4jLevel());
 		
 		//Declaraciones
-		String thName;
+		String admThread = "";
 	
 		mylog.info("Iniciando Ciclo MainController");
 		
@@ -55,11 +59,17 @@ public class ThMain implements Runnable{
 			mylog.info("Recuperando MonParams...");
 			sc.getMonParams();
 			
-			sc.getMonParams();
 		} catch (Exception e) {
 			mylog.warn("No es posible recuperar monParams");
 		}
 
+		/**
+		 * Visualiza Threads Activos
+		 */
+		logger.info("Visualiza Threads activos");
+		listStatusThread();
+
+		
 		/**
 		 * Valida el tipo de ROL del capMonitor para determinar
 		 * los servicios internos que debe levantar
@@ -101,56 +111,42 @@ public class ThMain implements Runnable{
     			mylog.info("Iniciando Threads de Procesos que no se han iniciado...");
     			
     			//Inicia thListener
-    			thName = "thListener";
-    			if (gParams.getMapMonParams().get(monID).getThListenerAction().equals("ENABLE")) {
-    				if (!gParams.getMapThreadRunnig().get(thName)) {
-    	        		Runnable thListener = new ThListener(gParams);
-    	        		gParams.getMapThreadRunnig().put(thName, true);
-    	        		execListener.execute(thListener);
-    				}
-    			} else 
-	    			if (gParams.getMapMonParams().get(monID).getThListenerAction().equals("DISABLE")) {
-	    				mylog.warn("Thread Listener se encuentra DISABLE");
-	    				mylog.warn("No es posible levantar Listener hasta que habilite proceso");
-	    			}
-    			
+    			admThread = "thListener";
+    			if (getTotalThread(admThread)==0) {
+	        		Runnable thListener = new ThListener(gParams);
+	        		execListener.execute(thListener);
+    			}     			
     			
     			//En base al role determina si levanta o no el thProcess
         		if (monRole.equals("PRIMARY")) {
         			mylog.info("Iniciando Servicios asociados al rol: "+monRole);
         			
         			//Inicia thProcess
-        			thName = "thProcess";
+        			admThread = "thProcess";
 	    			if (gParams.getMapMonParams().get(monID).getThProcessAction().equals("ENABLE")) {
-	    				if (!gParams.getMapThreadRunnig().get(thName)) {
+	    				if (getTotalThread(admThread)==0) {
 	    	        		Runnable thProcess = new ThProcess(gParams);
-	    	        		gParams.getMapThreadRunnig().put(thName, true);
 	    	        		execProcess.scheduleWithFixedDelay(thProcess, 1000, gParams.getAppConfig().getTxpMain(), TimeUnit.MILLISECONDS);
-	    	        		//execProcess.execute(thProcess);
 	    				}
-	    			} else 
-		    			if (gParams.getMapMonParams().get(monID).getThProcessAction().equals("DISABLE")) {
-		    				mylog.warn("Thread Process se encuentra DISABLE");
-		    				mylog.warn("No es posible levantar Process hasta que habilite proceso");
-		    			} 
+	    			}  
         			
         			//Inicia thDBAccess
-        			thName = "thDBAccess";
-	    			if (gParams.getMapMonParams().get(monID).getThDBAccessAction().equals("ENABLE")) {
-	    				if (!gParams.getMapThreadRunnig().get(thName)) {
-	    	        		Runnable thDBAccess = new ThDBAccess(gParams);
-	    	        		gParams.getMapThreadRunnig().put(thName, true);
-	    	        		execDBAccess.scheduleWithFixedDelay(thDBAccess, 1000, gParams.getMapMonParams().get(monID).getTxpSync(), TimeUnit.MILLISECONDS);
-	    				}
-	    			} else 
-		    			if (gParams.getMapMonParams().get(monID).getThProcessAction().equals("DISABLE")) {
-		    				mylog.warn("Thread DBAccess se encuentra DISABLE");
-		    				mylog.warn("No es posible levantar DBAccess hasta que habilite proceso");
-		    			} 
+//        			thName = "thDBAccess";
+//	    			if (gParams.getMapMonParams().get(monID).getThDBAccessAction().equals("ENABLE")) {
+//	    				if (!gParams.getMapThreadRunnig().get(thName)) {
+//	    	        		Runnable thDBAccess = new ThDBAccess(gParams);
+//	    	        		gParams.getMapThreadRunnig().put(thName, true);
+//	    	        		execDBAccess.scheduleWithFixedDelay(thDBAccess, 1000, gParams.getMapMonParams().get(monID).getTxpSync(), TimeUnit.MILLISECONDS);
+//	    				}
+//	    			} else 
+//		    			if (gParams.getMapMonParams().get(monID).getThProcessAction().equals("DISABLE")) {
+//		    				mylog.warn("Thread DBAccess se encuentra DISABLE");
+//		    				mylog.warn("No es posible levantar DBAccess hasta que habilite proceso");
+//		    			} 
 	    			
 	    			//Inicia TimerExecAgeWeek
-	    			thName = "TimerExecWeek";
-	    			if (!gParams.getMapThreadRunnig().get(thName)) {
+	    			admThread = "TimerExecWeek";
+	    			if (getTotalThread(admThread)==0) {
 		    			Date horaExec = new Date(System.currentTimeMillis());
 		    	        
 		    	        Calendar c = Calendar.getInstance();
@@ -170,8 +166,7 @@ public class ThMain implements Runnable{
 		    	        int tiempoRepeticion = 86400000; 
 		    	        
 		    	        // Programamos el despertador para que "suene" a las 8am todos los dias 
-		    	        Timer TempoExec = new Timer(thName);
-		    	        gParams.getMapThreadRunnig().put(thName, true);
+		    	        Timer TempoExec = new Timer(admThread);
 		    	        TempoExec.schedule(new TimerExecAgeWeek(gParams), horaExec, tiempoRepeticion);
 	    			}
         			
@@ -200,4 +195,41 @@ public class ThMain implements Runnable{
 		
 		mylog.info("Finalizando Ciclo Main Controller");
     }
+	
+	public void listStatusThread() {
+		try {
+			
+            Thread th = Thread.currentThread();
+            
+            logger.info("This Thread Name: "+th.getName()+ " Status: " + th.getState() + " ID: "+ th.getId()+  " LastCheck"+ mylib.getDateNow());
+            
+            Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+            for ( Thread t : threadSet){
+                logger.info(" Thread Name: " + t.getName()+ " Status:" + t.getState()+" ID: "+t.getId());
+            }
+			
+		} catch (Exception e) {
+			logger.error("listStatusThread: "+e.getMessage());
+		}
+	}
+
+	public int getTotalThread(String thName) {
+		try {
+			
+			int numThread = 0;
+			
+            Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+            for ( Thread t : threadSet){
+            	if (t.getName().equals(thName)) {
+            		numThread++;
+            	}
+            }
+            
+            return numThread;
+		} catch (Exception e) {
+			logger.error("getTotalThread: "+e.getMessage());
+			return 0;
+		}
+	}
+
 }

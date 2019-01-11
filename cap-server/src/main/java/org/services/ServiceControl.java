@@ -216,6 +216,99 @@ public class ServiceControl {
 					response = lstResponse2;
 
 					break;
+				case "getCmbClient":
+					response = dc.getDBresources(method, params);
+					break;
+				case "getCmbCategory":
+					response = dc.getDBresources(method, params);
+					break;
+				case "getCmbUser":
+					response = dc.getDBresources(method, params);
+					break;
+				case "getCmbDbase":
+					response = dc.getDBresources(method, params);
+					break;
+				case "getCmbServer":
+					response = dc.getDBresources(method, params);
+					break;
+				case "getCmbFtp":
+					response = dc.getDBresources(method, params);
+					break;
+				case "getCmbMov":
+					List<Map<String,Object>> myMovs = dc.getDBresources(method, params);
+					List<Map<String,Object>> myMovsResp = new ArrayList<>();
+					
+					if (myMovs.size()==1) {
+						Map<String,Object> myMov = myMovs.get(0);
+						List<Map<String,Object>> movParams = dc.getDBresources("getCmbMovParams", params);
+						myMov.put("movParams", movParams);
+						myMovsResp.add(myMov);
+						response = myMovsResp;
+					} else {
+						response = myMovs;
+					}
+					
+					break;
+				case "getCmbOsp":
+					List<Map<String,Object>> myOsps = dc.getDBresources(method, params);
+					List<Map<String,Object>> myOspsResp = new ArrayList<>();
+					
+					if (myOsps.size()==1) {
+						Map<String,Object> myOsp = myOsps.get(0);
+						List<Map<String,Object>> ospParams = dc.getDBresources("getCmbOspParams", params);
+						myOsp.put("ospParams", ospParams);
+						myOspsResp.add(myOsp);
+						response = myOspsResp;
+					} else {
+						response = myOsps;
+					}
+					
+					break;
+				case "getCmbEtb":
+					List<Map<String,Object>> myEtbs = dc.getDBresources(method, params);
+					List<Map<String,Object>> myEtbsResp = new ArrayList<>();
+					
+					if (myEtbs.size()==1) {
+						Map<String,Object> myEtb = myEtbs.get(0);
+						List<Map<String,Object>> etbParams = dc.getDBresources("getCmbEtbParams", params);
+						myEtb.put("etbParams", etbParams);
+						myEtbsResp.add(myEtb);
+						response = myEtbsResp;
+					} else {
+						response = myEtbs;
+					}
+					
+					break;
+				case "getCmbLtb":
+					List<Map<String,Object>> myLtbs = dc.getDBresources(method, params);
+					List<Map<String,Object>> myLtbsResp = new ArrayList<>();
+					
+					if (myLtbs.size()==1) {
+						Map<String,Object> myLtb = myLtbs.get(0);
+						List<Map<String,Object>> ltbParams = dc.getDBresources("getCmbLtbParams", params);
+						myLtb.put("lbtParams", ltbParams);
+						myLtbsResp.add(myLtb);
+						response = myLtbsResp;
+					} else {
+						response = myLtbs;
+					}
+					
+					break;
+				case "getCmbBack":
+					response = dc.getDBresources(method, params);
+					break;
+ 				case "getCmbOspParams":
+					response = dc.getDBresources(method, params);
+					break;
+ 				case "getCmbLtbParams":
+					response = dc.getDBresources(method, params);
+					break;
+ 				case "getCmbEtbParams":
+					response = dc.getDBresources(method, params);
+					break;
+ 				case "getCmbMovParams":
+					response = dc.getDBresources(method, params);
+					break;
 				case "getDBclient":
 					response = dc.getDBresources(method, params);
 					break;
@@ -223,6 +316,39 @@ public class ServiceControl {
 					response = dc.getDBresources(method, params);
 					break;
 				case "getDBprocDep":
+					response = dc.getDBresources(method, params);
+					break;
+				case "getFtp":
+					response = dc.getDBresources(method, params);
+					break;
+				case "getBack":
+					response = dc.getDBresources(method, params);
+					break;
+				case "getOsp":
+					response = dc.getDBresources(method, params);
+					break;
+				case "getMov":
+					response = dc.getDBresources(method, params);
+					break;
+				case "getEtb":
+					response = dc.getDBresources(method, params);
+					break;
+				case "getLtb":
+					response = dc.getDBresources(method, params);
+					break;
+				case "getOspParam":
+					response = dc.getDBresources(method, params);
+					break;
+				case "getMovParam":
+					response = dc.getDBresources(method, params);
+					break;
+				case "getEtbParam":
+					response = dc.getDBresources(method, params);
+					break;
+				case "getLtbParam":
+					response = dc.getDBresources(method, params);
+					break;
+				case "getAdmGroup":
 					response = dc.getDBresources(method, params);
 					break;
 				case "getAgeGroupStat":
@@ -241,14 +367,21 @@ public class ServiceControl {
 					int vHour2 = params.getInt("hour");
 					response = dc.getActualGroupDayHour(vDay2, vHour2);
 					break;
+				case "getAgeStatDetails":
+					response = dc.getAgeStatDetails(params);
+					break;
 				case "addGroup":
 					response = dc.addDBresources(method, params);
+					break;
 				case "addDiary":
 					response = dc.addDBresources(method, params);
+					break;
 				case "addSchedule":
 					response = dc.addDBresources(method, params);
+					break;
 				case "addSchedDiary":
 					response = dc.addDBresources(method, params);
+					break;
 				case "addProcGroup":
 					response = dc.addDBresources(method, params);
 					break;
@@ -264,6 +397,42 @@ public class ServiceControl {
 				case "addDependence":
 					response = dc.addDBresources(method, params);
 					break;
+				case "addUser":
+					response = dc.addDBresources(method, params);
+					break;
+				case "addServer":
+					response = dc.addDBresources(method, params);
+					break;
+				case "addMov":
+					response = dc.addDBresources(method, params);
+					break;
+				case "addLtb":
+					response = dc.addDBresources(method, params);
+					break;
+				case "addLtbParam":
+					response = dc.addDBresources(method, params);
+					break;
+				case "addEtb":
+					response = dc.addDBresources(method, params);
+					break;
+				case "addEtbParam":
+					response = dc.addDBresources(method, params);
+					break;
+				case "addMovParam":
+					response = dc.addDBresources(method, params);
+					break;
+				case "addFtp":
+					response = dc.addDBresources(method, params);
+					break;
+				case "addOsp":
+					response = dc.addDBresources(method, params);
+					break;
+				case "addOspParam":
+					response = dc.addDBresources(method, params);
+					break;
+				case "addBack":
+					response = dc.addDBresources(method, params);
+					break;
 				case "addGroupActiveManual":
 					String param = params.getString("grpID");
 					response = addGroupActiveManual(param);
@@ -277,16 +446,109 @@ public class ServiceControl {
 				case "addProcActiveManual":
 					response = addProcActiveManual(params);
 					break;
+				case "deleteOsp":
+					response = dc.delDBresources(method, params);
+					break;
+				case "deleteOspParam":
+					response = dc.delDBresources(method, params);
+					break;
+				case "deleteMov":
+					response = dc.delDBresources(method, params);
+					break;
+				case "deleteMovParam":
+					response = dc.delDBresources(method, params);
+					break;
+				case "deleteEtb":
+					response = dc.delDBresources(method, params);
+					break;
+				case "deleteEtbParam":
+					response = dc.delDBresources(method, params);
+					break;
+				case "deleteLtb":
+					response = dc.delDBresources(method, params);
+					break;
+				case "deleteLtbParam":
+					response = dc.delDBresources(method, params);
+					break;
+				case "deleteFtp":
+					response = dc.delDBresources(method, params);
+					break;
+				case "deleteBack":
+					response = dc.delDBresources(method, params);
+					break;
+				case "deleteGroup":
+					response = dc.delDBresources(method, params);
+					break;
+				case "deleteProcGroup":
+					response = dc.delDBresources(method, params);
+					break;
+				case "deleteDependence":
+					response = dc.delDBresources(method, params);
+					break;
 				case "deleteGroupControl":
 					JSONObject joGroup = (JSONObject) params;
 					fc.deleteForceProcControl(joGroup.getString("grpID"), joGroup.getString("numSecExec"), joGroup.getString("procID"));
 					response = dc.deleteDBresources(method, params);
 					break;
+				case "deleteClient":
+					response = dc.delDBresources(method, params);
+					break;
+				case "deleteCategory":
+					response = dc.delDBresources(method, params);
+					break;
+				case "deleteUser":
+					response = dc.delDBresources(method, params);
+					break;
+				case "deleteServer":
+					response = dc.delDBresources(method, params);
+					break;
+				case "deleteDbID":
+					response = dc.delDBresources(method, params);
+					break;
+				case "updateBack":
+					response = dc.updateDBresources(method, params);
+					break;
+				case "updateEtb":
+					response = dc.updateDBresources(method, params);
+					break;
+				case "updateEtbParam":
+					response = dc.updateDBresources(method, params);
+					break;
+				case "updateFtp":
+					response = dc.updateDBresources(method, params);
+					break;
+				case "updateLtb":
+					response = dc.updateDBresources(method, params);
+					break;
+				case "updateLtbParam":
+					response = dc.updateDBresources(method, params);
+					break;
+				case "updateOsp":
+					response = dc.updateDBresources(method, params);
+					break;
+				case "updateOspParam":
+					response = dc.updateDBresources(method, params);
+					break;
+				case "updateMov":
+					response = dc.updateDBresources(method, params);
+					break;
+				case "updateMovParam":
+					response = dc.updateDBresources(method, params);
+					break;
+				case "updateProcGroup":
+					response = dc.updateDBresources(method, params);
+					break;
+				case "updateDependence":
+					response = dc.updateDBresources(method, params);
+					break;
+				default:
+					logger.error("method: "+method+" no es reconocido");
+					throw new Exception("getDBRequest(): method: "+method+" no es reconocido");
 			}
 			
 			return response;
 		} catch (Exception e) {
-			throw new Exception(e.getMessage());
+			throw new Exception("getDBRequest(): "+e.getMessage());
 		}
 	}
 	
@@ -611,7 +873,7 @@ public class ServiceControl {
 																	.entrySet()
 																	.stream()
 																	.filter(p -> 
-																			p.getValue().getStatus().equals("PENDING") && 
+																			//p.getValue().getStatus().equals("PENDING") && 
 																			p.getValue().getGrpID().equals(pc.getGrpID()) && 
 																			p.getValue().getNumSecExec().equals(pc.getNumSecExec()))
 																	.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -681,21 +943,29 @@ public class ServiceControl {
 							break;
 						} else {
 							if (subEntry.getValue().getuStatus().equals("ERROR")) {
-								lastErrMesg = subEntry.getValue().getErrMesg();
-								lastErrCode = subEntry.getValue().getErrCode();
-								endError = true;
+								if (fc.isProcCritical(subEntry.getValue())) {
+									lastErrMesg = subEntry.getValue().getErrMesg();
+									lastErrCode = subEntry.getValue().getErrCode();
+									endError = true;
+//									break;
+								} else {
+									endWarn = true;
+								}
 							} else if (subEntry.getValue().getuStatus().equals("WARNING")) {
 								lastErrMesg = subEntry.getValue().getErrMesg();
 								lastErrCode = subEntry.getValue().getErrCode();
 								endWarn = true;
+//								break;
 							} else if (subEntry.getValue().getuStatus().equals("CANCEL")) {
 								lastErrMesg = subEntry.getValue().getErrMesg();
 								lastErrCode = subEntry.getValue().getErrCode();
 								endCancel = true;
-							} else {
-								lastErrMesg = subEntry.getValue().getErrMesg();
-								lastErrCode = subEntry.getValue().getErrCode();								
-							}
+//								break;
+							}  
+//							else {
+//								lastErrMesg = subEntry.getValue().getErrMesg();
+//								lastErrCode = subEntry.getValue().getErrCode();								
+//							}
 						}
 					}
 				}
@@ -864,7 +1134,6 @@ public class ServiceControl {
 			if (da.isConnected()) {
 				da.close(); 
 			}
-
     	}
     }
     

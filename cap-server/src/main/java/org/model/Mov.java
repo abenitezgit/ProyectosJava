@@ -72,6 +72,7 @@ public class Mov {
     int fecExtIniIn;
     int fecExtFinIn;
     String sFieldUpdateKey;
+    String serverID;
     
     List<MovMatch> lstMovMatch = new ArrayList<>();
 
@@ -81,6 +82,14 @@ public class Mov {
     
 	public String getMovID() {
 		return movID;
+	}
+
+	public String getServerID() {
+		return serverID;
+	}
+
+	public void setServerID(String serverID) {
+		this.serverID = serverID;
 	}
 
 	public void setMovID(String movID) {

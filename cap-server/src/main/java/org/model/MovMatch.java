@@ -9,11 +9,18 @@ public class MovMatch {
 	String destField;
 	int destLength;
 	String fieldType;
+	int enable;
 
 	//Getter and Setter
 	
 	public String getMovID() {
 		return movID;
+	}
+	public int getEnable() {
+		return enable;
+	}
+	public void setEnable(int enable) {
+		this.enable = enable;
 	}
 	public void setMovID(String movID) {
 		this.movID = movID;

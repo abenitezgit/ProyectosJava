@@ -39,6 +39,34 @@ public class FlowControl {
 		mylib.setLevelLogger(logger, gParams.getAppConfig().getLog4jLevel());
 	}
 	
+	public boolean isProcCritical(ProcControl pc) {
+		try {
+			boolean isCritical = false;
+			
+			String grpID = pc.getGrpID();
+			String numSecExec = pc.getNumSecExec();
+			String procID = pc.getProcID();
+			
+			for (Map.Entry<String, ProcControl> entry : gParams.getMapProcControl().entrySet()) {
+				if (entry.getKey().split(":")[0].equals(grpID) && entry.getKey().split(":")[1].equals(numSecExec)) {
+					for (int i=0; i<entry.getValue().getLstDependences().size(); i++) {
+						int critical = entry.getValue().getLstDependences().get(i).getCritical();
+						String procPadre = entry.getValue().getLstDependences().get(i).getProcPadre();
+						if (procPadre.equals(procID) && critical==1) {
+							isCritical = true;
+						}
+					}
+				}
+			}
+			
+			return isCritical;
+		} catch (Exception e) {
+			logger.error("isProcCritical():"+e.getMessage());
+			logger.error(e.getStackTrace());
+			return true;
+		}
+	}
+	
 	public int getCountRunningProcs() {
 		return gParams.getMapProcControl().size();
 	}
@@ -194,7 +222,7 @@ public class FlowControl {
 		try {
 			for(Map.Entry<String, ProcControl> pc : gParams.getMapProcControl().entrySet()) {
 				if (pc.getValue().getGrpID().equals(grpID) && pc.getValue().getNumSecExec().equals(numSecExec)) {
-					if (pc.getValue().getStatus().equals("PENDING")) {
+					//if (pc.getValue().getStatus().equals("PENDING")) {
 						if (procID.equals("*")) {
 							gParams.getMapProcControl().remove(pc.getKey());
 						} else {
@@ -202,7 +230,7 @@ public class FlowControl {
 								gParams.getMapProcControl().remove(pc.getKey());
 							}
 						}
-					}
+					//}
 				}
 			}
 			
@@ -364,6 +392,7 @@ public class FlowControl {
 				task.setTaskkey(key);
 				task.setTypeProc(pc.getTypeProc());
 				task.setTypeExec(pc.getTypeExec());
+				task.setGrpDesc(pc.getGrpDesc());
 				
 				gParams.getMapTask().put(key, task);
 				
@@ -910,6 +939,7 @@ public class FlowControl {
 					pc.setCliDesc(entry.getValue().getCliDesc());
 					pc.setFecUpdate(mylib.getDate());
 					pc.setTypeExec(entry.getValue().getTypeExec());
+					pc.setGrpDesc(entry.getValue().getGrpDesc());
 					
 					gParams.getMapProcControl().put(entry.getKey(), pc);
 				}

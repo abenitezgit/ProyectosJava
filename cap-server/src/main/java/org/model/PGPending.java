@@ -15,11 +15,18 @@ public class PGPending {
 	String cliID;
 	String cliDesc;
 	String typeExec;
+	String grpDesc;
 
 	//Getter and setter
 	
 	public String getCliID() {
 		return cliID;
+	}
+	public String getGrpDesc() {
+		return grpDesc;
+	}
+	public void setGrpDesc(String grpDesc) {
+		this.grpDesc = grpDesc;
 	}
 	public String getProcDesc() {
 		return procDesc;

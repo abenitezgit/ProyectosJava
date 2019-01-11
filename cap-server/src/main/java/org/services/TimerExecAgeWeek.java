@@ -8,7 +8,8 @@ import org.dataAccess.DataAccess;
 import org.utilities.GlobalParams;
 
 public class TimerExecAgeWeek extends TimerTask{
-	Logger logger = Logger.getLogger("TimerExecAgeWeek");
+	final String thName = "TimerExecWeek";
+	Logger logger = Logger.getLogger(thName);
 	GlobalParams gParams;
 	
 	public TimerExecAgeWeek(GlobalParams m) {
@@ -18,6 +19,9 @@ public class TimerExecAgeWeek extends TimerTask{
 
 	@Override
     public void run() {
+		//Set Thread Name
+		Thread.currentThread().setName(thName);
+		
 		DataAccess da = new DataAccess(gParams);
 		Calendar c = Calendar.getInstance();
 		c.set(Calendar.DAY_OF_YEAR, c.get(Calendar.DAY_OF_YEAR) + 1);

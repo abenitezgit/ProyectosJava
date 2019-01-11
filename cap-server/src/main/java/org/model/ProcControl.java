@@ -6,6 +6,7 @@ import java.util.List;
 
 public class ProcControl {
 	String grpID;
+	String grpDesc;
 	String numSecExec;
 	String procID;
 	String procDesc;
@@ -30,6 +31,12 @@ public class ProcControl {
 	
 	public String getGrpID() {
 		return grpID;
+	}
+	public String getGrpDesc() {
+		return grpDesc;
+	}
+	public void setGrpDesc(String grpDesc) {
+		this.grpDesc = grpDesc;
 	}
 	public String getProcDesc() {
 		return procDesc;
