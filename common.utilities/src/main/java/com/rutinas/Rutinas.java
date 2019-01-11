@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -407,6 +408,17 @@ public class Rutinas {
 		}
 	}
 	
+	public boolean isDateValue(String fecha, String xformat) {
+		try {
+			DateFormat df = new SimpleDateFormat(xformat);
+            df.setLenient(false);
+            df.parse(fecha);
+            return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+	
 	public String getDateString(String fecha, String formatIni, String formatFin) {
 		try {
 	    	SimpleDateFormat formatterIni;
@@ -595,4 +607,28 @@ public class Rutinas {
         }
     }      
     
+    public String getRamdomHex(int bytes) {
+		String r = "";
+		String r2 = "";
+		for (int i=0; i<bytes; i++) {
+			String s = String.format("%02x",(int)(Math.random()*100));
+			String t = String.format("%02d",(int)(Math.random()*100));
+			r = r + s;
+			r2 = r2 + t;
+		}
+		return r;
+    }
+    
+    public String getRamdomInt(int bytes) {
+		String r = "";
+		String r2 = "";
+		for (int i=0; i<bytes; i++) {
+			String s = String.format("%02x",(int)(Math.random()*100));
+			String t = String.format("%02d",(int)(Math.random()*100));
+			r = r + s;
+			r2 = r2 + t;
+		}
+		return r2;
+    }
+
 }

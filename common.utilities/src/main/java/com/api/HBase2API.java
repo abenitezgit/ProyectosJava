@@ -77,11 +77,11 @@ public class HBase2API {
 		}
 	}
 	
-	public void close() throws Exception {
+	public void close() {
 		try {
 			conn.close();
 		} catch (Exception e) {
-			throw new Exception(e.getMessage());
+			logger.error("close(): " + e.getMessage());
 		}
 	}
 	
@@ -499,7 +499,94 @@ public class HBase2API {
 			throw new Exception("getRows(): "+e.getMessage());
 		}
 	}
-	
+
+	public List<Map<String,Object>> getRowsListMultiGet(List<String> keys, String[] family, int rowsSet) throws Exception {
+		try {
+			List<Map<String,Object>> rows = new ArrayList<>();
+			Map<String,Object> cols = new HashMap<>();
+			
+			Table table = conn.getTable(TableName.valueOf(tbName));
+			
+			List<Get> lstGets = new ArrayList<>();
+			List<Get> itGets = new ArrayList<>();
+			
+			for (String key : keys) {
+				Get get = new Get(key.getBytes());
+				
+				//Add family filters
+				if (family.length>0) {
+					for (String cf : family) {
+						get.addFamily(cf.getBytes());
+					}
+				}
+
+				lstGets.add(get);
+			}
+
+			int itRow = 0;
+			
+			for (int i=0; i<lstGets.size(); i++) {
+				
+				itRow ++;
+				itGets.add(lstGets.get(i));
+
+				if (itRow==rowsSet) {
+					
+					Result[] results = table.get(itGets);
+					
+					for (Result r : results) {
+					
+						String rowkey = new String(r.getRow());
+						cols = new HashMap<>();
+						
+						for (Cell cell : r.listCells()) {
+							String cf = new String(CellUtil.cloneFamily(cell));
+							String cq = new String(CellUtil.cloneQualifier(cell));
+							String cv = new String(CellUtil.cloneValue(cell));
+							cols.put(cf+":"+cq,cv);
+						}
+						
+						cols.put("key", rowkey);
+
+						rows.add(cols);
+					}
+					
+					itGets = new ArrayList<>();
+					itRow=0;
+				}
+			}
+			
+			//Si es que quedan registros pendientes por recuperar
+			if (itGets.size()>0) {
+				Result[] results = table.get(itGets);
+				
+				for (Result r : results) {
+				
+					String rowkey = new String(r.getRow());
+					cols = new HashMap<>();
+					
+					for (Cell cell : r.listCells()) {
+						String cf = new String(CellUtil.cloneFamily(cell));
+						String cq = new String(CellUtil.cloneQualifier(cell));
+						String cv = new String(CellUtil.cloneValue(cell));
+						cols.put(cf+":"+cq,cv);
+					}
+					
+					cols.put("key", rowkey);
+
+					rows.add(cols);
+				}
+			}
+			
+			table.close();
+			
+			return rows;
+			
+		} catch (Exception e) {
+			throw new Exception("getRowsListMultiGet(): "+e.getMessage());
+		}
+	}
+
 	public Map<String,List<HBCol>> getRowsMap(List<String> keys, String[] family) throws Exception {
 		try {
 			Map<String,List<HBCol>> rows = new HashMap<>();
@@ -532,6 +619,7 @@ public class HBase2API {
 				rows.put(key, cols);
 			}
 			
+			table.close();
 			return rows;
 			
 		} catch (Exception e) {

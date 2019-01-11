@@ -24,6 +24,7 @@ import org.apache.hadoop.hbase.filter.CompareFilter;
 import org.apache.hadoop.hbase.filter.PageFilter;
 import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.log4j.Logger;
 
 import com.rutinas.Rutinas;
 
@@ -61,6 +62,7 @@ import com.rutinas.Rutinas;
  */
 
 public class HBaseAPI {
+	Logger logger = Logger.getLogger("HBaseAPI");
 	Rutinas mylib = new Rutinas();
 	Configuration hcfg  = HBaseConfiguration.create();
 	Connection conn;
@@ -343,6 +345,49 @@ public class HBaseAPI {
 		}
 	}
 
+	public void putRow(Map<String, List<colModel>> rows, int rowSet) throws Exception {
+		try {
+			Table table = conn.getTable(TableName.valueOf(tbName));
+			List<Put> lstPut = new ArrayList<>();
+
+			int numRows = 0;
+			int itRow = 0;
+			for (Entry<String, List<colModel>> entry : rows.entrySet()) {
+				itRow++;
+				numRows++;
+				
+				Put p = new Put(Bytes.toBytes(entry.getKey()));
+				
+				for (int i=0; i<entry.getValue().size(); i++) {
+					String cf = entry.getValue().get(i).getFamily();
+					String cq = entry.getValue().get(i).getColumn();
+					String vu = entry.getValue().get(i).getValue();
+					p.addColumn(Bytes.toBytes(cf), Bytes.toBytes(cq),Bytes.toBytes(vu));
+				}
+				lstPut.add(p);
+				
+				if (itRow==rowSet) {
+					table.put(lstPut);
+					lstPut = new ArrayList<>();
+					itRow=0;
+					logger.info("# Inserted in HBase: "+ numRows + " from: " + rows.size());
+					Thread.sleep(5000);
+				}
+				
+			}
+			
+			Thread.sleep(5000);
+			if (lstPut.size()>0) {
+				table.put(lstPut);
+				logger.info("# Inserted in HBase: "+ numRows + " from: " + rows.size());
+			}
+			
+			table.close();
+			
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		}
+	}
 	
 	public void putRow(List<Map<String, Object>> rows, int rowsSet) throws Exception {
 		try {
