@@ -28,7 +28,8 @@ public class GlobalArea {
 		
 	//Constructor
 	public GlobalArea() {
-		setFileConfig("/usr/local/hadoop/conf/hadoopnew.properties");
+		//setFileConfig("/usr/local/hadoop/conf/hadoopnew.properties");
+		setFileConfig("/u00/app/hadoop/conf/hadoopnew.properties");
 		setClusterName("ecchwk01");
 		setAppName("wsGrab");
 	}
