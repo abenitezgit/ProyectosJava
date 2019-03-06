@@ -55,8 +55,10 @@ public class DBResource {
 			IMainService ms = new MainServiceImpl(gParams);
 			ms.initComponents();
 			
+			logger.info("Ejecutando Request...");
 			dResponse = dbs.getDBRequest(dRequest);
 				
+			logger.info("Parseando respuesta...");
 			String strResponse = mylib.serializeObjectToJSon(dResponse, false);
 			
 			logger.info("Enviando respuesta...");

@@ -39,6 +39,42 @@ public class DBService {
 				//correspondiente al request method
 
 				switch (dRequest.getMethod()) {
+					case "addUser":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "addServer":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "addBack":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "addOsp":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "addOspParam":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "addFtp":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "addMov":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "addMovParam":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "addEtb":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "addEtbParam":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "addLtb":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "addLtbParam":
+						dataObject = (boolean) md.getResponse();
+						break;
 					case "addDependence":
 						dataObject = (boolean) md.getResponse();
 						break;
@@ -84,6 +120,87 @@ public class DBService {
 					case "deleteGroupControl":
 						dataObject = (boolean) md.getResponse();
 						break;
+					case "deleteGroup":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "deleteOsp":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "deleteOspParam":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "deleteMov":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "deleteMovParam":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "deleteEtb":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "deleteEtbParam":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "deleteLtb":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "deleteLtbParam":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "deleteFtp":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "deleteBack":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "deleteProcGroup":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "deleteClient":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "updateBack":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "updateEtb":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "updateEtbParam":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "updateFtp":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "updateLtb":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "updateLtbParam":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "updateOsp":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "updateOspParam":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "updateMov":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "updateMovParam":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "updateUser":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "updateClient":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "updateCategory":
+						dataObject = (boolean) md.getResponse();
+						break;
+					case "updateServer":
+						dataObject = (boolean) md.getResponse();
+						break;
 					case "getAgeGroupStat":
 						List<Map<String,Object>> lstMaps = new ArrayList<>();
 						List<Object> lstList = new ArrayList<>();
@@ -103,17 +220,26 @@ public class DBService {
 						dataObject = lstList;
 						break;
 					default:
-						List<Map<String,Object>> lstRows = new ArrayList<>();
+						Object objResponse = md.getResponse();
 						
-						ja = (JSONArray) md.getResponse();
-						for (int i=0; i<ja.length(); i++) {
+						String classType = objResponse.getClass().getSimpleName();
+						
+						if (classType.equals("Boolean")) {
+							dataObject = (boolean) md.getResponse();
+						} else {
+							List<Map<String,Object>> lstRows = new ArrayList<>();
 							
-							Map<String,Object> cols = new HashMap<>();
-							cols = ja.getJSONObject(i).toMap();
-							
-							lstRows.add(cols);
+							ja = (JSONArray) md.getResponse();
+							for (int i=0; i<ja.length(); i++) {
+								
+								Map<String,Object> cols = new HashMap<>();
+								cols = ja.getJSONObject(i).toMap();
+								
+								lstRows.add(cols);
+							}
+							dataObject = lstRows;
 						}
-						dataObject = lstRows;
+						
 						break;
 				}
 
@@ -130,7 +256,7 @@ public class DBService {
 			
 			return dResponse;
 		} catch (Exception e) {
-			throw new Exception(e.getMessage());
+			throw new Exception("getDBRequest(): "+e.getMessage());
 		}
 	}
 }

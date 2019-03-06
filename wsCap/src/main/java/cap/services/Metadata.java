@@ -67,7 +67,7 @@ public class Metadata {
 			
 			return exitStatus;
 		} catch (Exception e) {
-			throw new Exception(e.getMessage());
+			throw new Exception("executeRequest(): "+ e.getMessage());
 		}
 	}
 

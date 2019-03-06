@@ -33,7 +33,6 @@ public class MainServiceImpl implements IMainService {
 			f.load(new FileInputStream(gParams.getPathConfig()+"/"+gParams.getFileConfig()));
 			
 			Config config = new Config();
-			
 			config.setConnectTypeMon(f.getProperty("connectTypeMon"));
 			config.setMonHostName(f.getProperty("monHostName"));
 			config.setMonIP(f.getProperty("monIP"));
@@ -56,10 +55,9 @@ public class MainServiceImpl implements IMainService {
 			config.setDbPass(f.getProperty("dbPass"));
 			config.setDbTimeOut(Integer.valueOf(f.getProperty("dbTimeOut")));
 			config.setDbType(f.getProperty("dbType"));
-			
 			gParams.setConfig(config);
 		} catch (Exception e) {
-			throw new Exception(e.getMessage());
+			throw new Exception("initComponents(): "+e.getMessage());
 		}
 
 	}
