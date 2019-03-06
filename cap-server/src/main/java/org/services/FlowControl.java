@@ -49,12 +49,16 @@ public class FlowControl {
 			
 			for (Map.Entry<String, ProcControl> entry : gParams.getMapProcControl().entrySet()) {
 				if (entry.getKey().split(":")[0].equals(grpID) && entry.getKey().split(":")[1].equals(numSecExec)) {
-					for (int i=0; i<entry.getValue().getLstDependences().size(); i++) {
-						int critical = entry.getValue().getLstDependences().get(i).getCritical();
-						String procPadre = entry.getValue().getLstDependences().get(i).getProcPadre();
-						if (procPadre.equals(procID) && critical==1) {
-							isCritical = true;
+					if (entry.getValue().getLstDependences().size()>0) {
+						for (int i=0; i<entry.getValue().getLstDependences().size(); i++) {
+							int critical = entry.getValue().getLstDependences().get(i).getCritical();
+							String procPadre = entry.getValue().getLstDependences().get(i).getProcPadre();
+							if (procPadre.equals(procID) && critical==1) {
+								isCritical = true;
+							}
 						}
+					} else {
+						isCritical = true;
 					}
 				}
 			}
@@ -128,6 +132,7 @@ public class FlowControl {
 		
 		try {
 			
+			logger.info("Recuperando Procesos en línea...");
 			Map<String, ProcControl> mpc = new TreeMap<>();
 			
 			if (status.equals("*") && uStatus.equals("*") ) {
@@ -160,6 +165,73 @@ public class FlowControl {
 						.filter(p -> p.getValue().getuStatus().equals(uStatus) && p.getValue().getStatus().equals(status))
 						.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 			}
+			
+			logger.info("# procesos en línea: "+mpc.size());
+			
+			List<Map<String,Object>> lstrows = new ArrayList<>();
+			Map<String,Map<String,Object>> mapOrder = new TreeMap<>();
+			
+			for (Map.Entry<String, ProcControl> entry : mpc.entrySet()) {
+				
+				Map<String,Object> cols = new HashMap<>();
+				
+				cols.put("cliDesc",entry.getValue().getCliDesc());
+				cols.put("cliID",entry.getValue().getCliID());
+				cols.put("fecIns",entry.getValue().getFecIns());
+				cols.put("fecUpdate",entry.getValue().getFecUpdate());
+				cols.put("grpID",entry.getValue().getGrpID());
+				cols.put("numSecExec",entry.getValue().getNumSecExec());
+				cols.put("procID",entry.getValue().getProcID());
+				cols.put("procDesc", entry.getValue().getProcDesc());
+				cols.put("status",entry.getValue().getStatus());
+				cols.put("uStatus",entry.getValue().getuStatus());
+				cols.put("typeExec", entry.getValue().getTypeExec());
+				cols.put("nOrder", entry.getValue().getnOrder());
+				
+				if (!Objects.isNull(entry.getValue().getErrMesg())) {
+					cols.put("errMesg", entry.getValue().getErrMesg());	
+				} else {
+					cols.put("errMesg","");
+				}
+				
+				if (mylib.isNullOrEmpty(entry.getValue().getSrvID())) {
+					cols.put("srvID", null);
+				} else {
+					cols.put("srvID", entry.getValue().getSrvID());
+				}
+
+				String strOrder = String.valueOf((int) cols.get("nOrder"));
+				
+				
+				String key = cols.get("grpID")+":"+cols.get("numSecExec")+":"+String.format("%03d", (int) cols.get("nOrder"))+":"+cols.get("procID")+":"+cols.get("fecUpdate")+":"+cols.get("status");
+				
+				logger.info("Procesos en línea encontrado: "+ key);
+				mapOrder.put(key, cols);
+				//lstrows.add(cols);
+				
+			}
+			
+			for(Map.Entry<String, Map<String,Object>> process : mapOrder.entrySet()) {
+				lstrows.add(process.getValue());
+				
+			}
+			
+			return lstrows;
+		} catch (Exception e) {
+			throw new Exception("getProcControl()"+e.getMessage());
+		}
+	}
+
+	public List<Map<String,Object>> getProcHistory() throws Exception {
+		
+		try {
+			
+			Map<String, ProcControl> mpc = new TreeMap<>();
+			
+			mpc = gParams.getMapProcHistory()
+					.entrySet()
+					.stream()
+					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 			
 			List<Map<String,Object>> lstrows = new ArrayList<>();
 			Map<String,Map<String,Object>> mapOrder = new TreeMap<>();
@@ -208,7 +280,7 @@ public class FlowControl {
 			throw new Exception(e.getMessage());
 		}
 	}
-	
+
 	public void deleteTask(String key) throws Exception {
 		try {
 			gParams.getMapTask().remove(key);
@@ -242,6 +314,27 @@ public class FlowControl {
 	public void deleteProcControl(String key) throws Exception {
 		try {
 			gParams.getMapProcControl().remove(key);
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		}
+	}
+	
+	public void updateProcHistoty(String key, ProcControl pc) throws Exception {
+		try {
+			gParams.getMapProcHistory().put(key, pc);
+			
+			Calendar cal = Calendar.getInstance();
+			cal.set(Calendar.HOUR_OF_DAY, -24);
+			Date fecComp = cal.getTime();
+			
+			Map<String, ProcControl> copyMap = gParams.getMapProcHistory()
+													.entrySet()
+													.stream()
+													.filter(p -> p.getValue().getFecUpdate().compareTo(fecComp)==1)
+													.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+			
+			gParams.setMapProcHistory(copyMap);
+			
 		} catch (Exception e) {
 			throw new Exception(e.getMessage());
 		}

@@ -31,6 +31,7 @@ public class GlobalParams {
 	private Map<String, Task> mapTask = new HashMap<>();
 	private Map<String, Service> mapService = new HashMap<>();
 	private Map<String, ProcControl> mapProcControl = new HashMap<>();
+	private Map<String, ProcControl> mapProcHistory = new HashMap<>();
 	private Map<String, String> mapAssignedService = new HashMap<>();
 	private Map<String, Group> mapGroupParam = new HashMap<>();
 	private Map<String, Integer> mapAgeGroupCount = new TreeMap<>();
@@ -48,6 +49,7 @@ public class GlobalParams {
 	private boolean swAssignNewTask = true;
 	
 	//Getter and Setter
+	
 	
 	public Map<String, MonParams> getMapMonParams() {
 		return mapMonParams;
@@ -150,5 +152,11 @@ public class GlobalParams {
 	}
 	public void setLinkedLog(LinkedList<LogMessage> linkedLog) {
 		this.linkedLog = linkedLog;
+	}
+	public Map<String, ProcControl> getMapProcHistory() {
+		return mapProcHistory;
+	}
+	public void setMapProcHistory(Map<String, ProcControl> mapProcHistory) {
+		this.mapProcHistory = mapProcHistory;
 	}
 }

@@ -60,6 +60,9 @@ public class ServiceControl {
 					param1 = params.getString("uStatus");
 					response = fc.getProcControl(param,param1);
 					break;
+				case "getProcHistory":
+					response = fc.getProcHistory();
+					break;
 				case "getLog":
 					response = fc.getLog();
 					break;
@@ -225,6 +228,9 @@ public class ServiceControl {
 				case "getCmbUser":
 					response = dc.getDBresources(method, params);
 					break;
+				case "getCmbUserXType":
+					response = dc.getDBresources(method, params);
+					break;
 				case "getCmbDbase":
 					response = dc.getDBresources(method, params);
 					break;
@@ -232,6 +238,18 @@ public class ServiceControl {
 					response = dc.getDBresources(method, params);
 					break;
 				case "getCmbFtp":
+					response = dc.getDBresources(method, params);
+					break;
+				case "getListMov":
+					response = dc.getDBresources(method, params);
+					break;
+				case "getListOsp":
+					response = dc.getDBresources(method, params);
+					break;
+				case "getListEtb":
+					response = dc.getDBresources(method, params);
+					break;
+				case "getListLtb":
 					response = dc.getDBresources(method, params);
 					break;
 				case "getCmbMov":
@@ -309,6 +327,9 @@ public class ServiceControl {
  				case "getCmbMovParams":
 					response = dc.getDBresources(method, params);
 					break;
+ 				case "getNewProcID":
+					response = dc.getDBresources(method, params);
+					break;
 				case "getDBclient":
 					response = dc.getDBresources(method, params);
 					break;
@@ -350,6 +371,25 @@ public class ServiceControl {
 					break;
 				case "getAdmGroup":
 					response = dc.getDBresources(method, params);
+					break;
+				case "getAdmProcGroup":
+					lstResponse = new ArrayList<>();
+					
+					responseMyProcs = dc.getDBresources(method, params);
+					
+					@SuppressWarnings("unchecked") 
+					List<Map<String,Object>> myAdmProcs = (List<Map<String, Object>>) responseMyProcs;
+					for (int i=0; i<myAdmProcs.size(); i++) {
+						Map<String,Object> myProc = myAdmProcs.get(i);
+						Object responseMyDepsProc = dc.getProcDependences((String) myProc.get("grpID"), (String) myProc.get("procID"));
+						@SuppressWarnings("unchecked")
+						List<Map<String,Object>> myDepsProc = (List<Map<String, Object>>) responseMyDepsProc;
+						myProc.put("depCount", myDepsProc.size());
+						myProc.put("lstDeps", responseMyDepsProc);
+						lstResponse.add(myProc);
+					}
+					
+					response = lstResponse;
 					break;
 				case "getAgeGroupStat":
 					response = dc.getAgeGroupStat();
@@ -1002,6 +1042,7 @@ public class ServiceControl {
 						String tmpKey = subEntry.getValue().getGrpID()+":"+subEntry.getValue().getNumSecExec();
 						if (subKey.equals(tmpKey)) {
 							logger.info(logmsg+"Eliminando proceso finalizado: "+subEntry.getKey());
+							//fc.updateProcHistoty(subEntry.getKey(),subEntry.getValue());
 							fc.deleteProcControl(subEntry.getKey());
 							fc.deleteTask(subEntry.getKey());
 							logger.info(logmsg+"Proceso :"+subEntry.getKey()+" Eliminado!");

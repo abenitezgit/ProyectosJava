@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -1596,12 +1597,26 @@ public class DataAccess {
 			String spName="";
 			
 			switch (method) {
+				case "getNewProcID":
+					joParams = (JSONObject) params;
+					logger.info("Parametros recibidos: "+joParams.toString());
+					param = joParams.getString("typeProc");
+					spParams.add(new SPparam(param));
+					spName = "sp_get_newProcID";
+					break;
 				case "getAdmGroup":
 					joParams = (JSONObject) params;
 					logger.info("Parametros recibidos: "+joParams.toString());
 					param = joParams.getString("grpID");
 					spParams.add(new SPparam(param));
 					spName = "sp_get_AdmGroup";
+					break;
+				case "getAdmProcGroup":
+					joParams = (JSONObject) params;
+					logger.info("Parametros recibidos: "+joParams.toString());
+					param = joParams.getString("grpID");
+					spParams.add(new SPparam(param));
+					spName = "sp_get_admProcGroup";
 					break;
 				case "getDBGroup":
 					joParams = (JSONObject) params;
@@ -1759,6 +1774,12 @@ public class DataAccess {
 					spParams.add(new SPparam(joParams.getString("usrID")));
 					spName = "sp_get_cmbUser";
 					break;
+				case "getCmbUserXType":
+					joParams = (JSONObject) params;
+					spParams.add(new SPparam(joParams.getString("userID")));
+					spParams.add(new SPparam(joParams.getString("userType")));
+					spName = "sp_get_cmbUserXType";
+					break;
 				case "getCmbDbase":
 					joParams = (JSONObject) params;
 					spParams.add(new SPparam(joParams.getString("dbID")));
@@ -1818,6 +1839,26 @@ public class DataAccess {
 					joParams = (JSONObject) params;
 					spParams.add(new SPparam(joParams.getString("procID")));
 					spName = "sp_get_cmbBack";
+					break;
+				case "getListMov":
+					joParams = (JSONObject) params;
+					spParams.add(new SPparam(joParams.getString("procID")));
+					spName = "sp_get_cmbMov";
+					break;
+				case "getListOsp":
+					joParams = (JSONObject) params;
+					spParams.add(new SPparam(joParams.getString("procID")));
+					spName = "sp_get_cmbOsp";
+					break;
+				case "getListEtb":
+					joParams = (JSONObject) params;
+					spParams.add(new SPparam(joParams.getString("procID")));
+					spName = "sp_get_cmbEtb";
+					break;
+				case "getListLtb":
+					joParams = (JSONObject) params;
+					spParams.add(new SPparam(joParams.getString("procID")));
+					spName = "sp_get_cmbLtb";
 					break;
 			}
 			
@@ -2136,7 +2177,7 @@ public class DataAccess {
 		
 		try {
 			
-			int initDay;
+			//int initDay;
 			
 			dbConn.open();
 			
@@ -2149,25 +2190,31 @@ public class DataAccess {
 					boolean firstRow = true;
 					
 					Calendar cal = Calendar.getInstance();
-					int hourOfDay = cal.get(Calendar.HOUR_OF_DAY);
-					int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
-					int minuteOfHour = cal.get(Calendar.MINUTE);
+					//int hourOfDay = cal.get(Calendar.HOUR_OF_DAY);
+					//int dayOfMonth = cal.get(Calendar.DAY_OF_MONTH);
+					//int minuteOfHour = cal.get(Calendar.MINUTE);
 					
 					while (rs.next()) {
 						
 						int day = rs.getInt("nDay");
 						int hour = rs.getInt("nHour");
-						int minute = rs.getInt("nMinute");
 						int numGroups = rs.getInt("nCount");
+						Date fecComp = rs.getTimestamp("fecAge");
 						String uStatus = Objects.isNull(rs.getString("uStatus")) ? "NULL":rs.getString("uStatus") ;
 						String typeExec = Objects.isNull(rs.getString("typeExec")) ? "NULL":rs.getString("typeExec") ;
 						
+						int orderDay = day;
+						
+						if (orderDay<10) {
+							orderDay = orderDay+40;
+						}
+						
 						if (firstRow) {
-							initDay = day;
+							//initDay = day;
 							firstRow = false;
 						}
 	
-						String key = String.format("%02d", day)+":"+String.format("%02d", hour);
+						String key = String.format("%02d", orderDay)+":"+String.format("%02d", hour);
 						
 						AgeGroupStat ags = new AgeGroupStat();
 						
@@ -2176,19 +2223,28 @@ public class DataAccess {
 						}
 						
 						ags.setnGroups(ags.getnGroups()+numGroups);
+
+						logger.info("fecomp: "+ fecComp);
 						
 						if (!uStatus.equals("SUCCESS")) {
-							if (day<dayOfMonth) {
+							
+							if (fecComp.compareTo(cal.getTime())==-1) {
 								ags.setAlerts(ags.getAlerts()+numGroups);
-							} else if (day==dayOfMonth) {
-								if (hour<hourOfDay) {
-									ags.setAlerts(ags.getAlerts()+numGroups);
-								} else if (hour==hourOfDay) {
-									if (minute<minuteOfHour) {
-										ags.setAlerts(ags.getAlerts()+numGroups);
-									}
-								}
 							}
+							
+//							if ((dayOfMonth-day)>=0) {
+//								if (day<dayOfMonth) {
+//									ags.setAlerts(ags.getAlerts()+numGroups);
+//								} else if (day==dayOfMonth) {
+//										if (hour<hourOfDay) {
+//											ags.setAlerts(ags.getAlerts()+numGroups);
+//										} else if (hour==hourOfDay) {
+//											if (minute<minuteOfHour) {
+//												ags.setAlerts(ags.getAlerts()+numGroups);
+//											}
+//										}
+//								}
+//							}
 						} else if (typeExec.equals("MANUAL")) {
 							//ags.setAlerts(ags.getAlerts()+numGroups);
 						}
@@ -2237,12 +2293,20 @@ public class DataAccess {
 			
 			for(Map.Entry<String, AgeGroupStat> entry : mapAgeGroupStat.entrySet()) {
 				int Day = Integer.valueOf(entry.getKey().split(":")[0]);
-				int Hour = Integer.valueOf(entry.getKey().split(":")[1]);
+				//int Hour = Integer.valueOf(entry.getKey().split(":")[1]);
+				
+				//Nuevo 
+				int orderDay = Day;
+				
+				if (orderDay<10) {
+					orderDay = orderDay + 40;
+				}
 				
 				if (itDay!=Day) {
 					for (int i=0; i<=23; i++) {
 						Map<String, AgeGroupStat> mapAgeGrStatFinal = new TreeMap<>();
-						String getKey = entry.getKey().split(":")[0]+":"+String.format("%02d", i);
+						//String getKey = entry.getKey().split(":")[0]+":"+String.format("%02d", i);
+						String getKey = String.format("%02d", orderDay)+":"+String.format("%02d", i);
 						if (!mapAgeGroupStat.containsKey(getKey)) {
 							AgeGroupStat ags = new AgeGroupStat();
 							ags.setAlerts(0);
@@ -2587,7 +2651,7 @@ public class DataAccess {
 			
 			return lstListObjects;
 		} catch (Exception e) {
-			throw new Exception("getAgeGroupWeek(): "+e.getMessage());
+			throw new Exception("getAgeGroupStat(): "+e.getMessage());
 		}
 	}
 
