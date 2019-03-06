@@ -2,7 +2,6 @@ package org.services;
 
 import java.io.File;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.PreparedStatement;
@@ -107,6 +106,7 @@ public class ServiceLTB {
 			
 			//Valida si hay que borrar datos de destino
 			if (ltb.getLtbAppend()==0) {
+				mylog.info("Procediendo a limpiar tabla de carga...");
 				String delSql;
 				if (ltb.getDeleteWhereActive()==1) {
 					delSql = "delete from "+tbName+" where "+ltb.getDeleteWhereBody();
@@ -115,6 +115,7 @@ public class ServiceLTB {
 				}
 				
 				//Borra Datos de la Tabla Destino
+				mylog.info("Ejecutando script de limpieza: " + delSql);
 				dConn.executeUpdate(delSql);
 				
 				mylog.info("Datos borrados exitosamente de Tabla Destino: "+ltb.getLtbTableName());
@@ -131,6 +132,7 @@ public class ServiceLTB {
 			mylog.info("Sentencia de inserción de registros a BD Destino completada");
 
 			//Leyendo el archivo de carga
+			mylog.info("Leyendo archivo de carga en formato ISO-8859-1...");
 		    List<String> lines = Collections.emptyList();
 		    
 		    Charset charset = Charset.forName("ISO-8859-1");
@@ -139,6 +141,7 @@ public class ServiceLTB {
 		    			Paths.get(pathFileName), charset);
 		    
 		    if (!lines.isEmpty()) {
+		    	mylog.info("Archivo de carga leído exitosamenente!!");
 		    	List<Map<String,Object>> lstRows = new ArrayList<>();
 		    	
 		    	Iterator<String> itr = lines.iterator();
@@ -148,10 +151,20 @@ public class ServiceLTB {
 	    		}
 		    	
 		    	int rowsRead = 0;
+		    	int itRead = 0;
+		    	int showIt = 2000;
 		    	
 		    	//Inicia la conformación de la Lista de Filas que serán cargadas
+		    	mylog.info("Total de Registros a cargar: "+lines.size());
+		    	mylog.info("Iniciando parseo de registros....");
 			    while (itr.hasNext()) {
 		    		rowsRead++;
+		    		itRead++;
+		    		
+		    		if (itRead==showIt) {
+		    			mylog.info("# rows parsing: "+rowsRead+" of " + lines.size());
+		    			itRead = 0;
+		    		}
 		    		
 		    		String rowLine = itr.next();
 
@@ -171,15 +184,34 @@ public class ServiceLTB {
 			    }
 			    
 	    		//Inicia Carga de Datos en BD Destino
+			    mylog.info("Iniciando inserción de registros en BD....");
 			    int rowsInserted=0;
+			    int itRow = 0;
+			    int maxRowsBatch = 1000;
+			    boolean rowsPending = true;
 			    
 	    		for(int i=0; i<lstRows.size(); i++) {
 	    			try {
+	    				itRow ++;
 	    				addInsertBatch(cols, lstRows.get(i), psInsertar);
+	    				rowsPending = true;
 	    				rowsInserted++;
+	    				
+	    				if (itRow==maxRowsBatch) {
+	    					psInsertar.executeBatch();
+	    					mylog.info("# rows write: "+rowsInserted+" of " + lines.size());
+	    					itRow = 0;
+	    					rowsPending = false;
+	    				}
+	    				
 	    			} catch (Exception e) {
-						mylog.error("Error insertarndo fila: "+mylib.serializeObjectToJSon(lstRows.get(i), false)+" : "+e.getMessage());
+						mylog.error("Error insertarndo filas: " + e.getMessage());
 					}
+	    		}
+	    		
+	    		if (rowsPending) {
+					psInsertar.executeBatch();
+					mylog.info("# rows write: "+rowsInserted+" of " + lines.size());
 	    		}
 	    		
 	    		mylog.info("Rows Leídas: "+rowsRead);
@@ -226,19 +258,19 @@ public class ServiceLTB {
 					switch (typeName) {
 						case "STRING":
 							String varcharField = (String) value;
-							psInsertar.setString(nOrder, varcharField);
+							psInsertar.setString(nOrder, varcharField.trim());
 							break;
 						case "NVARCHAR":
 							String nVarcharField = (String) value;
-							psInsertar.setNString(nOrder, nVarcharField);
+							psInsertar.setNString(nOrder, nVarcharField.trim());
 							break;
 						case "NCHAR":
 							String nCharField = (String) value;
-							psInsertar.setNString(nOrder, nCharField);
+							psInsertar.setNString(nOrder, nCharField.trim());
 							break;
 						case "CHAR":
 							String charField = (String) value;
-							psInsertar.setString(nOrder, charField);
+							psInsertar.setString(nOrder, charField.trim());
 							break;
 						case "INTEGER":
 							int intField = (int) value;
@@ -256,10 +288,12 @@ public class ServiceLTB {
 				}
 			}
 			
-			psInsertar.execute();
+			//psInsertar.execute();
+			
+			psInsertar.addBatch();
 			
 			//psInsertar.addBatch();
-			psInsertar.execute();
+			//psInsertar.execute();
 			
 		} catch (Exception e) {
 			throw new Exception("addInsertBatch(): "+e.getMessage());
@@ -309,9 +343,21 @@ public class ServiceLTB {
 				if (param.getValue().getEnable()==1) {
 					String fieldDataType = param.getValue().getTbFieldDataType();
 					String fieldName = param.getValue().getTbFieldName();
+					int posIni = param.getValue().getFilePosIni()-1;
+					int posFin = param.getValue().getFilePosFin();
+					
+					String substr = "";
+					
+					try {
+						substr = rowLine.substring(posIni, posFin);
+					} catch (Exception e) {
+						mylog.error("Error parsing substrin("+posIni+","+posFin+") de rowLine: "+rowLine);
+						mylog.error(e.getMessage());
+					}
+					
 					Object fieldValue;
 					if (param.getValue().getTbLoadFromFile()==1) {
-						fieldValue = parseField(rowLine.substring(param.getValue().getFilePosIni(), param.getValue().getFilePosFin()),fieldDataType);
+						fieldValue = parseField(substr,fieldDataType);
 					} else {
 						fieldValue = parseField(param.getValue().getTbFieldValue(),fieldDataType);
 					}

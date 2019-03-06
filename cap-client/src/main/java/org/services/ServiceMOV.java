@@ -73,7 +73,12 @@ public class ServiceMOV {
     		//Crea los componentes de acceso a los datos
     		
     		mylog.info("Estableciendo conexión a BD Origen...");
-    		sConn.open(mov.getsIP().trim(), mov.getsDbName().trim(), mov.getsDbPort().trim(), mov.getsLoginName().trim(), mov.getsLoginPass().trim(), 10);
+    		try {
+    			sConn.open(mov.getsIP().trim(), mov.getsDbName().trim(), mov.getsDbPort().trim(), mov.getsLoginName().trim(), mov.getsLoginPass().trim(), 10);
+    		} catch (Exception e) {
+    			mylog.error("No es posible conectarse a BD Origen");
+    			throw new Exception("No es posible conectarse a BD Origen");
+    		}
     		
     		if (sConn.isConnected()) {
     			mylog.info("Conexión Exitosa a BD Origen!");
@@ -83,7 +88,12 @@ public class ServiceMOV {
     		} 
     		
     		mylog.info("Estableciendo conexión a BD Destino...");
-    		dConn.open(mov.getdIP().trim(), mov.getdDbName().trim(), mov.getdDbPort().trim(), mov.getdLoginName().trim(), mov.getdLoginPass().trim(), 10);
+    		try {
+    			dConn.open(mov.getdIP().trim(), mov.getdDbName().trim(), mov.getdDbPort().trim(), mov.getdLoginName().trim(), mov.getdLoginPass().trim(), 10);
+    		} catch (Exception e) {
+    			mylog.error("No es posible conectarse a BD Destino");
+    			throw new Exception("No es posible conectarse a BD Destino");
+    		}
     		
     		if (dConn.isConnected()) {
     			mylog.info("Conexión Exitosa a BD Destino!");
