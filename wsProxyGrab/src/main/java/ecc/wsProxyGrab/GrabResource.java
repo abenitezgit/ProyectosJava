@@ -29,7 +29,7 @@ public class GrabResource {
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public String getIt() {
-        return "Got it!";
+        return "Transaccion No autorizada por GET";
     }
     
 	@POST
